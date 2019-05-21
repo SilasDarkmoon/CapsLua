@@ -1,0 +1,892 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.IO.Compression;
+using UnityEngine;
+using Capstones.UnityEngineEx;
+
+using lua = Capstones.LuaLib.LuaCoreLib;
+using lual = Capstones.LuaLib.LuaAuxLib;
+using luae = Capstones.LuaLib.LuaLibEx;
+
+using uobj = UnityEngine.Object;
+
+namespace Capstones.LuaLib
+{
+    public static class CapsLuaFileManager
+    {
+        public class LuaStreamReader : IDisposable
+        {
+            public static readonly lua.Reader ReaderDel = new lua.Reader(ReaderFunc);
+            [AOT.MonoPInvokeCallback(typeof(lua.Reader))]
+            private static IntPtr ReaderFunc(IntPtr l, IntPtr ud, IntPtr size)
+            {
+                if (ud != IntPtr.Zero)
+                {
+                    LuaStreamReader reader = null;
+                    try
+                    {
+                        System.Runtime.InteropServices.GCHandle handle = (System.Runtime.InteropServices.GCHandle)ud;
+                        reader = handle.Target as LuaStreamReader;
+                    }
+                    catch (Exception e)
+                    {
+                        l.LogError(e);
+                    }
+
+                    if (reader != null && reader._Stream != null)
+                    {
+                        if (reader._Buffer == null)
+                        {
+                            reader._Buffer = new byte[64 * 1024];
+                            reader._BufferHandle = System.Runtime.InteropServices.GCHandle.Alloc(reader._Buffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                        }
+
+                        int cnt = 0;
+                        try
+                        {
+                            cnt = reader._Stream.Read(reader._Buffer, 0, reader._Buffer.Length);
+                        }
+                        catch (Exception e)
+                        {
+                            l.LogError(e);
+                        }
+                        if (cnt <= 0)
+                        {
+                            reader.Dispose();
+                            System.Runtime.InteropServices.Marshal.WriteIntPtr(size, IntPtr.Zero);
+                            return IntPtr.Zero;
+                        }
+                        else
+                        {
+                            System.Runtime.InteropServices.Marshal.WriteIntPtr(size, new IntPtr(cnt));
+                            return reader._BufferHandle.AddrOfPinnedObject();
+                        }
+                    }
+                }
+                return IntPtr.Zero;
+            }
+
+            private byte[] _Buffer;
+            private System.Runtime.InteropServices.GCHandle _BufferHandle;
+            private System.IO.Stream _Stream;
+
+            public LuaStreamReader(System.IO.Stream stream)
+            {
+                _Stream = stream;
+            }
+            public LuaStreamReader(System.IO.Stream stream, byte[] buffer)
+                : this (stream)
+            {
+                if (buffer != null)
+                {
+                    _Buffer = buffer;
+                    _BufferHandle = System.Runtime.InteropServices.GCHandle.Alloc(_Buffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                }
+            }
+            public void Reuse(System.IO.Stream stream, byte[] buffer)
+            {
+                Dispose();
+                _Stream = stream;
+                if (buffer != null)
+                {
+                    _Buffer = buffer;
+                    _BufferHandle = System.Runtime.InteropServices.GCHandle.Alloc(_Buffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                }
+                GC.ReRegisterForFinalize(this);
+            }
+
+            #region IDisposable Support
+            protected virtual void DisposeRaw()
+            {
+                if (_Stream != null)
+                {
+                    _Stream.Dispose();
+                    _Stream = null;
+                }
+                if (_Buffer != null)
+                {
+                    _BufferHandle.Free();
+                    _Buffer = null;
+                }
+            }
+            ~LuaStreamReader()
+            {
+                DisposeRaw();
+            }
+            public void Dispose()
+            {
+                DisposeRaw();
+                GC.SuppressFinalize(this);
+            }
+            #endregion
+        }
+
+        public static void SaveManifest(CapsResManifest mani, string file)
+        {
+            var tmpfile = file + ".tmp";
+            using (var sw = PlatDependant.OpenWriteText(tmpfile))
+            {
+                if (mani != null && mani.Root != null)
+                {
+                    Stack<Pack<int, CapsResManifestNode>> candis = new Stack<Pack<int, CapsResManifestNode>>();
+                    candis.Push(new Pack<int, CapsResManifestNode>(0, mani.Root));
+                    while (candis.Count > 0)
+                    {
+                        var ppair = candis.Pop();
+                        var plvl = ppair.t1;
+                        var parent = ppair.t2;
+
+                        for (int i = 0; i < plvl; ++i)
+                        {
+                            sw.Write("*");
+                        }
+                        sw.WriteLine(parent.PPath ?? "");
+
+                        var children = parent.Children;
+                        if (children != null)
+                        {
+                            var clvl = plvl + 1;
+                            for (int i = children.Count - 1; i >= 0; --i)
+                            {
+                                var child = children.Values[i];
+                                candis.Push(new Pack<int, CapsResManifestNode>(clvl, child));
+                            }
+                        }
+                    }
+                }
+            }
+            PlatDependant.MoveFile(tmpfile, file);
+        }
+        public static CapsResManifest LoadManifest(string file)
+        {
+            CapsResManifest mani = new CapsResManifest();
+            if (PlatDependant.IsFileExist(file))
+            {
+                using (var sr = PlatDependant.OpenReadText(file))
+                {
+                    if (sr != null)
+                    {
+                        List<CapsResManifestNode> nodeStack = new List<CapsResManifestNode>();
+                        var root = new CapsResManifestNode(mani);
+                        mani.Root = root;
+                        nodeStack.Add(root);
+
+                        int nxtChar = -1;
+                        while ((nxtChar = sr.Peek()) > 0)
+                        {
+                            int lvl = 0;
+                            while (nxtChar == '*')
+                            {
+                                sr.Read();
+                                ++lvl;
+                                nxtChar = sr.Peek();
+                            }
+                            string ppath = sr.ReadLine();
+                            if (string.IsNullOrEmpty(ppath))
+                            {
+                                continue;
+                            }
+
+                            if (nodeStack.Count > lvl)
+                            {
+                                var last = nodeStack[nodeStack.Count - 1];
+                                if (last.Children == null || last.Children.Count <= 0)
+                                {
+                                    CapsResManifestItem item;
+                                    item = new CapsResManifestItem(last);
+                                    last.Item = item;
+                                }
+
+                                nodeStack.RemoveRange(lvl, nodeStack.Count - lvl);
+                            }
+
+                            {
+                                var last = nodeStack[nodeStack.Count - 1];
+                                if (last.Children == null)
+                                {
+                                    last.Children = new SortedList<string, CapsResManifestNode>();
+                                }
+                                var child = new CapsResManifestNode(last, ppath);
+                                last.Children[ppath] = child;
+                                nodeStack.Add(child);
+                            }
+                        }
+
+                        if (nodeStack.Count > 1)
+                        {
+                            var last = nodeStack[nodeStack.Count - 1];
+                            CapsResManifestItem item;
+                            item = new CapsResManifestItem(last);
+                            last.Item = item;
+                        }
+
+                        mani.TrimExcess();
+                    }
+                }
+            }
+            return mani;
+        }
+
+        private static System.Threading.ManualResetEvent _RuntimeManifestTaskIdle = new System.Threading.ManualResetEvent(true);
+        private static System.Threading.ManualResetEvent _RuntimeManifestReady = new System.Threading.ManualResetEvent(true);
+        public static System.Threading.ManualResetEvent RuntimeManifestTaskIdle { get { return _RuntimeManifestTaskIdle; } }
+        public static System.Threading.ManualResetEvent RuntimeManifestReady { get { return _RuntimeManifestReady; } }
+
+        private static CapsResManifest _RuntimeRawManifest;
+        private static CapsResManifest _RuntimeManifest;
+        private static void LoadRuntimeManifest(TaskProgress progress)
+        {
+            try
+            {
+                var maniPath = ThreadSafeValues.UpdatePath + "/spt/manifest.m.txt";
+                if (PlatDependant.IsFileExist(maniPath))
+                {
+                    _RuntimeRawManifest = LoadManifest(maniPath);
+                }
+                else
+                {
+                    CapsResManifest mani = new CapsResManifest();
+                    // load from update path
+                    var sptfolder = ThreadSafeValues.UpdatePath + "/spt/";
+                    try
+                    {
+                        var files = PlatDependant.GetAllFiles(sptfolder);
+                        if (files != null && files.Length > 0)
+                        {
+                            for (int i = 0; i < files.Length; ++i)
+                            {
+                                var file = files[i];
+                                var part = file.Substring(sptfolder.Length).Replace('\\', '/');
+                                var node = mani.AddOrGetItem(part);
+                                if (node.Item == null)
+                                {
+                                    CapsResManifestItem item;
+                                    item = new CapsResManifestItem(node);
+                                    node.Item = item;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        PlatDependant.LogError(e);
+                    }
+                    // load from package
+                    if (ThreadSafeValues.AppStreamingAssetsPath.Contains("://"))
+                    {
+                        if (ThreadSafeValues.AppPlatform == RuntimePlatform.Android.ToString() && ResManager.LoadAssetsFromApk)
+                        {
+                            // Obb
+                            if (ResManager.LoadAssetsFromObb && ResManager.ObbZipArchive != null)
+                            {
+                                sptfolder = "spt/";
+                                int retryTimes = 10;
+                                int entryindex = 0;
+                                for (int i = 0; i < retryTimes; ++i)
+                                {
+                                    Exception error = null;
+                                    do
+                                    {
+                                        ZipArchive za = ResManager.ObbZipArchive;
+                                        if (za == null)
+                                        {
+                                            PlatDependant.LogError("Obb Archive Cannot be read.");
+                                            break;
+                                        }
+                                        try
+                                        {
+                                            var entries = za.Entries;
+                                            while (entryindex < entries.Count)
+                                            {
+                                                var entry = entries[entryindex];
+                                                var fullname = entry.FullName;
+                                                if (fullname.StartsWith(sptfolder))
+                                                {
+                                                    var part = fullname.Substring(sptfolder.Length);
+                                                    var node = mani.AddOrGetItem(part);
+                                                    if (node.Item == null)
+                                                    {
+                                                        CapsResManifestItem item;
+                                                        item = new CapsResManifestItem(node);
+                                                        node.Item = item;
+                                                    }
+                                                }
+                                                ++entryindex;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            error = e;
+                                            break;
+                                        }
+                                    } while (false);
+                                    if (error != null)
+                                    {
+                                        if (i == retryTimes - 1)
+                                        {
+                                            PlatDependant.LogError(error);
+                                        }
+                                        else
+                                        {
+                                            PlatDependant.LogError(error);
+                                            PlatDependant.LogInfo("Need Retry " + i);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                            // Apk
+                            //if (true)
+                            {
+                                sptfolder = "assets/spt/";
+                                int retryTimes = 10;
+                                int entryindex = 0;
+                                for (int i = 0; i < retryTimes; ++i)
+                                {
+                                    Exception error = null;
+                                    do
+                                    {
+                                        ZipArchive za = ResManager.AndroidApkZipArchive;
+                                        if (za == null)
+                                        {
+                                            PlatDependant.LogError("Apk Archive Cannot be read.");
+                                            break;
+                                        }
+                                        try
+                                        {
+                                            var entries = za.Entries;
+                                            while (entryindex < entries.Count)
+                                            {
+                                                var entry = entries[entryindex];
+                                                var fullname = entry.FullName;
+                                                if (fullname.StartsWith(sptfolder))
+                                                {
+                                                    var part = fullname.Substring(sptfolder.Length);
+                                                    var node = mani.AddOrGetItem(part);
+                                                    if (node.Item == null)
+                                                    {
+                                                        CapsResManifestItem item;
+                                                        item = new CapsResManifestItem(node);
+                                                        node.Item = item;
+                                                    }
+                                                }
+                                                ++entryindex;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            error = e;
+                                            break;
+                                        }
+                                    } while (false);
+                                    if (error != null)
+                                    {
+                                        if (i == retryTimes - 1)
+                                        {
+                                            PlatDependant.LogError(error);
+                                        }
+                                        else
+                                        {
+                                            PlatDependant.LogError(error);
+                                            PlatDependant.LogInfo("Need Retry " + i);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        sptfolder = ThreadSafeValues.AppStreamingAssetsPath + "/spt/";
+                        try
+                        {
+                            var files = PlatDependant.GetAllFiles(sptfolder);
+                            if (files != null && files.Length > 0)
+                            {
+                                for (int i = 0; i < files.Length; ++i)
+                                {
+                                    var file = files[i];
+                                    var part = file.Substring(sptfolder.Length).Replace('\\', '/');
+                                    var node = mani.AddOrGetItem(part);
+                                    if (node.Item == null)
+                                    {
+                                        CapsResManifestItem item;
+                                        item = new CapsResManifestItem(node);
+                                        node.Item = item;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                    }
+
+                    mani.TrimExcess();
+                    _RuntimeRawManifest = mani;
+                    _RuntimeManifestReady.Set();
+                    SaveManifest(mani, maniPath);
+                }
+            }
+            finally
+            {
+                _RuntimeManifestReady.Set();
+                _RuntimeManifestTaskIdle.Set();
+            }
+        }
+        // This will judge whether a mod is optional, so this should be called in UnityMain thread.
+        private static CapsResManifest MergeAndCollapseRuntimeManifest(CapsResManifest rawmani)
+        {
+            var root = rawmani.Root;
+            var rmani = new CapsResManifest();
+            if (root != null)
+            {
+                rmani.Root = new CapsResManifestNode(rmani);
+                CapsResManifestNode tmpNode = new CapsResManifestNode(rawmani);
+                CapsResManifestNode archNode = null;
+                if (root.Children != null)
+                {
+                    tmpNode.Children = new SortedList<string, CapsResManifestNode>();
+                    for (int i = 0; i < root.Children.Count; ++i)
+                    {
+                        var child = root.Children.Values[i];
+                        if (child.PPath == "mod")
+                        {
+                            continue;
+                        }
+                        else if (child.PPath == "@64")
+                        {
+                            if (Environment.Is64BitProcess)
+                            {
+                                archNode = child;
+                            }
+                            continue;
+                        }
+                        else if (child.PPath == "@32")
+                        {
+                            if (!Environment.Is64BitProcess)
+                            {
+                                archNode = child;
+                            }
+                            continue;
+                        }
+                        tmpNode.Children[child.PPath] = child;
+                    }
+                }
+                // merge - no mod
+                CapsResManifest.MergeManifestNode(rmani.Root, tmpNode, true);
+                // merge - arch
+                if (archNode != null)
+                {
+                    CapsResManifest.MergeManifestNode(rmani.Root, archNode, true);
+                }
+                // merge - mod
+                var flags = ResManager.GetValidDistributeFlags();
+                if (root.Children != null)
+                {
+                    CapsResManifestNode modNode;
+                    if (root.Children.TryGetValue("mod", out modNode))
+                    {
+                        if (modNode != null && modNode.Children != null)
+                        {
+                            var modChildren = modNode.Children;
+                            // merge - critical mod
+                            for (int i = 0; i < modChildren.Count; ++i)
+                            {
+                                var modChild = modChildren.Values[i];
+                                var mod = modChild.PPath;
+                                var moddesc = ResManager.GetDistributeDesc(mod);
+                                if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                                {
+                                    CapsResManifest.MergeManifestNode(rmani.Root, modChild, true);
+                                }
+                            }
+                            // merge - opt mod
+                            for (int i = 0; i < flags.Length; ++i)
+                            {
+                                var flag = flags[i];
+                                CapsResManifestNode modChild;
+                                if (modChildren.TryGetValue(flag, out modChild))
+                                {
+                                    if (modChild != null)
+                                    {
+                                        CapsResManifest.MergeManifestNode(rmani.Root, modChild, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Collapse
+                rmani.CollapseManifest(flags);
+                rmani.TrimExcess();
+            }
+            return rmani;
+        }
+        public static void StartLoadRuntimeManifest()
+        {
+            _RuntimeRawManifest = null;
+            _RuntimeManifest = null;
+            _RuntimeManifestReady.Reset();
+            _RuntimeManifestTaskIdle.Reset();
+            PlatDependant.RunBackground(LoadRuntimeManifest);
+        }
+        public static void ResetRuntimeManifest()
+        {
+            _RuntimeManifestTaskIdle.WaitOne();
+            var filePath = ThreadSafeValues.UpdatePath + "/spt/manifest.m.txt";
+            PlatDependant.DeleteFile(filePath);
+            StartLoadRuntimeManifest();
+        }
+        public static void CheckRuntimeManifest()
+        {
+            _RuntimeManifestReady.WaitOne();
+            if (_RuntimeRawManifest == null)
+            {
+                StartLoadRuntimeManifest();
+                _RuntimeManifestReady.WaitOne();
+            }
+            _RuntimeManifest = MergeAndCollapseRuntimeManifest(_RuntimeRawManifest);
+        }
+
+        public static string[] GetCriticalLuaMods()
+        {
+#if UNITY_EDITOR
+            return EditorToClientUtils.GetCriticalMods();
+#else
+            if (_RuntimeRawManifest != null)
+            {
+                var root = _RuntimeRawManifest.Root;
+                if (root != null && root.Children != null)
+                {
+                    CapsResManifestNode modnode;
+                    if (root.Children.TryGetValue("mod", out modnode))
+                    {
+                        var modChildren = modnode.Children;
+                        if (modChildren != null)
+                        {
+                            List<string> cmods = new List<string>(modnode.Children.Count);
+                            for (int i = 0; i < modChildren.Count; ++i)
+                            {
+                                var modChild = modChildren.Values[i];
+                                var mod = modChild.PPath;
+                                var moddesc = ResManager.GetDistributeDesc(mod);
+                                if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                                {
+                                    cmods.Add(mod);
+                                }
+                            }
+                            return cmods.ToArray();
+                        }
+                    }
+                }
+            }
+            return new string[0];
+#endif
+        }
+
+        private static readonly char[] _LuaRequireSeperateChars = new[] { '.' };
+        private static System.IO.Stream GetLuaStream(CapsResManifestItem item, out string location)
+        {
+            try
+            {
+                var rnode = item.Node;
+                System.Text.StringBuilder sbpath = new System.Text.StringBuilder();
+                while (rnode.Parent != null)
+                {
+                    if (sbpath.Length > 0)
+                    {
+                        sbpath.Insert(0, '/');
+                    }
+                    sbpath.Insert(0, rnode.PPath);
+                    rnode = rnode.Parent;
+                }
+                var path = sbpath.ToString();
+
+                // load from update path
+                var sptpath = ThreadSafeValues.UpdatePath + "/spt/" + path;
+                if (PlatDependant.IsFileExist(sptpath))
+                {
+                    location = sptpath;
+                    return PlatDependant.OpenRead(sptpath);
+                }
+                // load from package
+                if (ThreadSafeValues.AppStreamingAssetsPath.Contains("://"))
+                {
+                    if (ThreadSafeValues.AppPlatform == RuntimePlatform.Android.ToString() && ResManager.LoadAssetsFromApk)
+                    {
+                        // Obb
+                        if (ResManager.LoadAssetsFromObb && ResManager.ObbZipArchive != null)
+                        {
+                            sptpath = "spt/" + path;
+                            int retryTimes = 10;
+                            for (int i = 0; i < retryTimes; ++i)
+                            {
+                                Exception error = null;
+                                do
+                                {
+                                    ZipArchive za = ResManager.ObbZipArchive;
+                                    if (za == null)
+                                    {
+                                        PlatDependant.LogError("Obb Archive Cannot be read.");
+                                        break;
+                                    }
+                                    try
+                                    {
+                                        var entry = za.GetEntry(sptpath);
+                                        if (entry != null)
+                                        {
+                                            location = sptpath;
+                                            return entry.Open();
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        error = e;
+                                        break;
+                                    }
+                                } while (false);
+                                if (error != null)
+                                {
+                                    if (i == retryTimes - 1)
+                                    {
+                                        PlatDependant.LogError(error);
+                                    }
+                                    else
+                                    {
+                                        PlatDependant.LogError(error);
+                                        PlatDependant.LogInfo("Need Retry " + i);
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        // Apk
+                        //if (true)
+                        {
+                            sptpath = "assets/spt/" + path;
+                            int retryTimes = 10;
+                            for (int i = 0; i < retryTimes; ++i)
+                            {
+                                Exception error = null;
+                                do
+                                {
+                                    ZipArchive za = ResManager.AndroidApkZipArchive;
+                                    if (za == null)
+                                    {
+                                        PlatDependant.LogError("Apk Archive Cannot be read.");
+                                        break;
+                                    }
+                                    try
+                                    {
+                                        var entry = za.GetEntry(sptpath);
+                                        if (entry != null)
+                                        {
+                                            location = sptpath;
+                                            return entry.Open();
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        error = e;
+                                        break;
+                                    }
+                                } while (false);
+                                if (error != null)
+                                {
+                                    if (i == retryTimes - 1)
+                                    {
+                                        PlatDependant.LogError(error);
+                                    }
+                                    else
+                                    {
+                                        PlatDependant.LogError(error);
+                                        PlatDependant.LogInfo("Need Retry " + i);
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    sptpath = ThreadSafeValues.AppStreamingAssetsPath + "/spt/" + path;
+                    if (PlatDependant.IsFileExist(sptpath))
+                    {
+                        location = sptpath;
+                        return PlatDependant.OpenRead(sptpath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                PlatDependant.LogError(e);
+            }
+            location = "";
+            return null;
+        }
+        public static System.IO.Stream GetLuaStream(string name, out string location)
+        {
+#if UNITY_EDITOR
+            try
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    if (name.Length > 0 && name[0] == '?')
+                    {
+                        var real = name.Substring("?raw.".Length);
+                        string mod = null;
+                        string norm = real;
+                        if (real.StartsWith("mod."))
+                        {
+                            var mindex = real.IndexOf('.', "mod.".Length);
+                            if (mindex > 0)
+                            {
+                                mod = real.Substring("mod.".Length, mindex - "mod.".Length);
+                                norm = real.Substring(mindex + 1);
+                            }
+                        }
+                        norm = norm.Replace('.', '/');
+                        bool isFileExist = false;
+                        if (mod == null)
+                        {
+                            real = "Assets/CapsSpt/" + norm + ".lua";
+                        }
+                        else
+                        {
+                            var package = EditorToClientUtils.GetPackageNameFromModName(mod);
+                            if (!string.IsNullOrEmpty(package))
+                            {
+                                real = "Packages/" + package + "/CapsSpt/" + norm + ".lua";
+                                real = EditorToClientUtils.GetPathFromAssetName(real);
+                                isFileExist = !string.IsNullOrEmpty(real) && PlatDependant.IsFileExist(real);
+                            }
+                            if (!isFileExist)
+                            {
+                                real = "Assets/Mods/" + mod + "/CapsSpt/" + norm + ".lua";
+                            }
+                        }
+                        if (isFileExist || PlatDependant.IsFileExist(real))
+                        {
+                            location = real;
+                            return PlatDependant.OpenRead(real);
+                        }
+                    }
+                    else
+                    {
+                        var file = "CapsSpt/" + name.Replace('.', '/') + ".lua";
+                        var found = ResManager.EditorResLoader.CheckDistributePath(file, true);
+                        if (found != null)
+                        {
+                            if (found.StartsWith("Packages/"))
+                            {
+                                found = EditorToClientUtils.GetPathFromAssetName(found);
+                            }
+                        }
+                        if (found != null)
+                        {
+                            location = found;
+                            return PlatDependant.OpenRead(found);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                PlatDependant.LogError(e);
+            }
+#else
+            try
+            {
+                if (name.Length > 0 && name[0] == '?')
+                {
+                    if (name.StartsWith("?raw."))
+                    {
+                        if (_RuntimeRawManifest != null)
+                        {
+                            var real = name.Substring("?raw.".Length);
+                            string archreal = Environment.Is64BitProcess ? "@64" + real : "@32" + real;
+                            CapsResManifestNode node;
+                            if (_RuntimeRawManifest.TryGetItemIgnoreExt(archreal, out node, _LuaRequireSeperateChars) || _RuntimeRawManifest.TryGetItemIgnoreExt(real, out node, _LuaRequireSeperateChars))
+                            {
+                                if (node != null && node.Item != null)
+                                {
+                                    var item = node.Item;
+                                    return GetLuaStream(item, out location);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (_RuntimeManifest != null)
+                    {
+                        var node = _RuntimeManifest.GetItem(name, _LuaRequireSeperateChars);
+                        if (node != null && node.Item != null)
+                        {
+                            var item = node.Item;
+                            while (item.Ref != null)
+                            {
+                                item = item.Ref;
+                            }
+
+                            return GetLuaStream(item, out location);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                PlatDependant.LogError(e);
+            }
+#endif
+            location = "";
+            return null;
+        }
+        public static System.IO.Stream GetLuaStream(string name)
+        {
+            string location;
+            return GetLuaStream(name, out location);
+        }
+
+        public static bool LoadRuntimeManifestOnStart = true;
+        public static bool RuntimeManifestOld = true;
+        private static void PrepareRuntimeManifest()
+        {
+            if (LoadRuntimeManifestOnStart && RuntimeManifestOld)
+            {
+                RuntimeManifestOld = false;
+                StartLoadRuntimeManifest();
+            }
+        }
+        public static class LifetimeOrders
+        {
+            public const int SptLoader = 500;
+        }
+        [RuntimeInitializeOnLoadMethod]
+        private static void OnUnityStart()
+        {
+#if !UNITY_EDITOR
+            ResManager.AddInitItem(new ResManager.ActionInitItem(ResManager.LifetimeOrders.ABLoader + 5, PrepareRuntimeManifest, null));
+            ResManager.AddInitItem(LifetimeOrders.SptLoader, CheckRuntimeManifest);
+#endif
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+
+    "name": "cn.capstones.lua",
+
+    "displayName": "Capstone Lua",
+
+    "version": "1.0.0",
+
+    "unity": "2018.3",
+
+    "description": "Capstone Lua",
+
+    "keywords": [
+        "unity"
+    ],
+
+    "category": "Unity"
+
+}

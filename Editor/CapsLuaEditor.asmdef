@@ -1,0 +1,19 @@
+{
+    "name": "CapsLuaEditor",
+    "references": [
+        "CapsLua",
+        "ResManagerEditor",
+        "ResManagerEditorEntry",
+        "ResManager"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

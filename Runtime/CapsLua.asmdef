@@ -1,0 +1,17 @@
+{
+    "name": "CapsLua",
+    "references": [
+        "Unity.IO.Compression",
+        "ResManager",
+        "JsonObject",
+        "ResManagerEntry"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
