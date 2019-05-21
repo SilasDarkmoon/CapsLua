@@ -87,8 +87,6 @@ namespace Capstones.LuaExt
         }
         public static void InitLua_Critical(IntPtr l)
         {
-            TryRequireLua(l, "?raw.init");
-
             // mods
             var mods = CapsLuaFileManager.GetCriticalLuaMods();
             for (int i = 0; i < mods.Length; ++i)
@@ -96,6 +94,8 @@ namespace Capstones.LuaExt
                 var mod = mods[i];
                 TryRequireLua(l, "?raw.mod." + mod + ".init");
             }
+
+            TryRequireLua(l, "?raw.init");
         }
         public static void InitLua_Mods(IntPtr l)
         {
@@ -234,6 +234,7 @@ namespace Capstones.LuaExt
                             l.settable(-3); // package loaders
                         }
                     }
+                    l.pop(1); // package
                 }
             }
             l.pop(1); // X
