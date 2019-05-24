@@ -27,8 +27,8 @@ namespace Capstones.UnityEditorEx
         [MenuItem("Test/Build Scripts")]
         public static void BuildSptCommand()
         {
-            //var work = CapsSptBuilder.BuildSptAsync(null, null, new[] { new CapsSptBuilder.SptBuilderEx_RawCopy() });
-            var work = CapsSptBuilder.BuildSptAsync(null, null);
+            var work = CapsSptBuilder.BuildSptAsync(null, null, new[] { new CapsSptBuilder.SptBuilderEx_RawCopy() });
+            //var work = CapsSptBuilder.BuildSptAsync(null, null);
             while (work.MoveNext()) ;
         }
     }

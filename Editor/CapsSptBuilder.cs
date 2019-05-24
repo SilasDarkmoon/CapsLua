@@ -407,6 +407,7 @@ namespace Capstones.UnityEditorEx
                                 {
                                     dst = dst.Substring(0, dst.Length - ".lua".Length);
                                 }
+                                dst += OutputExt;
                                 if (!string.IsNullOrEmpty(OutputDir))
                                 {
                                     dst = OutputDir + dst;
@@ -1091,7 +1092,15 @@ namespace Capstones.UnityEditorEx
                 }
 
                 logger.Log("(Phase) Wait For Build.");
-                buildwork.WaitForWorkDone(winprog);
+                work = buildwork.WaitForWorkDone(winprog);
+                while (work.MoveNext())
+                {
+                    if (winprog != null)
+                    {
+                        yield return work.Current;
+                    }
+                }
+
 
                 logger.Log("(Phase) Copy.");
                 var outsptdir = outputDir + "/spt/";

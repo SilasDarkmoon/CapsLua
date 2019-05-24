@@ -594,7 +594,7 @@ namespace Capstones.LuaLib
 #endif
         }
 
-        private static readonly char[] _LuaRequireSeperateChars = new[] { '.' };
+        private static readonly char[] _LuaRequireSeperateChars = new[] { '.', '/', '\\' };
         private static System.IO.Stream GetLuaStream(CapsResManifestItem item, out string location)
         {
             try
@@ -821,7 +821,7 @@ namespace Capstones.LuaLib
                         if (_RuntimeRawManifest != null)
                         {
                             var real = name.Substring("?raw.".Length);
-                            string archreal = Environment.Is64BitProcess ? "@64" + real : "@32" + real;
+                            string archreal = Environment.Is64BitProcess ? "@64." + real : "@32." + real;
                             CapsResManifestNode node;
                             if (_RuntimeRawManifest.TryGetItemIgnoreExt(archreal, out node, _LuaRequireSeperateChars) || _RuntimeRawManifest.TryGetItemIgnoreExt(real, out node, _LuaRequireSeperateChars))
                             {
@@ -878,7 +878,7 @@ namespace Capstones.LuaLib
         }
         public static class LifetimeOrders
         {
-            public const int SptLoader = 500;
+            public const int SptLoader = 600;
         }
         [RuntimeInitializeOnLoadMethod]
         private static void OnUnityStart()
