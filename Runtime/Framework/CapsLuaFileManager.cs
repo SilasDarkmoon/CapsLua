@@ -866,11 +866,10 @@ namespace Capstones.LuaLib
             return GetLuaStream(name, out location);
         }
 
-        public static bool LoadRuntimeManifestOnStart = true;
         public static bool RuntimeManifestOld = true;
         private static void PrepareRuntimeManifest()
         {
-            if (LoadRuntimeManifestOnStart && RuntimeManifestOld)
+            if (RuntimeManifestOld)
             {
                 RuntimeManifestOld = false;
                 StartLoadRuntimeManifest();
@@ -884,9 +883,58 @@ namespace Capstones.LuaLib
         private static void OnUnityStart()
         {
 #if !UNITY_EDITOR
+            ResManager.AddInitItem(ResManager.LifetimeOrders.CrossEvent + 10, RegCrossEvents);
+#if !MOD_CAPSUPDATE
             ResManager.AddInitItem(new ResManager.ActionInitItem(ResManager.LifetimeOrders.ABLoader + 5, PrepareRuntimeManifest, null));
+#endif
             ResManager.AddInitItem(LifetimeOrders.SptLoader, CheckRuntimeManifest);
 #endif
         }
+
+#if MOD_CAPSUPDATE
+        public static Dictionary<string, int> RecordedResVersions;
+        private static void RegCrossEvents()
+        {
+            CrossEvent.RegHandler("LockSptManifest", cate =>
+            {
+                RuntimeManifestReady.Reset();
+                RuntimeManifestTaskIdle.Reset();
+            });
+            CrossEvent.RegHandler("SptManifestReady", cate =>
+            {
+                CrossEvent.GetParam(CrossEvent.TOKEN_ARGS, 0);
+                var vers = CrossEvent.ContextExchangeObj as CrossEvent.RawEventData<Dictionary<string, int>>;
+                RecordedResVersions = null;
+                if (vers != null)
+                {
+                    RecordedResVersions = vers.Data;
+                }
+
+                StartLoadRuntimeManifest();
+            });
+        }
+
+        public static void PushVersionToLua(IntPtr l)
+        {
+            l.newtable();
+#if UNITY_EDITOR
+            l.pushnumber(int.MaxValue);
+            l.SetField(-2, "editor");
+#else
+            var resvers = RecordedResVersions;
+            if (resvers != null)
+            {
+                foreach (var kvp in resvers)
+                {
+                    l.pushnumber(kvp.Value);
+                    l.SetField(-2, kvp.Key);
+                }
+            }
+#endif
+            l.SetGlobal("___resver");
+        }
+
+        private static LuaExt.LuaExLibs.LuaExLibItem _LuaExLib_UpdateVersion_Instance = new LuaExt.LuaExLibs.LuaExLibItem(PushVersionToLua, 500);
+#endif
     }
 }
