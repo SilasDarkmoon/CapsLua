@@ -807,6 +807,7 @@ namespace Capstones.UnityEditorEx
             bool shouldCreateBuildingParams = CapsResBuilder.BuildingParams == null;
             CapsResBuilder.BuildingParams = CapsResBuilder.BuildingParams ?? CapsResBuilder.ResBuilderParams.Create();
             var timetoken = CapsResBuilder.BuildingParams.timetoken;
+            var makezip = CapsResBuilder.BuildingParams.makezip;
             string outputDir = "Latest";
             if (!isDefaultBuild)
             {
@@ -828,6 +829,7 @@ namespace Capstones.UnityEditorEx
             Application.LogCallback LogToFile = (message, stack, logtype) =>
             {
                 swlog.WriteLine(message);
+                swlog.Flush();
             };
             if (swlog != null)
             {
@@ -840,7 +842,7 @@ namespace Capstones.UnityEditorEx
                 {
                     logger.Log("(Phase) Build Spt Cleaup.");
                     cleanupDone = true;
-                    logger.Log("(Done) Build Res Cleaup.");
+                    logger.Log("(Done) Build Spt Cleaup.");
                     if (swlog != null)
                     {
                         Application.logMessageReceived -= LogToFile;
@@ -1123,7 +1125,7 @@ namespace Capstones.UnityEditorEx
                     }
                 }
 
-                if (isDefaultBuild)
+                if (isDefaultBuild && makezip)
                 {
                     logger.Log("(Phase) Zip.");
                     List<Pack<string, string, IList<string>>> zips = new List<Pack<string, string, IList<string>>>();

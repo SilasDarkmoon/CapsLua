@@ -24,12 +24,14 @@ namespace Capstones.UnityEditorEx
             GlobalLua.Reinit();
         }
 
-        [MenuItem("Test/Build Scripts")]
+        [MenuItem("Res/Build Scripts (No Update, Raw Copy)", priority = 200101)]
         public static void BuildSptCommand()
         {
+            CapsResBuilder.BuildingParams = CapsResBuilder.ResBuilderParams.Create();
+            CapsResBuilder.BuildingParams.makezip = false;
             var work = CapsSptBuilder.BuildSptAsync(null, null, new[] { new CapsSptBuilder.SptBuilderEx_RawCopy() });
-            //var work = CapsSptBuilder.BuildSptAsync(null, null);
             while (work.MoveNext()) ;
+            CapsResBuilder.BuildingParams = null;
         }
     }
 }
