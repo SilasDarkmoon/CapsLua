@@ -24,7 +24,7 @@ namespace Capstones.UnityEditorEx
             GlobalLua.Reinit();
         }
 
-        [MenuItem("Res/Build Scripts (No Update, Raw Copy)", priority = 200101)]
+        [MenuItem("Res/Build Scripts (No Update, Raw Copy)", priority = 200120)]
         public static void BuildSptCommand()
         {
             CapsResBuilder.BuildingParams = CapsResBuilder.ResBuilderParams.Create();
