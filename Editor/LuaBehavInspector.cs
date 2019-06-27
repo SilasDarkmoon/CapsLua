@@ -18,6 +18,8 @@ namespace Capstones.UnityEditorEx
         private SerializedObject soTarget = null;
         private SerializedProperty spLua;
         private SerializedProperty spEx;
+        private string oldLuaPath;
+        private Object oldLuaObj;
         #endregion
 
         void OnEnable()
@@ -41,7 +43,7 @@ namespace Capstones.UnityEditorEx
             {
                 var path = luastr.Replace('.', '/');
                 path = "CapsSpt/" + path + ".lua";
-                var real = ResManager.EditorResLoader.CheckDistributePath(path);
+                var real = ResManager.EditorResLoader.CheckDistributePath(path, true);
                 return real;
             }
             return null;
@@ -97,25 +99,30 @@ namespace Capstones.UnityEditorEx
                 //EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.BeginHorizontal();
-                Object luaObj = null;
-                var path = GetLuaPath(spLua.stringValue);
-                if (path != null)
+                if (oldLuaPath != spLua.stringValue)
                 {
-                    luaObj = AssetDatabase.LoadMainAssetAtPath(path);
+                    oldLuaPath = spLua.stringValue ?? "";
+                    oldLuaObj = null;
+                    var path = GetLuaPath(oldLuaPath);
+                    if (path != null)
+                    {
+                        oldLuaObj = AssetDatabase.LoadMainAssetAtPath(path);
+                    }
                 }
+                Object luaObj = oldLuaObj;
                 var newLuaObj = EditorGUILayout.ObjectField("Lua Object:", luaObj, typeof(DefaultAsset), false);
                 if (newLuaObj != luaObj)
                 {
-                    var newPath = AssetDatabase.GetAssetPath(newLuaObj);
-                    var newlibstr = GetLuaLibStr(newPath);
-                    if (newLuaObj == null)
+                    string newlibstr = null;
+                    if (newLuaObj != null)
                     {
-                        newlibstr = "";
+                        var newPath = AssetDatabase.GetAssetPath(newLuaObj);
+                        newlibstr = GetLuaLibStr(newPath);
                     }
-                    if (newlibstr != null)
-                    {
-                        spLua.stringValue = newlibstr;
-                    }
+                    newlibstr = newlibstr ?? "";
+                    spLua.stringValue = newlibstr;
+                    oldLuaObj = newLuaObj;
+                    oldLuaPath = newlibstr;
                 }
                 EditorGUILayout.EndHorizontal();
 

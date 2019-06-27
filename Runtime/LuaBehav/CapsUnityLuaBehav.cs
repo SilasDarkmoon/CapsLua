@@ -41,7 +41,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     private static TypeHubPrecompiled_CapsUnityLuaBehav ___tp_CapsUnityLuaBehav;
 
-    [UnityEngine.RuntimeInitializeOnLoadMethod]
+    [UnityEngine.RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Init()
     {
         ___tp_CapsUnityLuaBehav = ___tp_CapsUnityLuaBehav ?? new TypeHubPrecompiled_CapsUnityLuaBehav();
@@ -617,11 +617,11 @@ public class CapsUnityLuaBehav : MonoBehaviour
         return null;
     }
 
-    public void EditorPrepareLuaRes()
-    {
-        ResManager.ResLoader.Init();
-        LanguageConverter.Init();
-    }
+    //public void EditorPrepareLuaRes()
+    //{
+    //    ResManager.ResLoader.Init();
+    //    LanguageConverter.Init();
+    //}
     void Awake()
     {
 #if UNITY_EDITOR
@@ -631,22 +631,22 @@ public class CapsUnityLuaBehav : MonoBehaviour
             GlobalLua.EditorCheckRunningState();
             GlobalLua.L["___EDITOR_AWAKEN"] = 1;
 
-            Init();
-            EditorPrepareLuaRes();
+            //Init();
+            //EditorPrepareLuaRes();
 
-            var l = GlobalLua.L.L;
-            l.pushcfunction(LuaHub.LuaFuncOnError); // err
-            l.GetGlobal("require"); // err require
-            l.PushString("init"); // err require "main"
-            if (l.pcall(1, 0, -3) == 0)
-            {
-                l.pop(1);
-            }
-            else
-            {
-                DynamicHelper.LogError(l.GetLua(-1));
-                l.pop(2);
-            }
+            //var l = GlobalLua.L.L;
+            //l.pushcfunction(LuaHub.LuaFuncOnError); // err
+            //l.GetGlobal("require"); // err require
+            //l.PushString("init"); // err require "main"
+            //if (l.pcall(1, 0, -3) == 0)
+            //{
+            //    l.pop(1);
+            //}
+            //else
+            //{
+            //    DynamicHelper.LogError(l.GetLua(-1));
+            //    l.pop(2);
+            //}
         }
 #endif
         BindLua();

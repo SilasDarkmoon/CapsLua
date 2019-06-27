@@ -520,7 +520,7 @@ namespace Capstones.LuaExt
             }
         }
         private static CrossEventEx_Lua _CrossEventEx_Lua_Instance = new CrossEventEx_Lua();
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
             CrossEvent.CrossEventEx.Add(_CrossEventEx_Lua_Instance);

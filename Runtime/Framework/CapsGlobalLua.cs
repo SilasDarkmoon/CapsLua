@@ -56,7 +56,7 @@ namespace Capstones.UnityEngineEx
         {
             LuaExLibs.InitFuncs.Sort((a, b) => a.Order - b.Order);
             LuaExLibs.InitFuncs.TrimExcess();
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
             Init();
 #endif
         }
@@ -255,7 +255,7 @@ namespace Capstones.UnityEngineEx
 
     public static class GlobalLuaEntry
     {
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
 #if UNITY_EDITOR

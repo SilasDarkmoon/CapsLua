@@ -133,7 +133,7 @@ namespace Capstones.LuaExt
             InitLua_PostInit(l);
         }
 
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
 #if !UNITY_EDITOR

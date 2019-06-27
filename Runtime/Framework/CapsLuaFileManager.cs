@@ -879,7 +879,7 @@ namespace Capstones.LuaLib
         {
             public const int SptLoader = 600;
         }
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
 #if !UNITY_EDITOR
