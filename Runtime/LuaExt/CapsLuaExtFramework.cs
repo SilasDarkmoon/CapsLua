@@ -142,6 +142,7 @@ namespace Capstones.LuaExt
         }
         private static void GlobalLuaInitLua()
         {
+            GlobalLua.Init();
             InitLua(GlobalLua.L.L);
         }
 
