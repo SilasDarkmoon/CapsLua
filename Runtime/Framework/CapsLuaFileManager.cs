@@ -770,11 +770,12 @@ namespace Capstones.LuaLib
                         }
                         else
                         {
-                            var package = EditorToClientUtils.GetPackageNameFromModName(mod);
+                            string package;
+                            ResManager.EditorResLoader.ResRuntimeCache.ModToPackage.TryGetValue(mod, out package);
                             if (!string.IsNullOrEmpty(package))
                             {
                                 real = "Packages/" + package + "/CapsSpt/" + norm + ".lua";
-                                real = EditorToClientUtils.GetPathFromAssetName(real);
+                                //real = EditorToClientUtils.GetPathFromAssetName(real);
                                 isFileExist = !string.IsNullOrEmpty(real) && PlatDependant.IsFileExist(real);
                             }
                             if (!isFileExist)
@@ -791,14 +792,22 @@ namespace Capstones.LuaLib
                     else
                     {
                         var file = "CapsSpt/" + name.Replace('.', '/') + ".lua";
-                        var found = ResManager.EditorResLoader.CheckDistributePath(file, true);
-                        if (found != null)
+                        string found;
+                        if (ThreadLocalObj.GetThreadId() == ThreadSafeValues.UnityThreadID)
                         {
-                            if (found.StartsWith("Packages/"))
-                            {
-                                found = EditorToClientUtils.GetPathFromAssetName(found);
-                            }
+                            found = ResManager.EditorResLoader.CheckDistributePath(file, true);
                         }
+                        else
+                        {
+                            found = ResManager.EditorResLoader.CheckDistributePathSafe(file);
+                        }
+                        //if (found != null)
+                        //{
+                        //    if (found.StartsWith("Packages/"))
+                        //    {
+                        //        found = EditorToClientUtils.GetPathFromAssetName(found);
+                        //    }
+                        //}
                         if (found != null)
                         {
                             location = found;
