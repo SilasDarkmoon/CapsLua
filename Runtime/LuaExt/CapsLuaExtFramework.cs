@@ -268,6 +268,7 @@ namespace Capstones.LuaExt
                         }
                         _LuaStreamReader.Reuse(stream, PlatDependant.CopyStreamBuffer);
                         handle = GCHandle.Alloc(_LuaStreamReader);
+                        location = string.Format("{0}<{1}>", mname, location);
                         if (l.load(CapsLuaFileManager.LuaStreamReader.ReaderDel, (IntPtr)handle.Value, location) == 0)
                         {
                             return 1;
