@@ -41,6 +41,9 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     private static TypeHubPrecompiled_CapsUnityLuaBehav ___tp_CapsUnityLuaBehav;
 
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoadMethod]
+#endif
     [UnityEngine.RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Init()
     {

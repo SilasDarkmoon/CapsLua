@@ -519,11 +519,19 @@ namespace Capstones.LuaExt
                 }
             }
         }
-        private static CrossEventEx_Lua _CrossEventEx_Lua_Instance = new CrossEventEx_Lua();
+
+        private static CrossEventEx_Lua _CrossEventEx_Lua_Instance;
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#endif
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
-            CrossEvent.CrossEventEx.Add(_CrossEventEx_Lua_Instance);
+            if (_CrossEventEx_Lua_Instance == null)
+            {
+                _CrossEventEx_Lua_Instance = new CrossEventEx_Lua();
+                CrossEvent.CrossEventEx.Add(_CrossEventEx_Lua_Instance);
+            }
         }
     }
 }
