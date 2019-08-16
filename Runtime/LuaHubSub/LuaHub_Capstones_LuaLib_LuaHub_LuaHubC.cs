@@ -30,8 +30,8 @@ namespace Capstones.LuaLib
                 #region REG_S_FUNC
                 #endregion // REG_S_FUNC
                 #region REG_S_PROP
-                _StaticFieldsIndex["LuaPrecompileEnabled"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["LuaPrecompileEnabled"]._Method, _Precompiled = ___sgf_LuaPrecompileEnabled };
-                _StaticFieldsIndex["LIB_VER"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["LIB_VER"]._Method, _Precompiled = ___sgf_LIB_VER };
+                //_StaticFieldsIndex["LuaPrecompileEnabled"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["LuaPrecompileEnabled"]._Method, _Precompiled = ___sgf_LuaPrecompileEnabled };
+                //_StaticFieldsIndex["LIB_VER"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["LIB_VER"]._Method, _Precompiled = ___sgf_LIB_VER };
                 #endregion // REG_S_PROP
                 #region REG_G_S_FUNC
                 #endregion // REG_G_S_FUNC

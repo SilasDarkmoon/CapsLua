@@ -35,7 +35,7 @@ namespace Capstones.LuaLib
                 #region REG_S_FUNC
                 #endregion // REG_S_FUNC
                 #region REG_S_PROP
-                _StaticFieldsIndex["Deg2Rad"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["Deg2Rad"]._Method, _Precompiled = ___sgf_Deg2Rad };
+                //_StaticFieldsIndex["Deg2Rad"] = new LuaMetaCallWithPrecompiled() { _Method = _StaticFieldsIndex["Deg2Rad"]._Method, _Precompiled = ___sgf_Deg2Rad };
                 #endregion // REG_S_PROP
                 #region REG_G_S_FUNC
                 #endregion // REG_G_S_FUNC
