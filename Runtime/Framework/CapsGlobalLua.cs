@@ -263,6 +263,14 @@ namespace Capstones.UnityEngineEx
                 }
             }
         }
+        public static IEnumerator DeepGCStep()
+        {
+            if (!object.ReferenceEquals(L, null))
+            {
+                L.L.gc(2, 0);
+            }
+            return null;
+        }
     }
 
     public static class GlobalLuaEntry
@@ -270,10 +278,7 @@ namespace Capstones.UnityEngineEx
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
-            Application.lowMemory += () =>
-            {
-                CoroutineRunner.StartCoroutine(GlobalLua.DeepGC());
-            };
+            ResManager.InsertCollectGarbageFunc(0, GlobalLua.DeepGCStep);
 #if UNITY_EDITOR
             ResManager.AddInitItem(ResManager.LifetimeOrders.Zero, GlobalLuaEditorCheck);
 #endif
