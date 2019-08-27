@@ -197,6 +197,239 @@ namespace Capstones.LuaWrap
             }
             return code;
         }
+        private static int CallInternalSingleReturn(IntPtr l, int oldtop)
+        {
+            int pcnt = l.gettop() - oldtop; // func, args(*pcnt)
+            l.pushcfunction(LuaHub.LuaFuncOnError); // func, args(*pcnt), err
+            l.insert(oldtop); // err, func, args(*pcnt)
+            var code = l.pcall(pcnt, 1, oldtop); // err, rv
+            l.remove(oldtop); // rv
+            if (code != 0)
+            {
+                DynamicHelper.LogError(l.GetLua(-1));
+            }
+            return code;
+        }
+        public static int PushArgsAndCallRawSingleReturn(this IntPtr l)
+        {
+            var oldtop = l.gettop();
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0>(this IntPtr l, P0 p0)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1>(this IntPtr l, P0 p0, P1 p1)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2>(this IntPtr l, P0 p0, P1 p1, P2 p2)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4, P5>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7, P8>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            l.PushLua(p9);
+            return CallInternalSingleReturn(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw(this IntPtr l)
+        {
+            var oldtop = l.gettop();
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0>(this IntPtr l, P0 p0)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1>(this IntPtr l, P0 p0, P1 p1)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2>(this IntPtr l, P0 p0, P1 p1, P2 p2)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4, P5>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4, P5, P6>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4, P5, P6, P7>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4, P5, P6, P7, P8>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            return CallInternal(l, oldtop);
+        }
+        public static int PushArgsAndCallRaw<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(this IntPtr l, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
+        {
+            var oldtop = l.gettop();
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            l.PushLua(p9);
+            return CallInternal(l, oldtop);
+        }
         public static void PushArgsAndCall(this IntPtr l)
         {
             var oldtop = l.gettop();
