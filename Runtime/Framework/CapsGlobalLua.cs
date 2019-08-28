@@ -279,6 +279,7 @@ namespace Capstones.UnityEngineEx
         private static void OnUnityStart()
         {
             ResManager.InsertCollectGarbageFunc(0, GlobalLua.DeepGCStep);
+            ResManager.OnCollectGarbageLite += () => GlobalLua.DeepGCStep();
 #if UNITY_EDITOR
             ResManager.AddInitItem(ResManager.LifetimeOrders.Zero, GlobalLuaEditorCheck);
 #endif
