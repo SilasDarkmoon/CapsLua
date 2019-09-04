@@ -249,11 +249,11 @@ public class CapsUnityLuaBehav : MonoBehaviour
                     return new BaseLua(l, refid);
                 }
             }
-            {
-                l.pushvalue(index);
-                var refid = l.refer();
-                return new BaseLua(l, refid);
-            }
+        }
+        {
+            l.pushvalue(index);
+            var refid = l.refer();
+            return new BaseLua(l, refid);
         }
     }
 

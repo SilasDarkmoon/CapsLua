@@ -92,7 +92,7 @@ namespace Capstones.LuaExt
             for (int i = 0; i < mods.Length; ++i)
             {
                 var mod = mods[i];
-                TryRequireLua(l, "?raw.mod." + mod + ".init");
+                TryRequireLua(l, "?raw.mod.\"" + mod + "\".init");
             }
 
             TryRequireLua(l, "?raw.init");
@@ -103,7 +103,7 @@ namespace Capstones.LuaExt
             for (int i = 0; i < flags.Length; ++i)
             {
                 var flag = flags[i];
-                TryRequireLua(l, "?raw.mod." + flag + ".init");
+                TryRequireLua(l, "?raw.mod.\"" + flag + "\".init");
             }
         }
         public static void InitLua_Dist(IntPtr l)

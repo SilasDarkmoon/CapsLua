@@ -755,11 +755,23 @@ namespace Capstones.LuaLib
                         string norm = real;
                         if (real.StartsWith("mod."))
                         {
-                            var mindex = real.IndexOf('.', "mod.".Length);
-                            if (mindex > 0)
+                            if (real.StartsWith("mod.\""))
                             {
-                                mod = real.Substring("mod.".Length, mindex - "mod.".Length);
-                                norm = real.Substring(mindex + 1);
+                                var mindex = real.IndexOf('\"', "mod.\"".Length);
+                                if (mindex > 0)
+                                {
+                                    mod = real.Substring("mod.\"".Length, mindex - "mod.\"".Length);
+                                    norm = real.Substring(mindex + 2);
+                                }
+                            }
+                            else
+                            {
+                                var mindex = real.IndexOf('.', "mod.".Length);
+                                if (mindex > 0)
+                                {
+                                    mod = real.Substring("mod.".Length, mindex - "mod.".Length);
+                                    norm = real.Substring(mindex + 1);
+                                }
                             }
                         }
                         norm = norm.Replace('.', '/');
@@ -830,6 +842,7 @@ namespace Capstones.LuaLib
                         if (_RuntimeRawManifest != null)
                         {
                             var real = name.Substring("?raw.".Length);
+                            real = real.Replace("\"", "");
                             string archreal = Environment.Is64BitProcess ? "@64." + real : "@32." + real;
                             CapsResManifestNode node;
                             if (_RuntimeRawManifest.TryGetItemIgnoreExt(archreal, out node, _LuaRequireSeperateChars) || _RuntimeRawManifest.TryGetItemIgnoreExt(real, out node, _LuaRequireSeperateChars))
