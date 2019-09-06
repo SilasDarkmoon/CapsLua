@@ -263,13 +263,12 @@ namespace Capstones.UnityEngineEx
                 }
             }
         }
-        public static IEnumerator DeepGCStep()
+        public static void DeepGCStep()
         {
             if (!object.ReferenceEquals(L, null))
             {
                 L.L.gc(2, 0);
             }
-            return null;
         }
     }
 
@@ -278,8 +277,7 @@ namespace Capstones.UnityEngineEx
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void OnUnityStart()
         {
-            ResManager.InsertCollectGarbageFunc(0, GlobalLua.DeepGCStep);
-            ResManager.OnCollectGarbageLite += () => GlobalLua.DeepGCStep();
+            ResManager.GarbageCollector.GarbageCollectorEvents[0].Insert(0, GlobalLua.DeepGCStep);
 #if UNITY_EDITOR
             ResManager.AddInitItem(ResManager.LifetimeOrders.Zero, GlobalLuaEditorCheck);
 #endif
