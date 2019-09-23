@@ -905,8 +905,9 @@ namespace Capstones.LuaLib
         private static void OnUnityStart()
         {
 #if !UNITY_EDITOR
+#if MOD_CAPSUPDATE
             ResManager.AddInitItem(ResManager.LifetimeOrders.CrossEvent + 10, RegCrossEvents);
-#if !MOD_CAPSUPDATE
+#else
             ResManager.AddInitItem(new ResManager.ActionInitItem(ResManager.LifetimeOrders.ABLoader + 5, PrepareRuntimeManifest, null));
 #endif
             ResManager.AddInitItem(LifetimeOrders.SptLoader, CheckRuntimeManifest);
