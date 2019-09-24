@@ -1,4 +1,5 @@
 <linker>
   <assembly fullname="UnityEngine" preserve="all"/>
   <assembly fullname="UnityEngine.UI" preserve="all"/>
+  <assembly fullname="CapsLua" preserve="all"/>
 </linker>
