@@ -1,5 +1,17 @@
 cache = { }
 
+function cache.isSimpleTable(tab)
+    if type(tab) == "table" then
+        if not clr.isobj(tab) then
+            local metatable = getmetatable(tab)
+            if not metatable or not metatable.__isobject then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function cache.getPersistentDataPath()
     return ___CONFIG__PERSISTENT_DATA_PATH or clr.UnityEngine.Application.persistentDataPath
 end
@@ -26,7 +38,7 @@ function cache.foreach(func, ...)
         local len = select('#', ...)
         if len == 1 then
             local tab = select(1, ...)
-            if type(tab) == 'table' and not clr.isobj(tab) then
+            if cache.isSimpleTable(tab) then
                 for k, v in pairs(tab) do
                     if func(v) == 'break' then
                         break
@@ -49,7 +61,7 @@ function cache.foreachi(func, ...)
         local len = select('#', ...)
         if len == 1 then
             local tab = select(1, ...)
-            if type(tab) == 'table' and not clr.isobj(tab) then
+            if cache.isSimpleTable(tab) then
                 for i, v in ipairs(tab) do
                     if func(v, i) == 'break' then
                         break
