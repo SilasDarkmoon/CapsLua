@@ -7,8 +7,9 @@ public interface ICapsUnityLuaBehavEx
 {
     CapsUnityLuaBehav Major { set; get; }
 }
+[RequireComponent(typeof(CapsUnityLuaBehav))]
 [DataDictionaryComponentType(DataDictionaryComponentTypeAttribute.DataDictionaryComponentType.Sub)]
-public class CapsUnityLuaBehavEx : MonoBehaviour, ICapsUnityLuaBehavEx
+public abstract class CapsUnityLuaBehavEx : MonoBehaviour, ICapsUnityLuaBehavEx
 {
     public CapsUnityLuaBehav Major { get; set; }
 }
