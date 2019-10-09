@@ -18,4 +18,4 @@ function action:Trigger(...)
     end
 end
 
-exports.action = action
+_G["action"] = action
