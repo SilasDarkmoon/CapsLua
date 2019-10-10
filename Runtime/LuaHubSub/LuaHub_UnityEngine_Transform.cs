@@ -33,7 +33,6 @@ namespace Capstones.LuaLib
                 _InstanceMethods["GetSiblingIndex"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["GetSiblingIndex"]._Method, _Precompiled = ___fm_GetSiblingIndex };
                 _InstanceMethods["Find"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["Find"]._Method, _Precompiled = ___fm_Find };
                 _InstanceMethods["IsChildOf"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["IsChildOf"]._Method, _Precompiled = ___fm_IsChildOf };
-                _InstanceMethods["FindChild"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["FindChild"]._Method, _Precompiled = ___fm_FindChild };
                 _InstanceMethods["GetEnumerator"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["GetEnumerator"]._Method, _Precompiled = ___fm_GetEnumerator };
                 _InstanceMethods["RotateAroundLocal"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["RotateAroundLocal"]._Method, _Precompiled = ___fm_RotateAroundLocal };
                 _InstanceMethods["GetChild"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceMethods["GetChild"]._Method, _Precompiled = ___fm_GetChild };
@@ -131,7 +130,6 @@ namespace Capstones.LuaLib
             private static readonly lua.CFunction ___fm_GetSiblingIndex = new lua.CFunction(___mm_GetSiblingIndex);
             private static readonly lua.CFunction ___fm_Find = new lua.CFunction(___mm_Find);
             private static readonly lua.CFunction ___fm_IsChildOf = new lua.CFunction(___mm_IsChildOf);
-            private static readonly lua.CFunction ___fm_FindChild = new lua.CFunction(___mm_FindChild);
             private static readonly lua.CFunction ___fm_GetEnumerator = new lua.CFunction(___mm_GetEnumerator);
             private static readonly lua.CFunction ___fm_RotateAroundLocal = new lua.CFunction(___mm_RotateAroundLocal);
             private static readonly lua.CFunction ___fm_GetChild = new lua.CFunction(___mm_GetChild);
@@ -1060,26 +1058,6 @@ namespace Capstones.LuaLib
                 return 0;
             }
             [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
-            private static int ___mm_FindChild(IntPtr l)
-            {
-                try
-                {
-                    UnityEngine.Transform p0;
-                    l.GetLua(1, out p0);
-                    System.String p1;
-                    l.GetLua(2, out p1);
-                    var rv = p0.FindChild(p1);
-                    l.PushLua(rv);
-                    return 1;
-                }
-                catch (Exception exception)
-                {
-                    l.LogError(exception);
-                    return 0;
-                }
-                return 0;
-            }
-            [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
             private static int ___mm_GetEnumerator(IntPtr l)
             {
                 try
@@ -1145,7 +1123,7 @@ namespace Capstones.LuaLib
                 {
                     UnityEngine.Transform p0;
                     l.GetLua(1, out p0);
-                    var rv = p0.GetChildCount();
+                    var rv = p0.childCount;
                     l.PushLua(rv);
                     return 1;
                 }

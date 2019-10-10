@@ -17,8 +17,6 @@ namespace Capstones.LuaLib
                 #region REG_I_FUNC
                 #endregion // REG_I_FUNC
                 #region REG_I_PROP
-                _InstanceFieldsIndex["lightmapLight"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceFieldsIndex["lightmapLight"]._Method, _Precompiled = ___gf_lightmapLight };
-                _InstanceFieldsNewIndex["lightmapLight"] = new LuaMetaCallWithPrecompiled() { _Method = _InstanceFieldsNewIndex["lightmapLight"]._Method, _Precompiled = ___sf_lightmapLight };
                 #endregion // REG_I_PROP
                 #region REG_G_I_FUNC
                 #endregion // REG_G_I_FUNC
@@ -50,8 +48,6 @@ namespace Capstones.LuaLib
             #region DEL_I_FUNC
             #endregion // DEL_I_FUNC
             #region DEL_I_PROP
-            private static readonly lua.CFunction ___gf_lightmapLight = new lua.CFunction(___gm_lightmapLight);
-            private static readonly lua.CFunction ___sf_lightmapLight = new lua.CFunction(___sm_lightmapLight);
             #endregion // DEL_I_PROP
             #region DEL_S_FUNC
             #endregion // DEL_S_FUNC
@@ -91,41 +87,6 @@ namespace Capstones.LuaLib
             #region FUNC_I_FUNC
             #endregion // FUNC_I_FUNC
             #region FUNC_I_PROP
-            [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
-            private static int ___gm_lightmapLight(IntPtr l)
-            {
-                try
-                {
-                    UnityEngine.LightmapData tar;
-                    l.GetLua(1, out tar);
-                    var rv = tar.lightmapLight;
-                    l.PushLua(rv);
-                    return 1;
-                }
-                catch (Exception exception)
-                {
-                    l.LogError(exception);
-                    return 0;
-                }
-            }
-            [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
-            private static int ___sm_lightmapLight(IntPtr l)
-            {
-                try
-                {
-                    UnityEngine.LightmapData tar;
-                    l.GetLua(1, out tar);
-                    UnityEngine.Texture2D val;
-                    l.GetLua(2, out val);
-                    tar.lightmapLight = val;
-                    return 0;
-                }
-                catch (Exception exception)
-                {
-                    l.LogError(exception);
-                    return 0;
-                }
-            }
             #endregion // FUNC_I_PROP
             #region FUNC_S_FUNC
             #endregion // FUNC_S_FUNC
