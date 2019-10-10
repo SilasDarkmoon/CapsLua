@@ -12,6 +12,18 @@ function cache.isSimpleTable(tab)
     return false
 end
 
+function cache.isObjWrapperTable(tab)
+    if type(tab) == "table" then
+        if not clr.isobj(tab) then
+            local metatable = getmetatable(tab)
+            if metatable and metatable.__isobject then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function cache.getPersistentDataPath()
     return ___CONFIG__PERSISTENT_DATA_PATH or clr.UnityEngine.Application.persistentDataPath
 end

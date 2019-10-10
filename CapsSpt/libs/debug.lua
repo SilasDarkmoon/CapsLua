@@ -193,37 +193,50 @@ function vardump(object, label)
         else
             local line = #result + 1
             lookupTable[object] = line
-            result[line] = string.format("%s{", reallabel)
 
-            local indent2 = indent .. "    "
-            local keys = {}
-            local allKeyIsInt = true
-            local minKey, maxKey = #object, 0
-            for k, v in pairs(object) do
-                keys[#keys + 1] = k
-                if type(k) == 'number' and k == math.floor(k) then
-                    if k > maxKey then
-                        maxKey = k
-                    end
-                    if k < minKey then
-                        minKey = k
-                    end
+            if clr.isobj(object) then
+                if object == clr.null then
+                    result[line] =  "'"..tostring(clr.type(object))..", null'"
                 else
-                    allKeyIsInt = false
+                    result[line] =  "'"..tostring(clr.type(object))..", "..tostring(object).."'"
                 end
-            end
-            local isObjArr = allKeyIsInt and #keys == maxKey and minKey == 1
-            table.sort(keys, function(a, b)
-                if type(a) == "number" and type(b) == "number" then
-                    return a < b
+            else
+                if getmetatable(object) and getmetatable(object).__isobject then
+                    result[line] = string.format("%s{ -- __isobject", reallabel)
                 else
-                    return tostring(a) < tostring(b)
+                    result[line] = string.format("%s{", reallabel)
                 end
-            end)
-            for i, k in ipairs(keys) do
-                _vardump(object[k], k, indent2, nest + 1, isObjArr)
+
+                local indent2 = indent .. "    "
+                local keys = {}
+                local allKeyIsInt = true
+                local minKey, maxKey = #object, 0
+                for k, v in pairs(object) do
+                    keys[#keys + 1] = k
+                    if type(k) == 'number' and k == math.floor(k) then
+                        if k > maxKey then
+                            maxKey = k
+                        end
+                        if k < minKey then
+                            minKey = k
+                        end
+                    else
+                        allKeyIsInt = false
+                    end
+                end
+                local isObjArr = allKeyIsInt and #keys == maxKey and minKey == 1
+                table.sort(keys, function(a, b)
+                    if type(a) == "number" and type(b) == "number" then
+                        return a < b
+                    else
+                        return tostring(a) < tostring(b)
+                    end
+                end)
+                for i, k in ipairs(keys) do
+                    _vardump(object[k], k, indent2, nest + 1, isObjArr)
+                end
+                result[#result +1] = string.format("%s}%s", indent, postfix)
             end
-            result[#result +1] = string.format("%s}%s", indent, postfix)
         end
     end
     _vardump(object, label, "", 1)
