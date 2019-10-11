@@ -196,9 +196,9 @@ function vardump(object, label)
 
             if clr.isobj(object) then
                 if object == clr.null then
-                    result[line] =  "'"..tostring(clr.type(object))..", null'"
+                    result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
                 else
-                    result[line] =  "'"..tostring(clr.type(object))..", "..tostring(object).."'"
+                    result[line] = string.format("%s'%s, %s'", reallabel, tostring(clr.type(object)), tostring(object))
                 end
             else
                 if getmetatable(object) and getmetatable(object).__isobject then
