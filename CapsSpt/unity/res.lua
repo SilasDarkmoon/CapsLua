@@ -179,6 +179,10 @@ function res.ClearResCache()
 		v.Destroy()  --Lua assist checked flag
 	end
 end
+
+function res.DontDestroyOnLoad(obj)
+    Object.DontDestroyOnLoad(obj)
+end
 --#endregion Res Cache
 
 return res
