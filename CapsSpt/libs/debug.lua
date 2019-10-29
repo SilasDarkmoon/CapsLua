@@ -122,7 +122,7 @@ function vardump(object, label)
         if type(v) == 'number' or type(v) == 'boolean' then
             return tostring(v)
         end
-        if type(v) == 'userdata' then
+        if clr.isobj(v) then
             if v == clr.null then
                 return "'"..tostring(clr.type(v))..", null'"
             else

@@ -338,11 +338,25 @@ namespace Capstones.LuaLib
 #region Push Methods for CLR Type
         public static void PushLua(this IntPtr l, Type val)
         {
-            l.PushLuaType(val);
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                l.PushLuaType(val);
+            }
         }
         public static void PushLua(this IntPtr l, ILuaTypeHub val)
         {
-            l.PushLuaType(val);
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                l.PushLuaType(val);
+            }
         }
 #endregion
 
