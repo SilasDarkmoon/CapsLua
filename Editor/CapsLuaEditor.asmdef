@@ -4,9 +4,9 @@
         "CapsLua",
         "ResManagerEditor",
         "ResManagerEditorEntry",
-        "ResManager"
+        "ResManager",
+        "ResManagerEntry"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -15,5 +15,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }
