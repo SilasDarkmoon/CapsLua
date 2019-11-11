@@ -3,6 +3,7 @@ local ResManager = clr.Capstones.UnityEngineEx.ResManager
 local Object = UnityEngine.Object
 local GameObject = UnityEngine.GameObject
 local CapsUnityLuaBehav = clr.CapsUnityLuaBehav
+local EventSystem = UnityEngine.EventSystems.EventSystem
 
 res = {}
 
@@ -184,5 +185,25 @@ function res.DontDestroyOnLoad(obj)
     Object.DontDestroyOnLoad(obj)
 end
 --#endregion Res Cache
+
+function res.GetCurrentEventSystem()
+    local eventSystemComp = EventSystem.current
+    if res.IsClrNull(eventSystemComp) then
+        local esObj = GameObject.Find("/EventSystem")
+        eventSystemComp = esObj:GetComponent(EventSystem)
+    end
+    return eventSystemComp
+end
+
+function res.SetCurrentEventSystemEnabled(enabled)
+    local eventSystem = res.GetCurrentEventSystem()
+    res.SetEventSystemEnabled(eventSystem, enabled)
+end
+
+function res.SetEventSystemEnabled(eventSystemComp, enabled)
+    if eventSystemComp then
+        eventSystemComp.enabled = enabled
+    end
+end
 
 return res
