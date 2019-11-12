@@ -243,6 +243,37 @@ namespace Capstones.LuaLib
                 }
             }
         }
+        private static void PushLuaNonNative(this IntPtr l, object val)
+        {
+            if (val is LuaWrap.BaseLua)
+            {
+                l.getref(((LuaWrap.BaseLua)val).Refid);
+            }
+            else if (val is LuaWrap.BaseLuaOnStack)
+            {
+                l.pushvalue(((LuaWrap.BaseLuaOnStack)val).StackPos);
+            }
+            else if (val is LuaWrap.LuaState)
+            {
+                ((LuaWrap.LuaState)val).L.pushthread();
+            }
+            //else if (raw is lua.CFunction)
+            //{
+
+            //}
+            else if (val is ILuaTypeHub)
+            {
+                l.PushLuaType(val as ILuaTypeHub);
+            }
+            else if (val is Type)
+            {
+                l.PushLuaType(val as Type);
+            }
+            else
+            {
+                l.PushLuaObject(val);
+            }
+        }
         public static void PushLuaExplicit<T>(this IntPtr l, T val)
         {
             var type = typeof(T);
@@ -300,7 +331,7 @@ namespace Capstones.LuaLib
             }
             else
             {
-                PushLuaObject(l, val);
+                PushLuaNonNative(l, (object)val);
             }
         }
 
