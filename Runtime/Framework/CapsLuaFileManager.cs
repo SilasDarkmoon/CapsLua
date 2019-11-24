@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.IO.Compression;
-using UnityEngine;
 using Capstones.UnityEngineEx;
 
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+using Unity.IO.Compression;
+using UnityEngine;
+
 using uobj = UnityEngine.Object;
+#else
+using System.IO.Compression;
+#endif
 
 namespace Capstones.LuaLib
 {
@@ -96,7 +101,7 @@ namespace Capstones.LuaLib
                 GC.ReRegisterForFinalize(this);
             }
 
-            #region IDisposable Support
+#region IDisposable Support
             protected virtual void DisposeRaw()
             {
                 if (_Stream != null)
@@ -119,9 +124,10 @@ namespace Capstones.LuaLib
                 DisposeRaw();
                 GC.SuppressFinalize(this);
             }
-            #endregion
+#endregion
         }
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static void SaveManifest(CapsResManifest mani, string file)
         {
             var tmpfile = file + ".tmp";
@@ -557,12 +563,13 @@ namespace Capstones.LuaLib
             }
             _RuntimeManifest = MergeAndCollapseRuntimeManifest(_RuntimeRawManifest);
         }
+#endif
 
         public static string[] GetCriticalLuaMods()
         {
 #if UNITY_EDITOR
             return EditorToClientUtils.GetCriticalMods();
-#else
+#elif UNITY_ENGINE || UNITY_5_3_OR_NEWER
             if (_RuntimeRawManifest != null)
             {
                 var root = _RuntimeRawManifest.Root;
@@ -591,10 +598,13 @@ namespace Capstones.LuaLib
                 }
             }
             return new string[0];
+#else
+            return ResManager.GetValidDistributeFlags();
 #endif
         }
 
         private static readonly char[] _LuaRequireSeperateChars = new[] { '.', '/', '\\' };
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         private static System.IO.Stream GetLuaStream(CapsResManifestItem item, out string location)
         {
             try
@@ -741,6 +751,7 @@ namespace Capstones.LuaLib
             location = "";
             return null;
         }
+#endif
         public static System.IO.Stream GetLuaStream(string name, out string location)
         {
 #if UNITY_EDITOR
@@ -832,7 +843,7 @@ namespace Capstones.LuaLib
             {
                 PlatDependant.LogError(e);
             }
-#else
+#elif UNITY_ENGINE || UNITY_5_3_OR_NEWER
             try
             {
                 if (name.Length > 0 && name[0] == '?')
@@ -878,6 +889,89 @@ namespace Capstones.LuaLib
             {
                 PlatDependant.LogError(e);
             }
+#else
+            try
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    if (name.Length > 0 && name[0] == '?')
+                    {
+                        var real = name.Substring("?raw.".Length);
+                        string mod = null;
+                        string norm = real;
+                        if (real.StartsWith("mod."))
+                        {
+                            if (real.StartsWith("mod.\""))
+                            {
+                                var mindex = real.IndexOf('\"', "mod.\"".Length);
+                                if (mindex > 0)
+                                {
+                                    mod = real.Substring("mod.\"".Length, mindex - "mod.\"".Length);
+                                    norm = real.Substring(mindex + 2);
+                                }
+                            }
+                            else
+                            {
+                                var mindex = real.IndexOf('.', "mod.".Length);
+                                if (mindex > 0)
+                                {
+                                    mod = real.Substring("mod.".Length, mindex - "mod.".Length);
+                                    norm = real.Substring(mindex + 1);
+                                }
+                            }
+                        }
+                        norm = norm.Replace('.', '/');
+                        if (mod == null)
+                        {
+                            real = "/spt/" + norm + ".lua";
+                        }
+                        else
+                        {
+                            real = "/mod/" + mod + "/spt/" + norm + ".lua";
+                        }
+                        var stream = ResManager.LoadFileRelative(real);
+                        if (stream != null)
+                        {
+                            location = real;
+                            return stream;
+                        }
+                    }
+                    else
+                    {
+                        var file = "/spt/" + name.Replace('.', '/') + ".lua";
+                        string real, mod, dist;
+                        real = ResManager.FindFile(file, out mod, out dist);
+                        if (real != null)
+                        {
+                            try
+                            {
+                                var stream = PlatDependant.OpenRead(real);
+                                if (stream != null)
+                                {
+                                    location = file;
+                                    if (!string.IsNullOrEmpty(dist))
+                                    {
+                                        location = "/dist/" + dist + location;
+                                    }
+                                    if (!string.IsNullOrEmpty(mod))
+                                    {
+                                        location = "/mod/" + mod + location;
+                                    }
+                                    return stream;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PlatDependant.LogError(e);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                PlatDependant.LogError(e);
+            }
 #endif
             location = "";
             return null;
@@ -888,6 +982,7 @@ namespace Capstones.LuaLib
             return GetLuaStream(name, out location);
         }
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static bool RuntimeManifestOld = true;
         private static void PrepareRuntimeManifest()
         {
@@ -913,6 +1008,7 @@ namespace Capstones.LuaLib
             ResManager.AddInitItem(LifetimeOrders.SptLoader, CheckRuntimeManifest);
 #endif
         }
+#endif
 
 #if MOD_CAPSUPDATE
         public static Dictionary<string, int> RecordedResVersions;

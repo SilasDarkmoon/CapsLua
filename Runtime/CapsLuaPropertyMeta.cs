@@ -163,6 +163,7 @@ namespace Capstones.LuaLib
             ArrayIndexers[typeof(ushort[])] = new ArrayIndexerPair() { Getter = getter, Setter = setter };
             ArrayIndexers[typeof(List<ushort>)] = new ArrayIndexerPair() { Getter = getter, Setter = setter };
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
             getter = new ArrayGetter<UnityEngine.Vector3>();
             setter = new ArraySetter<UnityEngine.Vector3>();
             ArrayIndexers[typeof(UnityEngine.Vector3[])] = new ArrayIndexerPair() { Getter = getter, Setter = setter };
@@ -212,6 +213,7 @@ namespace Capstones.LuaLib
             setter = new ArraySetter<UnityEngine.Vector4>();
             ArrayIndexers[typeof(UnityEngine.Vector4[])] = new ArrayIndexerPair() { Getter = getter, Setter = setter };
             ArrayIndexers[typeof(List<UnityEngine.Vector4>)] = new ArrayIndexerPair() { Getter = getter, Setter = setter };
+#endif
         }
     }
 
@@ -223,7 +225,7 @@ namespace Capstones.LuaLib
             _fi = fi;
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -243,7 +245,7 @@ namespace Capstones.LuaLib
             }
             l.PushLua(rv);
         }
-        #endregion
+#endregion
     }
     public class StaticFieldSetter : SelfHandled, ILuaMetaCall
     {
@@ -253,7 +255,7 @@ namespace Capstones.LuaLib
             _fi = fi;
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -273,7 +275,7 @@ namespace Capstones.LuaLib
                 l.LogError(e);
             }
         }
-        #endregion
+#endregion
     }
     public class StaticPropertyGetter : SelfHandled, ILuaMetaCall
     {
@@ -291,7 +293,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -316,7 +318,7 @@ namespace Capstones.LuaLib
             }
             l.PushLua(rv);
         }
-        #endregion
+#endregion
     }
     public class StaticPropertySetter : SelfHandled, ILuaMetaCall
     {
@@ -334,7 +336,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -361,7 +363,7 @@ namespace Capstones.LuaLib
                 l.LogError(e);
             }
         }
-        #endregion
+#endregion
     }
 
     public class InstanceFieldGetter : SelfHandled, ILuaMetaCall
@@ -372,7 +374,7 @@ namespace Capstones.LuaLib
             _fi = fi;
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -393,7 +395,7 @@ namespace Capstones.LuaLib
             }
             l.PushLua(rv);
         }
-        #endregion
+#endregion
     }
     public class InstanceFieldSetter : SelfHandled, ILuaMetaCall
     {
@@ -403,7 +405,7 @@ namespace Capstones.LuaLib
             _fi = fi;
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -424,7 +426,7 @@ namespace Capstones.LuaLib
                 l.LogError(e);
             }
         }
-        #endregion
+#endregion
     }
     public class InstancePropertyGetter : SelfHandled, ILuaMetaCall
     {
@@ -442,7 +444,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -468,7 +470,7 @@ namespace Capstones.LuaLib
             }
             l.PushLua(rv);
         }
-        #endregion
+#endregion
     }
     public class InstancePropertySetter : SelfHandled, ILuaMetaCall
     {
@@ -486,7 +488,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -514,7 +516,7 @@ namespace Capstones.LuaLib
                 l.LogError(e);
             }
         }
-        #endregion
+#endregion
     }
 
     public class ValueTypeFieldSetter : SelfHandled, ILuaMetaCall
@@ -525,7 +527,7 @@ namespace Capstones.LuaLib
             _fi = fi;
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -547,7 +549,7 @@ namespace Capstones.LuaLib
             }
             l.UpdateData(1, tar);
         }
-        #endregion
+#endregion
     }
     public class ValueTypePropertySetter : SelfHandled, ILuaMetaCall
     {
@@ -565,7 +567,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        #region ILuaMetaCall
+#region ILuaMetaCall
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
@@ -594,7 +596,7 @@ namespace Capstones.LuaLib
             }
             l.UpdateData(1, tar);
         }
-        #endregion
+#endregion
     }
 
     public class IndexGetter : SelfHandled, ILuaMetaCall

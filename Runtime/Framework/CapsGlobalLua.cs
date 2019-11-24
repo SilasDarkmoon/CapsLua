@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+using UnityEngine;
+#endif
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -56,7 +58,7 @@ namespace Capstones.UnityEngineEx
         {
             LuaExLibs.InitFuncs.Sort((a, b) => a.Order - b.Order);
             LuaExLibs.InitFuncs.TrimExcess();
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
             Init();
 #endif
         }
@@ -119,6 +121,7 @@ namespace Capstones.UnityEngineEx
         }
 #endif
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static Coroutine StartLuaCoroutine(LuaFunc lfunc)
         {
             return StartLuaCoroutineForBehav(null, lfunc);
@@ -251,6 +254,7 @@ namespace Capstones.UnityEngineEx
                 }
             }
         }
+#endif
 
         public static IEnumerator DeepGC()
         {
@@ -272,6 +276,7 @@ namespace Capstones.UnityEngineEx
         }
     }
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
     public static class GlobalLuaEntry
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -289,4 +294,5 @@ namespace Capstones.UnityEngineEx
         }
 #endif
     }
+#endif
 }

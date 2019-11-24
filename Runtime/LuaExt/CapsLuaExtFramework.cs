@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
 using Capstones.LuaLib;
 using Capstones.LuaWrap;
 using Capstones.UnityEngineEx;
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+using UnityEngine;
+#endif
 
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
@@ -37,10 +39,12 @@ namespace Capstones.LuaExt
                     L.GetGlobal("clr"); // clr
                     if (L.istable(-1))
                     {
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
                         L.pushcfunction(ClrDelCoroutine); // clr func
                         L.SetField(-2, "coroutine"); // clr
                         L.pushcfunction(ClrDelBehavCoroutine); // clr func
                         L.SetField(-2, "bcoroutine"); // clr
+#endif
                         L.pushcfunction(ClrDelReset); // clr func
                         L.SetField(-2, "reset"); // clr
                         L.PushString(ThreadSafeValues.AppPlatform); // clr plat
@@ -133,10 +137,12 @@ namespace Capstones.LuaExt
             InitLua_PostInit(l);
         }
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+#endif
         private static void OnUnityStart()
         {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && (UNITY_ENGINE || UNITY_5_3_OR_NEWER)
             ResManager.AddInitItem(ResManager.LifetimeOrders.PreEntrySceneDone, GlobalLuaInitLua);
 #endif
         }
@@ -146,8 +152,10 @@ namespace Capstones.LuaExt
             InitLua(GlobalLua.L.L);
         }
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);
         public static readonly lua.CFunction ClrDelBehavCoroutine = new lua.CFunction(ClrFuncBehavCoroutine);
+#endif
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
         public static readonly lua.CFunction ClrDelReset = new lua.CFunction(ClrFuncReset);
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
@@ -156,6 +164,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
 
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncCoroutine(IntPtr l)
         {
@@ -187,6 +196,7 @@ namespace Capstones.LuaExt
 
             return l.gettop() - oldtop;
         }
+#endif
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncPanic(IntPtr l)
