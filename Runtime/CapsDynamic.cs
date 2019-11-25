@@ -881,17 +881,17 @@ namespace Capstones.LuaLib
             return (bool)val;
         }
 
-        public static void LogInfo(this object obj)
+        public static void LogInfo(object obj)
         {
             PlatDependant.LogInfo(obj);
         }
 
-        public static void LogError(this object obj)
+        public static void LogError(object obj)
         {
             PlatDependant.LogError(obj);
         }
 
-        public static void LogWarning(this object obj)
+        public static void LogWarning(object obj)
         {
             PlatDependant.LogWarning(obj);
         }
