@@ -180,7 +180,8 @@ function unity.changeServerTo(url)
         package.loaded[k] = nil
     end
 
-    ___CONFIG__SWITCH_SERVER_TO = url
+    ___CONFIG__ACCOUNT_URL = url
+    ___CONFIG__BASE_URL = ___CONFIG__ACCOUNT_URL
 
     Application.LoadLevel(0)
     Time.timeScale = 1
