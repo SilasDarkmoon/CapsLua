@@ -8,7 +8,11 @@ using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+#if !NET_4_6 && !NET_STANDARD_2_0
 using Unity.IO.Compression;
+#else
+using System.IO.Compression;
+#endif
 using UnityEngine;
 
 using uobj = UnityEngine.Object;

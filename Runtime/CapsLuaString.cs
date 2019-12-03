@@ -17,12 +17,32 @@ namespace Capstones.LuaLib
         private static Dictionary<string, LuaString> CacheMap = new Dictionary<string, LuaString>();
         private static Dictionary<int, LuaString> CacheRevMap = new Dictionary<int, LuaString>();
 
+#if DEBUG_LUASTRING_THREADSAFE
+        private static readonly object _ThreadCheckLock = new object();
+        private static void CheckThread()
+        {
+            if (System.Threading.Monitor.TryEnter(_ThreadCheckLock))
+            {
+                System.Threading.Monitor.Exit(_ThreadCheckLock);
+            }
+            else
+            {
+                UnityEngineEx.PlatDependant.LogError("Please do not register LuaString when using them in another thread!");
+            }
+        }
+#endif
+
         public LuaString(string str)
             : this(str, 0)
         {
         }
         public LuaString(string str, int index)
         {
+#if DEBUG_LUASTRING_THREADSAFE
+            System.Threading.Monitor.Enter(_ThreadCheckLock);
+            try
+            { 
+#endif
             Str = str ?? "";
             LuaString old;
             if (CacheMap.TryGetValue(Str, out old))
@@ -55,6 +75,13 @@ namespace Capstones.LuaLib
                 CacheMap[Str] = this;
                 CacheRevMap[Index] = this;
             }
+#if DEBUG_LUASTRING_THREADSAFE
+            }
+            finally
+            {
+                System.Threading.Monitor.Exit(_ThreadCheckLock);
+            }
+#endif
         }
 
         public void PushString(IntPtr l)
@@ -118,12 +145,18 @@ namespace Capstones.LuaLib
         public static LuaString GetString(string str)
         {
             if (str == null) return null;
+#if DEBUG_LUASTRING_THREADSAFE
+            CheckThread();
+#endif
             LuaString val;
             CacheMap.TryGetValue(str, out val);
             return val;
         }
         public static LuaString GetString(int index)
         {
+#if DEBUG_LUASTRING_THREADSAFE
+            CheckThread();
+#endif
             LuaString val;
             CacheRevMap.TryGetValue(index, out val);
             return val;

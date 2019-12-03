@@ -5,7 +5,8 @@
         "ResManagerEditor",
         "ResManagerEditorEntry",
         "ResManager",
-        "ResManagerEntry"
+        "ResManagerEntry",
+        "ResManagerEditor.ResBuilder"
     ],
     "includePlatforms": [
         "Editor"
