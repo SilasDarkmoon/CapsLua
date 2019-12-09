@@ -22,6 +22,24 @@ rm -rf $OUTPUT
 mkdir -p $OUTPUT
 mv ./src/libluajit.so $OUTPUT/libluajit.so
 
+#编译 android-x64
+make clean
+NDK=`pwd`/ndk
+NDKAPI=21
+NDKTRIPLE=x86_64
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/i686-linux-android-
+NDKF="-isystem $NDK/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=$NDKAPI"
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKAPI/arch-x86_64
+
+make HOST_CC="gcc " CROSS=$NDKP TARGET_FLAGS="$NDKF" TARGET_SYS=Linux TARGET_SHLDFLAGS="--sysroot $NDK_SYSROOT_LINK"  TARGET_LDFLAGS="--sysroot $NDK_SYSROOT_LINK" TARGET_CFLAGS="--sysroot $NDK_SYSROOT_BUILD" TARGET_LFSFLAGS=""
+
+OUTPUT=$BUILD_DIR/android/x86_64
+rm -rf $OUTPUT
+mkdir -p $OUTPUT
+mv ./src/libluajit.so $OUTPUT/libluajit.so
+
 # #编译 android-armeabi
 # make clean
 
@@ -61,22 +79,22 @@ mkdir -p $OUTPUT
 mv ./src/libluajit.so $OUTPUT/libluajit.so
 
 # #编译 android-arm64-v8a
-# make clean
+make clean
 
-# NDK=`pwd`/ndk
-# NDKAPI=14
-# NDKTRIPLE=aarch64-linux-android
-# NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
-# NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/$NDKTRIPLE-
-# NDKF="-isystem $NDK/sysroot/usr/include/$NDKTRIPLE -D__ANDROID_API__=$NDKAPI"
-# NDK_SYSROOT_BUILD=$NDK/sysroot
-# NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKAPI/arch-arm64
+NDK=`pwd`/ndk
+NDKAPI=21
+NDKTRIPLE=aarch64-linux-android
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/$NDKTRIPLE-
+NDKF="-isystem $NDK/sysroot/usr/include/$NDKTRIPLE -D__ANDROID_API__=$NDKAPI"
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKAPI/arch-arm64
 
-# make HOST_CC="gcc " CROSS=$NDKP TARGET_FLAGS="$NDKF" TARGET_SYS=Linux TARGET_SHLDFLAGS="--sysroot $NDK_SYSROOT_LINK"  TARGET_LDFLAGS="--sysroot $NDK_SYSROOT_LINK" TARGET_CFLAGS="--sysroot $NDK_SYSROOT_BUILD" TARGET_LFSFLAGS=""
+make HOST_CC="gcc " CROSS=$NDKP TARGET_FLAGS="$NDKF" TARGET_SYS=Linux TARGET_SHLDFLAGS="--sysroot $NDK_SYSROOT_LINK"  TARGET_LDFLAGS="--sysroot $NDK_SYSROOT_LINK" TARGET_CFLAGS="--sysroot $NDK_SYSROOT_BUILD" TARGET_LFSFLAGS=""
 
-# OUTPUT=$BUILD_DIR/android/arm64-v8a
-# rm -rf $OUTPUT
-# mkdir -p $OUTPUT
-# mv ./src/libluajit.so $OUTPUT/libluajit.so
+OUTPUT=$BUILD_DIR/android/arm64-v8a
+rm -rf $OUTPUT
+mkdir -p $OUTPUT
+mv ./src/libluajit.so $OUTPUT/libluajit.so
 
 make clean
