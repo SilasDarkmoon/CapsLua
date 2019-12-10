@@ -364,12 +364,23 @@ namespace Capstones.LuaLib
 
         public static int NormalizeIndex(this IntPtr l, int index)
         {
-            var top = l.gettop();
-            if (index < 0 && -index <= top)
+            if (index < 0)
             {
-                index = top + 1 + index;
+                var top = l.gettop();
+                if (-index <= top)
+                {
+                    index = top + 1 + index;
+                }
             }
             return index;
+        }
+        public static LuaStateRecover CreateStackRecover(this IntPtr l)
+        {
+            return new LuaStateRecover(l);
+        }
+        public static IntPtr Indicator(this IntPtr l)
+        {
+            return l.topointer(lua.LUA_REGISTRYINDEX);
         }
 
         private static void PushLuaStackTrace(this IntPtr l)

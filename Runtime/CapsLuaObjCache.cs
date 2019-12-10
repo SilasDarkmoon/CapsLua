@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
+using System.Runtime.InteropServices;
 
 namespace Capstones.LuaLib
 {
@@ -11,26 +12,33 @@ namespace Capstones.LuaLib
     {
         public static LuaObjCache GetObjCache(IntPtr l)
         {
-            l.checkstack(1);
-            l.pushlightuserdata(LuaConst.LRKEY_OBJ_CACHE); // key
-            l.gettable(lua.LUA_REGISTRYINDEX); // cache
-            var rv = l.GetLuaObject(-1) as LuaObjCache;
-            l.pop(1);
-            return rv;
+            var attachman = LuaStateAttachmentManager.GetAttachmentManager(l);
+            if (attachman != null)
+            {
+                return attachman.ObjCache;
+            }
+            return null;
+            //l.checkstack(1);
+            //l.pushlightuserdata(LuaConst.LRKEY_OBJ_CACHE); // key
+            //l.gettable(lua.LUA_REGISTRYINDEX); // cache
+            //var rv = l.GetLuaObject(-1) as LuaObjCache;
+            //l.pop(1);
+            //return rv;
         }
 
         public static LuaObjCache GetOrCreateObjCache(IntPtr l)
         {
-            var rv = GetObjCache(l);
-            if (rv == null)
-            {
-                l.checkstack(2);
-                rv = new LuaObjCache();
-                l.pushlightuserdata(LuaConst.LRKEY_OBJ_CACHE); // key
-                l.PushLuaRawObject(rv); // key cache
-                l.settable(lua.LUA_REGISTRYINDEX); // X
-            }
-            return rv;
+            return LuaStateAttachmentManager.GetOrCreateAttachmentManager(l).ObjCache;
+            //var rv = GetObjCache(l);
+            //if (rv == null)
+            //{
+            //    l.checkstack(2);
+            //    rv = new LuaObjCache();
+            //    l.pushlightuserdata(LuaConst.LRKEY_OBJ_CACHE); // key
+            //    l.PushLuaRawObject(rv); // key cache
+            //    l.settable(lua.LUA_REGISTRYINDEX); // X
+            //}
+            //return rv;
         }
 
         public static void PushObjCacheReg(IntPtr l)
@@ -63,6 +71,11 @@ namespace Capstones.LuaLib
 
         public static bool PushObjFromCache(IntPtr l, object obj)
         {
+            if (LuaObjCacheSlim.TryPush(l, obj))
+            {
+                return true;
+            }
+
             var cache = GetObjCache(l);
             if (cache != null)
             {
@@ -92,21 +105,19 @@ namespace Capstones.LuaLib
 
         internal static void RegObj(IntPtr l, object obj, int index, IntPtr h)
         {
-            //if (PushObjFromCache(l, obj))
-            //{
-            //    l.pop(1);
-            //    return;
-            //}
+            var pos = l.NormalizeIndex(index);
+            if (obj != null)
+            {
+                LuaObjCacheSlim.Record(obj, l.topointer(pos), pos);
+            }
 
             var cache = GetOrCreateObjCache(l);
             cache._Map[obj] = h;
 
             l.checkstack(5);
-            l.pushvalue(index); // ud
-            PushOrCreateObjCacheReg(l); // ud reg
-            l.insert(-2); // reg ud
-            l.pushlightuserdata(h); // reg ud h
-            l.insert(-2); // reg h ud
+            PushOrCreateObjCacheReg(l); // reg
+            l.pushlightuserdata(h); // reg h
+            l.pushvalue(pos); // reg h ud
             l.settable(-3); // reg
             l.pop(1); // X
         }
@@ -138,6 +149,7 @@ namespace Capstones.LuaLib
         private Dictionary<object, IntPtr> _Map = new Dictionary<object, IntPtr>();
         public void Remove(object obj)
         {
+            LuaObjCacheSlim.Remove(obj);
             _Map.Remove(obj);
         }
 
@@ -155,5 +167,356 @@ namespace Capstones.LuaLib
             l.gettable(-2); // reg ud
             l.remove(-2); // ud
         }
+    }
+
+    public static class LuaObjCacheSlim
+    {
+#if DEBUG_LUA_PERFORMANCE
+        private static int _TotalCnt = 0;
+        private static int _HitCnt = 0;
+#endif
+
+        private const int StorageMaxCount = 20;
+        private struct LuaObjCacheSlimStorageRecord
+        {
+            public LinkedListNode<LuaObjCacheSlimStorageRecord> Node;
+            public object Obj;
+            public IntPtr Pointer;
+            public int StackPos;
+        }
+        private class LuaObjCacheSlimStorage
+        {
+            public readonly LinkedList<LuaObjCacheSlimStorageRecord> List = new LinkedList<LuaObjCacheSlimStorageRecord>();
+            public readonly Dictionary<IntPtr, LuaObjCacheSlimStorageRecord> PointerMap = new Dictionary<IntPtr, LuaObjCacheSlimStorageRecord>();
+            public readonly Dictionary<int, LuaObjCacheSlimStorageRecord> PosMap = new Dictionary<int, LuaObjCacheSlimStorageRecord>();
+            public readonly Dictionary<object, LuaObjCacheSlimStorageRecord> ObjMap = new Dictionary<object, LuaObjCacheSlimStorageRecord>();
+
+            public void Remove(object obj)
+            {
+                LuaObjCacheSlimStorageRecord record;
+                if (ObjMap.TryGetValue(obj, out record))
+                {
+                    Remove(record);
+                }
+            }
+            private void Remove(LuaObjCacheSlimStorageRecord record)
+            {
+                List.Remove(record.Node);
+                PointerMap.Remove(record.Pointer);
+                PosMap.Remove(record.StackPos);
+                ObjMap.Remove(record.Obj);
+            }
+            public void RemoveFirst()
+            {
+                if (List.Count != 0)
+                {
+                    Remove(List.First.Value);
+                }
+            }
+            public void Record(object obj, IntPtr onStack, int stackPos)
+            {
+                LuaObjCacheSlimStorageRecord record;
+                if (ObjMap.TryGetValue(obj, out record))
+                {
+                    Remove(record);
+                }
+
+                record = new LuaObjCacheSlimStorageRecord()
+                {
+                    Obj = obj,
+                    Pointer = onStack,
+                    StackPos = stackPos,
+                };
+                var node = List.AddLast(record);
+                record.Node = node;
+
+                node.Value = record;
+                PointerMap[onStack] = record;
+                PosMap[stackPos] = record;
+                ObjMap[obj] = record;
+
+                if (List.Count > StorageMaxCount)
+                {
+                    RemoveFirst();
+                }
+            }
+        }
+        [ThreadStatic] private static LuaObjCacheSlimStorage _Storage;
+        private static LuaObjCacheSlimStorage Storage
+        {
+            get
+            {
+                var storage = _Storage;
+                if (storage == null)
+                {
+                    _Storage = storage = new LuaObjCacheSlimStorage();
+                }
+                return storage;
+            }
+        }
+        public static void Record(object obj, IntPtr onStack, int stackPos)
+        {
+            Storage.Record(obj, onStack, stackPos);
+        }
+        public static void Remove(object obj)
+        {
+            Storage.Remove(obj);
+        }
+
+        public static bool TryGet(IntPtr l, int index, out object obj)
+        {
+#if DEBUG_LUA_THREADSAFE
+            LuaStateAttachmentManager.CheckThread(l);
+#endif
+#if DEBUG_LUA_PERFORMANCE
+            System.Threading.Interlocked.Increment(ref _TotalCnt);
+#endif
+            var pointer = l.topointer(index);
+            if (pointer != IntPtr.Zero)
+            {
+                LuaObjCacheSlimStorageRecord record;
+                if (Storage.PointerMap.TryGetValue(pointer, out record))
+                {
+                    obj = record.Obj;
+#if DEBUG_LUA_PERFORMANCE
+                    System.Threading.Interlocked.Increment(ref _HitCnt);
+                    UnityEngine.Debug.Log(((float)_HitCnt) / _TotalCnt);
+#endif
+                    return true;
+                }
+            }
+            obj = null;
+#if DEBUG_LUA_PERFORMANCE
+            UnityEngine.Debug.Log(((float)_HitCnt) / _TotalCnt);
+#endif
+            return false;
+        }
+        public static bool TryPush(IntPtr l, object obj)
+        {
+#if DEBUG_LUA_THREADSAFE
+            LuaStateAttachmentManager.CheckThread(l);
+#endif
+#if DEBUG_LUA_PERFORMANCE
+            System.Threading.Interlocked.Increment(ref _TotalCnt);
+#endif
+            if (obj != null)
+            {
+                LuaObjCacheSlimStorageRecord record;
+                if (Storage.ObjMap.TryGetValue(obj, out record))
+                {
+                    var pos = record.StackPos;
+                    var pointer = record.Pointer;
+                    if (l.topointer(pos) == pointer)
+                    {
+                        l.pushvalue(pos);
+#if DEBUG_LUA_PERFORMANCE
+                        System.Threading.Interlocked.Increment(ref _HitCnt);
+                        UnityEngine.Debug.Log(((float)_HitCnt) / _TotalCnt);
+#endif
+                        return true;
+                    }
+                }
+            }
+#if DEBUG_LUA_PERFORMANCE
+            UnityEngine.Debug.Log(((float)_HitCnt) / _TotalCnt);
+#endif
+            return false;
+        }
+    }
+
+    public class LuaStateAttachmentManager : ILuaMeta
+    {
+#if DEBUG_LUA_THREADSAFE
+        public static void CheckThread(IntPtr l)
+        {
+            l.checkstack(2);
+            l.pushlightuserdata(LuaConst.LRKEY_REF_THREAD); // #thread
+            l.gettable(lua.LUA_REGISTRYINDEX); // thread
+            if (l.IsNumber(-1))
+            {
+                var threadid = (int)l.tonumber(-1);
+                if (threadid != System.Threading.Thread.CurrentThread.ManagedThreadId)
+                {
+                    UnityEngineEx.PlatDependant.LogError("Please use lua state only in its owner thread(the thread that created the lua state).");
+                }
+                l.pop(1);
+            }
+            else
+            {
+                l.pop(1); // X
+                l.pushlightuserdata(LuaConst.LRKEY_REF_THREAD); // #thread
+                l.pushnumber(System.Threading.Thread.CurrentThread.ManagedThreadId); // #thread thread
+                l.settable(lua.LUA_REGISTRYINDEX); // X
+            }
+        }
+#endif
+        [ThreadStatic] private static Dictionary<IntPtr, LuaStateAttachmentManager> _Map;
+        private static Dictionary<IntPtr, LuaStateAttachmentManager> Map
+        {
+            get
+            {
+                var map = _Map;
+                if (map == null)
+                {
+                    _Map = map = new Dictionary<IntPtr, LuaStateAttachmentManager>();
+                }
+                return map;
+            }
+        }
+
+        public static LuaStateAttachmentManager GetAttachmentManagerForIndicator(IntPtr indicator)
+        {
+            LuaStateAttachmentManager rv = null;
+            var map = _Map;
+            if (map != null)
+            {
+                map.TryGetValue(indicator, out rv);
+            }
+            return rv;
+        }
+        public static LuaStateAttachmentManager GetAttachmentManager(IntPtr l)
+        {
+#if DEBUG_LUA_THREADSAFE
+            LuaStateAttachmentManager.CheckThread(l);
+#endif
+            var indicator = l.Indicator();
+            LuaStateAttachmentManager rv = GetAttachmentManagerForIndicator(indicator);
+            if (rv != null)
+            {
+                return rv;
+            }
+
+            l.checkstack(1);
+            l.pushlightuserdata(LuaConst.LRKEY_REF_ATTACH); // #man
+            l.gettable(lua.LUA_REGISTRYINDEX); // man
+            if (l.isuserdata(-1))
+            {
+                LuaStateAttachmentManager man = null;
+                try
+                {
+                    IntPtr pud = l.touserdata(-1);
+                    if (pud != IntPtr.Zero)
+                    {
+                        IntPtr hval = Marshal.ReadIntPtr(pud);
+                        GCHandle handle = (GCHandle)hval;
+                        man = handle.Target as LuaStateAttachmentManager;
+                    }
+                }
+                catch { }
+                l.pop(1); // X
+                if (man != null)
+                {
+                    Map[indicator] = man;
+                }
+                return man;
+            }
+            else
+            {
+                //l.checkstack(5);
+                l.pop(1); // X
+                //l.pushlightuserdata(LuaConst.LRKEY_REF_ATTACH); // #man
+                //LuaStateAttachmentManager man = new LuaStateAttachmentManager(l);
+                //var h = l.PushLuaRawObject(man); // #man man
+                //l.PushCommonMetaTable(); // #man man meta
+                //l.setmetatable(-2); // #man man
+                //l.newtable(); // #man man env
+                //l.pushlightuserdata(LuaConst.LRKEY_OBJ_META_EX); // #man man env #meta
+                //l.pushlightuserdata(h); // #man man env #meta meta
+                //l.settable(-3); // #man man env
+                //l.setfenv(-2); // #man man
+                //l.settable(lua.LUA_REGISTRYINDEX); // X
+                //Map[indicator] = man;
+                //return man;
+
+                return null;
+            }
+        }
+        public static LuaStateAttachmentManager GetOrCreateAttachmentManager(IntPtr l)
+        {
+#if DEBUG_LUA_THREADSAFE
+            LuaStateAttachmentManager.CheckThread(l);
+#endif
+            var indicator = l.Indicator();
+            LuaStateAttachmentManager rv = GetAttachmentManagerForIndicator(indicator);
+            if (rv != null)
+            {
+                return rv;
+            }
+
+            l.checkstack(1);
+            l.pushlightuserdata(LuaConst.LRKEY_REF_ATTACH); // #man
+            l.gettable(lua.LUA_REGISTRYINDEX); // man
+            if (l.isuserdata(-1))
+            {
+                LuaStateAttachmentManager man = null;
+                try
+                {
+                    IntPtr pud = l.touserdata(-1);
+                    if (pud != IntPtr.Zero)
+                    {
+                        IntPtr hval = Marshal.ReadIntPtr(pud);
+                        GCHandle handle = (GCHandle)hval;
+                        man = handle.Target as LuaStateAttachmentManager;
+                    }
+                }
+                catch { }
+                l.pop(1); // X
+                if (man != null)
+                {
+                    Map[indicator] = man;
+                }
+                return man;
+            }
+            else
+            {
+                l.checkstack(5);
+                l.pop(1); // X
+                l.pushlightuserdata(LuaConst.LRKEY_REF_ATTACH); // #man
+                LuaStateAttachmentManager man = new LuaStateAttachmentManager();
+                var h = l.PushLuaRawObject(man); // #man man
+                l.PushCommonMetaTable(); // #man man meta
+                l.setmetatable(-2); // #man man
+                l.newtable(); // #man man env
+                l.pushlightuserdata(LuaConst.LRKEY_OBJ_META_EX); // #man man env #meta
+                l.pushlightuserdata(h); // #man man env #meta meta
+                l.settable(-3); // #man man env
+                l.setfenv(-2); // #man man
+                l.settable(lua.LUA_REGISTRYINDEX); // X
+                Map[indicator] = man;
+                return man;
+            }
+        }
+        public static LuaStateAttachmentManager GetOrCreateAttachmentManager(LuaWrap.LuaState L)
+        {
+            var man = GetOrCreateAttachmentManager(L.L);
+            man.L = L;
+            return man;
+        }
+
+        public LuaWrap.LuaState L { get; protected set; }
+        public readonly LuaObjCache ObjCache = new LuaObjCache();
+        public readonly LuaStringTransHelper.LuaStringCache StrCache = new LuaStringTransHelper.LuaStringCache();
+
+        public void call(IntPtr l, object tar)
+        {
+        }
+        public void gc(IntPtr l, object obj)
+        {
+#if DEBUG_LUA_THREADSAFE
+            LuaStateAttachmentManager.CheckThread(l);
+#endif
+            var map = _Map;
+            if (map != null)
+            {
+                map.Remove(l.Indicator());
+            }
+        }
+        public void index(IntPtr l, object tar, int kindex)
+        {
+        }
+        public void newindex(IntPtr l, object tar, int kindex, int valindex)
+        {
+        }
+        public IntPtr r { get; protected internal set; }
     }
 }

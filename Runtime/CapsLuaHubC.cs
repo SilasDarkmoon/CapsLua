@@ -12,7 +12,7 @@ namespace Capstones.LuaLib
     {
         public static class LuaHubC
         {
-            public const int LIB_VER = 7;
+            public const int LIB_VER = 8;
             public static readonly bool Ready;
 #if DISABLE_LUA_PRECOMPILE
             public const bool LuaPrecompileEnabled = false;
@@ -114,7 +114,36 @@ namespace Capstones.LuaLib
             public static extern void capslua_setObject(IntPtr l, int index, IntPtr obj);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void capslua_getObject(IntPtr l, int index, out IntPtr obj);
-            
+
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern bool capslua_pushString(IntPtr l, int id);
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_pushAndRegString(IntPtr l, int id, byte[] str);
+#if UNITY_EDITOR
+            public static void capslua_pushAndRegString(IntPtr l, int id, string str)
+            {
+                capslua_pushAndRegString(l, id, str.DefaultEncode());
+            }
+#else
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_pushAndRegString(IntPtr l, int id, string str);
+#endif
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_regString(IntPtr l, int id, byte[] str);
+#if UNITY_EDITOR
+            public static void capslua_regString(IntPtr l, int id, string str)
+            {
+                capslua_regString(l, id, str.DefaultEncode());
+            }
+#else
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_regString(IntPtr l, int id, string str);
+#endif
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_unregString(IntPtr l, int id);
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int capslua_getStringRegId(IntPtr l, int index);
+
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void capslua_setTypeVector3(IntPtr type);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]

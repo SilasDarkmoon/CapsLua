@@ -45,7 +45,7 @@ extern "C"
             return 0;
         }
 #endif
-        if (ver != 7)
+        if (ver != 8)
         {
             return 0;
         }
@@ -876,6 +876,189 @@ extern "C"
         lua_pop(l, 1); // otab
         *obj = *pud;
     }
+
+	EXPORT_API int capslua_pushString(lua_State* l, int id)
+	{
+		lua_checkstack(l, 10);
+		lua_pushlightuserdata(l, (void*)1001); // rkey
+		lua_gettable(l, LUA_REGISTRYINDEX); // reg
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1); // X
+			lua_newtable(l); // reg
+			lua_pushlightuserdata(l, (void*)1001); // reg rkey
+			lua_pushvalue(l, -2); // reg rkey reg
+			lua_settable(l, LUA_REGISTRYINDEX); // reg
+		}
+
+		lua_pushnumber(l, 1); // reg 1
+		lua_gettable(l, -2); // reg map
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1); // reg
+			lua_newtable(l); // reg map
+			lua_pushnumber(l, 1); // reg map 1
+			lua_pushvalue(l, -2); // reg map 1 map
+			lua_settable(l, -4); // reg map
+		}
+
+		lua_pushnumber(l, id); // reg map id
+		lua_gettable(l, -2); // reg map str
+		if (lua_type(l, -1) == LUA_TSTRING)
+		{
+			lua_insert(l, -3); // str reg map
+			lua_pop(l, 2); // str
+			return true;
+		}
+		else
+		{
+			lua_pop(l, 1); // reg map
+			lua_pushnumber(l, 2); // reg map 2
+			lua_gettable(l, -3); // reg map revmap
+			if (!lua_istable(l, -1))
+			{
+				lua_pop(l, 1); // reg map
+				lua_newtable(l); // reg map revmap
+				lua_pushnumber(l, 2); // reg map revmap 2
+				lua_pushvalue(l, -2); // reg map revmap 2 revmap
+				lua_settable(l, -5); // reg map revmap
+			}
+			return false;
+		}
+	}
+	EXPORT_API void capslua_pushAndRegString(lua_State* l, int id, const char* str)
+	{
+		lua_pushstring(l, str); // reg map revmap str
+		lua_pushnumber(l, id); // reg map revmap str id
+		lua_pushvalue(l, -2); // reg map revmap str id str
+		lua_pushvalue(l, -1); // reg map revmap str id str str
+		lua_pushvalue(l, -3); // reg map revmap str id str str id
+		lua_settable(l, -6); // reg map revmap str id str
+		lua_settable(l, -5); // reg map revmap str
+		lua_insert(l, -4); // str reg map revmap
+		lua_pop(l, 3); // str
+	}
+	EXPORT_API void capslua_regString(lua_State* l, int id, const char* str)
+	{
+		lua_checkstack(l, 8);
+		lua_pushlightuserdata(l, (void*)1001); // rkey
+		lua_gettable(l, LUA_REGISTRYINDEX); // reg
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1); // X
+			lua_newtable(l); // reg
+			lua_pushlightuserdata(l, (void*)1001); // reg rkey
+			lua_pushvalue(l, -2); // reg rkey reg
+			lua_settable(l, LUA_REGISTRYINDEX); // reg
+		}
+
+		lua_pushnumber(l, 1); // reg 1
+		lua_gettable(l, -2); // reg map
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1); // reg
+			lua_newtable(l); // reg map
+			lua_pushnumber(l, 1); // reg map 1
+			lua_pushvalue(l, -2); // reg map 1 map
+			lua_settable(l, -4); // reg map
+		}
+		lua_pushnumber(l, 2); // reg map 2
+		lua_gettable(l, -3); // reg map revmap
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1); // reg map
+			lua_newtable(l); // reg map revmap
+			lua_pushnumber(l, 2); // reg map revmap 2
+			lua_pushvalue(l, -2); // reg map revmap 2 revmap
+			lua_settable(l, -5); // reg map revmap
+		}
+
+		lua_pushnumber(l, id); // reg map revmap id
+		lua_pushstring(l, str); // reg map revmap id str
+		lua_pushvalue(l, -1); // reg map revmap id str str
+		lua_pushvalue(l, -3); // reg map revmap id str str id
+		lua_settable(l, -5); // reg map revmap id str
+		lua_settable(l, -4); // reg map revmap
+		lua_pop(l, 3); // X
+	}
+	EXPORT_API void capslua_unregString(lua_State* l, int id)
+	{
+		lua_checkstack(l, 8);
+		lua_pushlightuserdata(l, (void*)1001); // rkey
+		lua_gettable(l, LUA_REGISTRYINDEX); // reg
+		if (lua_istable(l, -1))
+		{
+			lua_pushnumber(l, 1); // reg 1
+			lua_gettable(l, -2); // reg map
+			lua_pushnumber(l, 2); // reg map 2
+			lua_gettable(l, -3); // reg map revmap
+			if (lua_istable(l, -2))
+			{
+				lua_pushnumber(l, id); // reg map revmap id
+				lua_pushvalue(l, -1); // reg map revmap id id
+				lua_gettable(l, -4); // reg map revmap id str
+				lua_pushvalue(l, -2); // reg map revmap id str id
+				lua_pushnil(l); // reg map revmap id str id nil
+				lua_settable(l, -6); // reg map revmap id str
+				if (lua_type(l, -1) == LUA_TSTRING && lua_istable(l, -3))
+				{
+					lua_pushnil(l); // reg map revmap id str nil
+					lua_settable(l, -4); // reg map revmap id
+					lua_pop(l, 1); // reg map revmap
+				}
+				else
+				{
+					lua_pop(l, 2); // reg map revmap
+				}
+			}
+			lua_pop(l, 3); // X
+		}
+		else
+		{
+			lua_pop(l, 1); // X
+		}
+	}
+	EXPORT_API int capslua_getStringRegId(lua_State* l, int index)
+	{
+		if (lua_type(l, index) == LUA_TSTRING)
+		{
+			lua_checkstack(l, 5);
+			lua_pushvalue(l, index); // lstr
+			lua_pushlightuserdata(l, (void*)1001); // lstr rkey
+			lua_gettable(l, LUA_REGISTRYINDEX); // lstr reg
+			if (lua_istable(l, -1))
+			{
+				lua_pushnumber(l, 2); // lstr reg 2
+				lua_gettable(l, -2); // lstr reg revmap
+
+				if (lua_istable(l, -1))
+				{
+					lua_pushvalue(l, -3); // lstr reg revmap lstr
+					lua_gettable(l, -2); // lstr reg revmap id
+
+					if (lua_isnumber(l, -1))
+					{
+						int id = (int)lua_tonumber(l, -1);
+						lua_pop(l, 4); // X
+						return id;
+					}
+					else
+					{
+						lua_pop(l, 4); // X
+					}
+				}
+				else
+				{
+					lua_pop(l, 3); // X
+				}
+			}
+			else
+			{
+				lua_pop(l, 2); // X
+			}
+		}
+		return 0;
+	}
     
     static void* typeVector3 = 0;
     EXPORT_API void capslua_setTypeVector3(void* type)

@@ -550,16 +550,24 @@ namespace Capstones.LuaLib
 
         public static object GetLuaTableObjectDirect(this IntPtr l, int index)
         {
+            var pos = l.NormalizeIndex(index);
+            object rv;
+            if (LuaObjCacheSlim.TryGet(l, pos, out rv))
+            {
+                return rv;
+            }
             l.checkstack(2);
-            l.pushvalue(index); // otab
-            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // otab #tar
-            l.rawget(-2); // otab obj
-            object rv = null;
+            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // #tar
+            l.rawget(pos); // obj
             if (l.IsUserData(-1))
             {
                 rv = l.GetLuaRawObject(-1);
             }
-            l.pop(2);
+            l.pop(1);
+            if (rv != null)
+            {
+                LuaObjCacheSlim.Record(rv, l.topointer(pos), pos);
+            }
             return rv;
         }
         public static object GetLuaTableObjectChecked(this IntPtr l, int index)
@@ -573,22 +581,34 @@ namespace Capstones.LuaLib
 
         private static object GetLuaTableObject(this IntPtr l, int index, out bool isUserData)
         {
+            var pos = l.NormalizeIndex(index);
+            object rv;
+            if (LuaObjCacheSlim.TryGet(l, pos, out rv))
+            {
+                isUserData = true;
+                return rv;
+            }
+
             isUserData = false;
             l.checkstack(2);
-            l.pushvalue(index); // ud
-            l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud #trans
-            l.gettable(-2); // ud trans
+            l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // #trans
+            l.gettable(pos); // trans
             ILuaTrans trans = null;
             if (l.isuserdata(-1))
             {
                 trans = l.GetLuaLightObject(-1) as ILuaTrans;
             }
-            l.pop(2);
+            l.pop(1);
 
             if (trans != null)
             {
                 isUserData = true;
-                return trans.GetLua(l, index);
+                rv = trans.GetLua(l, index);
+                if (rv != null && rv.GetType().IsClass)
+                {
+                    LuaObjCacheSlim.Record(rv, l.topointer(pos), pos);
+                }
+                return rv;
             }
             return null;
         }

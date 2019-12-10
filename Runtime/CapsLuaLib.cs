@@ -247,7 +247,8 @@ namespace Capstones.LuaLib
         public static extern IntPtr tolstring(this IntPtr luaState, int index, out IntPtr strLen);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_tonumber")]
         public static extern double tonumber(this IntPtr luaState, int index);
-        // lua_topointer
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_topointer")]
+        public static extern IntPtr topointer(this IntPtr luaState, int index);
         // lua_tostring -> below
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_tothread")]
         public static extern IntPtr tothread(this IntPtr L, int index);
@@ -557,7 +558,10 @@ namespace Capstones.LuaLib
         public static del_lua_tonumber lua_tonumber;
         public static double tonumber(this IntPtr luaState, int index) { return lua_tonumber(luaState, index); }
 
-        // lua_topointer
+        public delegate IntPtr del_lua_topointer(IntPtr luaState, int index);
+        public static del_lua_topointer lua_topointer;
+        public static IntPtr topointer(this IntPtr luaState, int index) { return lua_topointer(luaState, index); }
+
         // lua_tostring -> below
 
         public delegate IntPtr del_lua_tothread(IntPtr L, int index);
@@ -876,7 +880,10 @@ namespace Capstones.LuaLib
         public static extern double lua_tonumber(IntPtr luaState, int index);
         public static double tonumber(this IntPtr luaState, int index) { return lua_tonumber(luaState, index); }
 
-        // lua_topointer
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr lua_topointer(IntPtr luaState, int index);
+        public static IntPtr topointer(this IntPtr luaState, int index) { return lua_topointer(luaState, index); }
+
         // lua_tostring -> below
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
@@ -1064,7 +1071,8 @@ namespace Capstones.LuaLib
         public static extern IntPtr tolstring(this IntPtr luaState, int index, out IntPtr strLen);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_tonumber")]
         public static extern double tonumber(this IntPtr luaState, int index);
-        // lua_topointer
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_topointer")]
+        public static extern IntPtr topointer(this IntPtr luaState, int index);
         // lua_tostring -> below
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_tothread")]
         public static extern IntPtr tothread(this IntPtr L, int index);
@@ -1232,6 +1240,14 @@ namespace Capstones.LuaLib
             }
 #endif
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+        static LuaCoreLib()
+        {
+            UnityEngineEx.PluginManager.LoadLib(LUADLL);
+        }
+#endif
+
     }
 
     public static class LuaAuxLib

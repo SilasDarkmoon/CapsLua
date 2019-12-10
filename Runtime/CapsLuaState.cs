@@ -19,6 +19,7 @@ namespace Capstones.LuaWrap
             L = lual.newstate();
             L.openlibs();
             _Closer = new LuaStateCloser() { _L = L };
+            LuaStateAttachmentManager.GetOrCreateAttachmentManager(this);
             _ObjCache = LuaObjCache.GetOrCreateObjCache(L);
         }
         public LuaState(IntPtr l)
