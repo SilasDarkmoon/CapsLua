@@ -365,7 +365,7 @@ LUA_API lua_State *lua_newstate(lua_Alloc f, void *ud)
 
 #endif
 
-#ifdef LUA_BUILD_AS_DLL
-#include "capsluaplugininterface.inl"
-#endif
-//#include "capslua.inl"
+// #ifdef LUA_BUILD_AS_DLL
+// #include "capsluaplugininterface.inl"
+// #endif
+// //#include "capslua.inl"
