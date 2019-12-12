@@ -28,7 +28,7 @@ NDK=`pwd`/ndk
 NDKAPI=21
 NDKTRIPLE=x86_64
 NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
-NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/i686-linux-android-
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/x86_64-linux-android-
 NDKF="-isystem $NDK/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=$NDKAPI"
 NDK_SYSROOT_BUILD=$NDK/sysroot
 NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKAPI/arch-x86_64
