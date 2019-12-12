@@ -82,11 +82,11 @@ typedef lua_Hook        (*del_lua_gethook) (lua_State *L);
 typedef int             (*del_lua_gethookcount) (lua_State *L);
 typedef int             (*del_lua_gethookmask) (lua_State *L);
 typedef int             (*del_lua_getinfo) (lua_State *L, const char *what, lua_Debug *ar);
-typedef const char *    (*del_lua_getlocal) (lua_State *L, lua_Debug *ar, int n);
+typedef const char *    (*del_lua_getlocal) (lua_State *L, const lua_Debug *ar, int n);
 typedef int             (*del_lua_getstack) (lua_State *L, int level, lua_Debug *ar);
 typedef const char *    (*del_lua_getupvalue) (lua_State *L, int funcindex, int n);
 typedef int             (*del_lua_sethook) (lua_State *L, lua_Hook f, int mask, int count);
-typedef const char *    (*del_lua_setlocal) (lua_State *L, lua_Debug *ar, int n);
+typedef const char *    (*del_lua_setlocal) (lua_State *L, const lua_Debug *ar, int n);
 typedef const char *    (*del_lua_setupvalue) (lua_State *L, int funcindex, int n);
 
 typedef void            (*del_luaL_addlstring) (luaL_Buffer *B, const char *s, size_t l);

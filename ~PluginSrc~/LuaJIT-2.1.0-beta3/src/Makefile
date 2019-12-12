@@ -495,6 +495,8 @@ LJCORE_O= lj_gc.o lj_err.o lj_char.o lj_bc.o lj_obj.o lj_buf.o \
 
 LJVMCORE_O= $(LJVM_O) $(LJCORE_O)
 LJVMCORE_DYNO= $(LJVMCORE_O:.o=_dyn.o)
+CAPS_EX_O= capsluaplugininterface.o
+CAPS_EX_DYNO= $(CAPS_EX_O:.o=_dyn.o)
 
 LIB_VMDEF= jit/vmdef.lua
 LIB_VMDEFP= $(LIB_VMDEF)
@@ -571,16 +573,19 @@ ifeq (dynamic,$(BUILDMODE))
   endif
   TARGET_DYNCC= @:
   LJVMCORE_DYNO= $(LJVMCORE_O)
+  CAPS_EX_DYNO= $(CAPS_EX_O)
   TARGET_O= $(LUAJIT_SO)
   TARGET_XLDFLAGS+= $(TARGET_DYNXLDOPTS)
 else
 ifeq (Darwin,$(TARGET_SYS))
   TARGET_DYNCC= @:
   LJVMCORE_DYNO= $(LJVMCORE_O)
+  CAPS_EX_DYNO= $(CAPS_EX_O)
 endif
 ifeq (iOS,$(TARGET_SYS))
   TARGET_DYNCC= @:
   LJVMCORE_DYNO= $(LJVMCORE_O)
+  CAPS_EX_DYNO= $(CAPS_EX_O)
 endif
 endif
 endif
@@ -693,6 +698,8 @@ $(HOST_O): %.o: %.c
 
 include Makefile.dep
 
+capsluaplugininterface.o: capsluaplugininterface.c
+
 ##############################################################################
 # Target file rules.
 ##############################################################################
@@ -702,9 +709,9 @@ $(LUAJIT_A): $(LJVMCORE_O)
 	$(Q)$(TARGET_AR) $@ $(LJVMCORE_O)
 
 # The dependency on _O, but linking with _DYNO is intentional.
-$(LUAJIT_SO): $(LJVMCORE_O)
+$(LUAJIT_SO): $(LJVMCORE_O) $(CAPS_EX_O)
 	$(E) "DYNLINK   $@"
-	$(Q)$(TARGET_LD) $(TARGET_ASHLDFLAGS) -o $@ $(LJVMCORE_DYNO) $(TARGET_ALIBS)
+	$(Q)$(TARGET_LD) $(TARGET_ASHLDFLAGS) -o $@ $(LJVMCORE_DYNO) $(CAPS_EX_DYNO) $(TARGET_ALIBS)
 	$(Q)$(TARGET_STRIP) $@
 
 $(LUAJIT_T): $(TARGET_O) $(LUAJIT_O) $(TARGET_DEP)
