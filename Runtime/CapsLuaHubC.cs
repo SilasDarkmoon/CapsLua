@@ -37,6 +37,9 @@ namespace Capstones.LuaLib
                 Ready = false;
                 #if !DISABLE_LUA_HUB_C
                 lua.PrepareLib();
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+                UnityEngineEx.PluginManager.LoadLib(LIB_PATH);
+#endif
                 try
                 {
                     if (capslua_checkVer(LIB_VER))

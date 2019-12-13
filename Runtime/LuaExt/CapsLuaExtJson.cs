@@ -19,7 +19,7 @@ namespace Capstones.LuaExt
     {
         public static readonly Action<IntPtr> InitFunc;
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
 #if UNITY_EDITOR_OSX
         public const string LIB_PATH = "LuaJsonNative";
 #else
@@ -28,6 +28,9 @@ namespace Capstones.LuaExt
         static Json2LuaNative()
         {
             InitFunc = null;
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+            UnityEngineEx.PluginManager.LoadLib(LIB_PATH);
+#endif
             try
             {
                 if (IsReady())
