@@ -6,11 +6,12 @@ TARGET   = libCapsLuaNative.so
 OBJS     = CapsLuaNative.o LuaImport.o
 SRCS     = CapsLuaNative.cpp LuaImport.cpp
 
+default all: $(OBJS)
+	$(CC) -shared -fPIC -Wl,-soname,$(TARGET).1 -o $(TARGET) $(OBJS)
+	strip -x $(TARGET)
+
 $(OBJS): $(SRCS)
 	$(CC) $(CFLAGS) -c $^
-	
-all: $(OBJS)
-	$(CC) -shared -fPIC -o $(TARGET) $(OBJS)
 
 clean:
 	rm -f *.o
