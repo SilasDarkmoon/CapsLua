@@ -1241,7 +1241,7 @@ namespace Capstones.LuaLib
 #endif
         }
 
-#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || UNITY_EDITOR_OSX
         static LuaCoreLib()
         {
             UnityEngineEx.PluginManager.LoadLib(LUADLL);

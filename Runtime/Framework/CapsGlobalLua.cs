@@ -59,7 +59,7 @@ namespace Capstones.UnityEngineEx
             LuaExLibs.InitFuncs.Sort((a, b) => a.Order - b.Order);
             LuaExLibs.InitFuncs.TrimExcess();
 #if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
-            Init();
+            //Init();
 #endif
         }
 

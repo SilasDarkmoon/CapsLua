@@ -28,7 +28,7 @@ namespace Capstones.LuaExt
         static Json2LuaNative()
         {
             InitFunc = null;
-#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || UNITY_EDITOR_OSX
             UnityEngineEx.PluginManager.LoadLib(LIB_PATH);
 #endif
             try
