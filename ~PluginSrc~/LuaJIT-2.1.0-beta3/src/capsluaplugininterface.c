@@ -246,7 +246,6 @@ static IUnityInterfaces* l_pUnityInterfaces = 0;
 
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* unityInterfaces)
 {
-    l_pUnityInterfaces = unityInterfaces;
     UnityInterfaceGUID guidlua;
     guidlua.m_GUIDHigh = 0xE472D7060BA74533UL;
     guidlua.m_GUIDLow  = 0x88F82C3A4ADD9BBFUL;
@@ -366,5 +365,9 @@ void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces
     g_LuaPluginInterface.func_luaL_unref            = luaL_unref;
     g_LuaPluginInterface.func_luaL_where            = luaL_where;
 
-    unityInterfaces->RegisterInterface(guidlua, &g_LuaPluginInterface);
+    if (unityInterfaces && unityInterfaces->RegisterInterface)
+    {
+        l_pUnityInterfaces = unityInterfaces;
+        unityInterfaces->RegisterInterface(guidlua, &g_LuaPluginInterface);
+    }
 }
