@@ -21,7 +21,7 @@ namespace Capstones.UnityEditorEx
 
         private static void ReinitGlobalLua()
         {
-            //GlobalLua.Reinit();
+            GlobalLua.Reinit();
         }
 
         [MenuItem("Res/Build Scripts (No Update, Raw Copy)", priority = 200120)]
