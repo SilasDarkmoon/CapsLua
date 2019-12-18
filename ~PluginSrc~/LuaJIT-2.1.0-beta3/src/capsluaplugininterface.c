@@ -244,7 +244,7 @@ struct LuaPluginInterface
 
 static IUnityInterfaces* l_pUnityInterfaces = 0;
 
-IUnityInterfaces* UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetUnityInterfaces()
+UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetUnityInterfaces(void)
 {
     return l_pUnityInterfaces;
 }
