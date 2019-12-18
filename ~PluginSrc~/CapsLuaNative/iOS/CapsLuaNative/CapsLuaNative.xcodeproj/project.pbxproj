@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
-		1EBCB8F7215BB5190010FAC5 /* Aggregate */ = {
+		1E97434423AA0FBC00D38573 /* Aggregate */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 1EBCB8F8215BB5190010FAC5 /* Build configuration list for PBXAggregateTarget "Aggregate" */;
+			buildConfigurationList = 1E97434523AA0FBC00D38573 /* Build configuration list for PBXAggregateTarget "Aggregate" */;
 			buildPhases = (
-				1EBCB8FB215BB51E0010FAC5 /* ShellScript */,
+				1E97434823AA0FC600D38573 /* ShellScript */,
 			);
 			dependencies = (
 			);
@@ -21,11 +21,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		1EBCB8FF215BB57D0010FAC5 /* CapsLuaNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EBCB8FC215BB57C0010FAC5 /* CapsLuaNative.cpp */; };
+		1E97434223AA0EFE00D38573 /* CapsLuaNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97433E23AA0EFE00D38573 /* CapsLuaNative.cpp */; };
+		1E97434323AA0EFE00D38573 /* LuaImport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97433F23AA0EFE00D38573 /* LuaImport.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		1EBCB8E9215BB4A80010FAC5 /* CopyFiles */ = {
+		1E97433023AA0EE000D38573 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
@@ -37,14 +38,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1EBCB8EB215BB4A80010FAC5 /* libCapsLuaNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCapsLuaNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		1EBCB8FC215BB57C0010FAC5 /* CapsLuaNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CapsLuaNative.cpp; sourceTree = "<group>"; };
-		1EBCB8FD215BB57C0010FAC5 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaImport.h; sourceTree = "<group>"; };
-		1EBCB8FE215BB57D0010FAC5 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUnityInterface.h; sourceTree = "<group>"; };
+		1E97433223AA0EE000D38573 /* libCapsLuaNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCapsLuaNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E97433E23AA0EFE00D38573 /* CapsLuaNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CapsLuaNative.cpp; path = ../../src/CapsLuaNative.cpp; sourceTree = "<group>"; };
+		1E97433F23AA0EFE00D38573 /* LuaImport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaImport.cpp; path = ../../src/LuaImport.cpp; sourceTree = "<group>"; };
+		1E97434023AA0EFE00D38573 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaImport.h; path = ../../src/LuaImport.h; sourceTree = "<group>"; };
+		1E97434123AA0EFE00D38573 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IUnityInterface.h; path = ../../src/IUnityInterface.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1EBCB8E8215BB4A80010FAC5 /* Frameworks */ = {
+		1E97432F23AA0EE000D38573 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -54,42 +56,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1EBCB8E2215BB4A80010FAC5 = {
+		1E97432923AA0EE000D38573 = {
 			isa = PBXGroup;
 			children = (
-				1EBCB8ED215BB4A80010FAC5 /* CapsLuaNative */,
-				1EBCB8EC215BB4A80010FAC5 /* Products */,
+				1E97433E23AA0EFE00D38573 /* CapsLuaNative.cpp */,
+				1E97434123AA0EFE00D38573 /* IUnityInterface.h */,
+				1E97433F23AA0EFE00D38573 /* LuaImport.cpp */,
+				1E97434023AA0EFE00D38573 /* LuaImport.h */,
+				1E97433323AA0EE000D38573 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		1EBCB8EC215BB4A80010FAC5 /* Products */ = {
+		1E97433323AA0EE000D38573 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1EBCB8EB215BB4A80010FAC5 /* libCapsLuaNative.a */,
+				1E97433223AA0EE000D38573 /* libCapsLuaNative.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1EBCB8ED215BB4A80010FAC5 /* CapsLuaNative */ = {
-			isa = PBXGroup;
-			children = (
-				1EBCB8FC215BB57C0010FAC5 /* CapsLuaNative.cpp */,
-				1EBCB8FE215BB57D0010FAC5 /* IUnityInterface.h */,
-				1EBCB8FD215BB57C0010FAC5 /* LuaImport.h */,
-			);
-			path = CapsLuaNative;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1EBCB8EA215BB4A80010FAC5 /* CapsLuaNative */ = {
+		1E97433123AA0EE000D38573 /* CapsLuaNative */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1EBCB8F4215BB4A80010FAC5 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */;
+			buildConfigurationList = 1E97433B23AA0EE000D38573 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */;
 			buildPhases = (
-				1EBCB8E7215BB4A80010FAC5 /* Sources */,
-				1EBCB8E8215BB4A80010FAC5 /* Frameworks */,
-				1EBCB8E9215BB4A80010FAC5 /* CopyFiles */,
+				1E97432E23AA0EE000D38573 /* Sources */,
+				1E97432F23AA0EE000D38573 /* Frameworks */,
+				1E97433023AA0EE000D38573 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -97,46 +92,47 @@
 			);
 			name = CapsLuaNative;
 			productName = CapsLuaNative;
-			productReference = 1EBCB8EB215BB4A80010FAC5 /* libCapsLuaNative.a */;
+			productReference = 1E97433223AA0EE000D38573 /* libCapsLuaNative.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		1EBCB8E3215BB4A80010FAC5 /* Project object */ = {
+		1E97432A23AA0EE000D38573 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1000;
-				ORGANIZATIONNAME = Capstones;
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = Silas;
 				TargetAttributes = {
-					1EBCB8EA215BB4A80010FAC5 = {
-						CreatedOnToolsVersion = 10.0;
+					1E97433123AA0EE000D38573 = {
+						CreatedOnToolsVersion = 11.3;
 					};
-					1EBCB8F7215BB5190010FAC5 = {
-						CreatedOnToolsVersion = 10.0;
+					1E97434423AA0FBC00D38573 = {
+						CreatedOnToolsVersion = 11.3;
 					};
 				};
 			};
-			buildConfigurationList = 1EBCB8E6215BB4A80010FAC5 /* Build configuration list for PBXProject "CapsLuaNative" */;
+			buildConfigurationList = 1E97432D23AA0EE000D38573 /* Build configuration list for PBXProject "CapsLuaNative" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
-			mainGroup = 1EBCB8E2215BB4A80010FAC5;
-			productRefGroup = 1EBCB8EC215BB4A80010FAC5 /* Products */;
+			mainGroup = 1E97432923AA0EE000D38573;
+			productRefGroup = 1E97433323AA0EE000D38573 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1EBCB8EA215BB4A80010FAC5 /* CapsLuaNative */,
-				1EBCB8F7215BB5190010FAC5 /* Aggregate */,
+				1E97433123AA0EE000D38573 /* CapsLuaNative */,
+				1E97434423AA0FBC00D38573 /* Aggregate */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1EBCB8FB215BB51E0010FAC5 /* ShellScript */ = {
+		1E97434823AA0FC600D38573 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -156,18 +152,19 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1EBCB8E7215BB4A80010FAC5 /* Sources */ = {
+		1E97432E23AA0EE000D38573 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1EBCB8FF215BB57D0010FAC5 /* CapsLuaNative.cpp in Sources */,
+				1E97434223AA0EFE00D38573 /* CapsLuaNative.cpp in Sources */,
+				1E97434323AA0EFE00D38573 /* LuaImport.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1EBCB8F2215BB4A80010FAC5 /* Debug */ = {
+		1E97433923AA0EE000D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -199,7 +196,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -218,16 +214,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		1EBCB8F3215BB4A80010FAC5 /* Release */ = {
+		1E97433A23AA0EE000D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -259,7 +254,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -272,19 +266,17 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		1EBCB8F5215BB4A80010FAC5 /* Debug */ = {
+		1E97433C23AA0EE000D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -292,10 +284,9 @@
 			};
 			name = Debug;
 		};
-		1EBCB8F6215BB4A80010FAC5 /* Release */ = {
+		1E97433D23AA0EE000D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -303,18 +294,16 @@
 			};
 			name = Release;
 		};
-		1EBCB8F9215BB5190010FAC5 /* Debug */ = {
+		1E97434623AA0FBC00D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		1EBCB8FA215BB5190010FAC5 /* Release */ = {
+		1E97434723AA0FBC00D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -322,34 +311,34 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1EBCB8E6215BB4A80010FAC5 /* Build configuration list for PBXProject "CapsLuaNative" */ = {
+		1E97432D23AA0EE000D38573 /* Build configuration list for PBXProject "CapsLuaNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB8F2215BB4A80010FAC5 /* Debug */,
-				1EBCB8F3215BB4A80010FAC5 /* Release */,
+				1E97433923AA0EE000D38573 /* Debug */,
+				1E97433A23AA0EE000D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1EBCB8F4215BB4A80010FAC5 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */ = {
+		1E97433B23AA0EE000D38573 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB8F5215BB4A80010FAC5 /* Debug */,
-				1EBCB8F6215BB4A80010FAC5 /* Release */,
+				1E97433C23AA0EE000D38573 /* Debug */,
+				1E97433D23AA0EE000D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1EBCB8F8215BB5190010FAC5 /* Build configuration list for PBXAggregateTarget "Aggregate" */ = {
+		1E97434523AA0FBC00D38573 /* Build configuration list for PBXAggregateTarget "Aggregate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB8F9215BB5190010FAC5 /* Debug */,
-				1EBCB8FA215BB5190010FAC5 /* Release */,
+				1E97434623AA0FBC00D38573 /* Debug */,
+				1E97434723AA0FBC00D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 1EBCB8E3215BB4A80010FAC5 /* Project object */;
+	rootObject = 1E97432A23AA0EE000D38573 /* Project object */;
 }

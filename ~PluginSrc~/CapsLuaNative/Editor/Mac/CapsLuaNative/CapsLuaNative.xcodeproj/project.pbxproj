@@ -7,22 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1EBCB8D6215B89690010FAC5 /* CapsLuaNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EBCB8D5215B89690010FAC5 /* CapsLuaNative.cpp */; };
-		1EBCB8DE215B8D020010FAC5 /* IUnityInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 1EBCB8DC215B8D020010FAC5 /* IUnityInterface.h */; };
-		1EBCB8DF215B8D020010FAC5 /* LuaImport.h in Headers */ = {isa = PBXBuildFile; fileRef = 1EBCB8DD215B8D020010FAC5 /* LuaImport.h */; };
-		1EBCB8E1215BB1010010FAC5 /* LuaImport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EBCB8E0215BB1010010FAC5 /* LuaImport.cpp */; };
+		1E97436023AA115500D38573 /* LuaImport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97435C23AA115400D38573 /* LuaImport.cpp */; };
+		1E97436123AA115500D38573 /* CapsLuaNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97435D23AA115400D38573 /* CapsLuaNative.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1EBCB8CE215B89690010FAC5 /* libCapsLuaNative.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libCapsLuaNative.so; sourceTree = BUILT_PRODUCTS_DIR; };
-		1EBCB8D5215B89690010FAC5 /* CapsLuaNative.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CapsLuaNative.cpp; sourceTree = "<group>"; };
-		1EBCB8DC215B8D020010FAC5 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUnityInterface.h; sourceTree = "<group>"; };
-		1EBCB8DD215B8D020010FAC5 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaImport.h; sourceTree = "<group>"; };
-		1EBCB8E0215BB1010010FAC5 /* LuaImport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaImport.cpp; sourceTree = "<group>"; };
+		1E97435223AA10D800D38573 /* CapsLuaNative.bundle */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = CapsLuaNative.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E97435A23AA115400D38573 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IUnityInterface.h; path = ../../../src/IUnityInterface.h; sourceTree = "<group>"; };
+		1E97435B23AA115400D38573 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaImport.h; path = ../../../src/LuaImport.h; sourceTree = "<group>"; };
+		1E97435C23AA115400D38573 /* LuaImport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaImport.cpp; path = ../../../src/LuaImport.cpp; sourceTree = "<group>"; };
+		1E97435D23AA115400D38573 /* CapsLuaNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CapsLuaNative.cpp; path = ../../../src/CapsLuaNative.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1EBCB8CC215B89690010FAC5 /* Frameworks */ = {
+		1E97435023AA10D800D38573 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -32,55 +30,45 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1EBCB8C5215B89690010FAC5 = {
+		1E97434923AA10D800D38573 = {
 			isa = PBXGroup;
 			children = (
-				1EBCB8D0215B89690010FAC5 /* CapsLuaNative */,
-				1EBCB8CF215B89690010FAC5 /* Products */,
+				1E97435D23AA115400D38573 /* CapsLuaNative.cpp */,
+				1E97435A23AA115400D38573 /* IUnityInterface.h */,
+				1E97435C23AA115400D38573 /* LuaImport.cpp */,
+				1E97435B23AA115400D38573 /* LuaImport.h */,
+				1E97435323AA10D800D38573 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		1EBCB8CF215B89690010FAC5 /* Products */ = {
+		1E97435323AA10D800D38573 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1EBCB8CE215B89690010FAC5 /* libCapsLuaNative.so */,
+				1E97435223AA10D800D38573 /* CapsLuaNative.bundle */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1EBCB8D0215B89690010FAC5 /* CapsLuaNative */ = {
-			isa = PBXGroup;
-			children = (
-				1EBCB8E0215BB1010010FAC5 /* LuaImport.cpp */,
-				1EBCB8DC215B8D020010FAC5 /* IUnityInterface.h */,
-				1EBCB8DD215B8D020010FAC5 /* LuaImport.h */,
-				1EBCB8D5215B89690010FAC5 /* CapsLuaNative.cpp */,
-			);
-			path = CapsLuaNative;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		1EBCB8CA215B89690010FAC5 /* Headers */ = {
+		1E97434E23AA10D800D38573 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1EBCB8DE215B8D020010FAC5 /* IUnityInterface.h in Headers */,
-				1EBCB8DF215B8D020010FAC5 /* LuaImport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		1EBCB8CD215B89690010FAC5 /* CapsLuaNative */ = {
+		1E97435123AA10D800D38573 /* CapsLuaNative */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1EBCB8D9215B89690010FAC5 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */;
+			buildConfigurationList = 1E97435623AA10D800D38573 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */;
 			buildPhases = (
-				1EBCB8CA215B89690010FAC5 /* Headers */,
-				1EBCB8CB215B89690010FAC5 /* Sources */,
-				1EBCB8CC215B89690010FAC5 /* Frameworks */,
+				1E97434E23AA10D800D38573 /* Headers */,
+				1E97434F23AA10D800D38573 /* Sources */,
+				1E97435023AA10D800D38573 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -88,54 +76,55 @@
 			);
 			name = CapsLuaNative;
 			productName = CapsLuaNative;
-			productReference = 1EBCB8CE215B89690010FAC5 /* libCapsLuaNative.so */;
+			productReference = 1E97435223AA10D800D38573 /* CapsLuaNative.bundle */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		1EBCB8C6215B89690010FAC5 /* Project object */ = {
+		1E97434A23AA10D800D38573 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1000;
-				ORGANIZATIONNAME = Capstones;
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = Silas;
 				TargetAttributes = {
-					1EBCB8CD215B89690010FAC5 = {
-						CreatedOnToolsVersion = 10.0;
+					1E97435123AA10D800D38573 = {
+						CreatedOnToolsVersion = 11.3;
 					};
 				};
 			};
-			buildConfigurationList = 1EBCB8C9215B89690010FAC5 /* Build configuration list for PBXProject "CapsLuaNative" */;
+			buildConfigurationList = 1E97434D23AA10D800D38573 /* Build configuration list for PBXProject "CapsLuaNative" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
-			mainGroup = 1EBCB8C5215B89690010FAC5;
-			productRefGroup = 1EBCB8CF215B89690010FAC5 /* Products */;
+			mainGroup = 1E97434923AA10D800D38573;
+			productRefGroup = 1E97435323AA10D800D38573 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1EBCB8CD215B89690010FAC5 /* CapsLuaNative */,
+				1E97435123AA10D800D38573 /* CapsLuaNative */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1EBCB8CB215B89690010FAC5 /* Sources */ = {
+		1E97434F23AA10D800D38573 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1EBCB8D6215B89690010FAC5 /* CapsLuaNative.cpp in Sources */,
-				1EBCB8E1215BB1010010FAC5 /* LuaImport.cpp in Sources */,
+				1E97436123AA115500D38573 /* CapsLuaNative.cpp in Sources */,
+				1E97436023AA115500D38573 /* LuaImport.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1EBCB8D7215B89690010FAC5 /* Debug */ = {
+		1E97435423AA10D800D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -167,7 +156,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -186,7 +174,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -194,7 +182,7 @@
 			};
 			name = Debug;
 		};
-		1EBCB8D8215B89690010FAC5 /* Release */ = {
+		1E97435523AA10D800D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -226,7 +214,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -239,40 +226,32 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 			};
 			name = Release;
 		};
-		1EBCB8DA215B89690010FAC5 /* Debug */ = {
+		1E97435723AA10D800D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_EXTENSION = so;
-				EXECUTABLE_PREFIX = lib;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				EXECUTABLE_EXTENSION = bundle;
+				EXECUTABLE_PREFIX = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		1EBCB8DB215B89690010FAC5 /* Release */ = {
+		1E97435823AA10D800D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_EXTENSION = so;
-				EXECUTABLE_PREFIX = lib;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				EXECUTABLE_EXTENSION = bundle;
+				EXECUTABLE_PREFIX = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -281,25 +260,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1EBCB8C9215B89690010FAC5 /* Build configuration list for PBXProject "CapsLuaNative" */ = {
+		1E97434D23AA10D800D38573 /* Build configuration list for PBXProject "CapsLuaNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB8D7215B89690010FAC5 /* Debug */,
-				1EBCB8D8215B89690010FAC5 /* Release */,
+				1E97435423AA10D800D38573 /* Debug */,
+				1E97435523AA10D800D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1EBCB8D9215B89690010FAC5 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */ = {
+		1E97435623AA10D800D38573 /* Build configuration list for PBXNativeTarget "CapsLuaNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB8DA215B89690010FAC5 /* Debug */,
-				1EBCB8DB215B89690010FAC5 /* Release */,
+				1E97435723AA10D800D38573 /* Debug */,
+				1E97435823AA10D800D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 1EBCB8C6215B89690010FAC5 /* Project object */;
+	rootObject = 1E97434A23AA10D800D38573 /* Project object */;
 }
