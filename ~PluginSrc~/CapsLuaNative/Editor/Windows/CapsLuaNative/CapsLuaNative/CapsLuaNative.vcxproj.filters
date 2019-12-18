@@ -15,21 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LuaImport.h">
+    <ClInclude Include="framework.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="IUnityInterface.h">
+    <ClInclude Include="..\..\..\..\src\IUnityInterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\LuaImport.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CapsLuaNative.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="LuaImport.cpp">
+    <ClCompile Include="..\..\..\..\src\CapsLuaNative.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\LuaImport.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

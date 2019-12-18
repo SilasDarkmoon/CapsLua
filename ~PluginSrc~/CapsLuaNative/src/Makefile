@@ -7,7 +7,7 @@ OBJS     = CapsLuaNative.o LuaImport.o
 SRCS     = CapsLuaNative.cpp LuaImport.cpp
 
 default all: $(OBJS)
-	$(CC) -shared -fPIC -Wl -o $(TARGET) $(OBJS)
+	$(CC) -shared -fPIC -o $(TARGET) $(OBJS)
 	strip -x $(TARGET)
 
 $(OBJS): $(SRCS)
