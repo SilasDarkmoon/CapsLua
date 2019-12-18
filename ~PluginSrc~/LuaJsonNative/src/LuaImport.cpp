@@ -1,6 +1,7 @@
 #include "LuaImport.h"
 #include "IUnityInterface.h"
 
+#if !TARGET_OS_IPHONE
 LuaPluginInterface* g_pLuaPluginInterface = 0;
 
 #if __cplusplus
@@ -28,3 +29,4 @@ int UNITY_INTERFACE_EXPORT IsReady()
 #if __cplusplus
 }
 #endif
+#endif //!TARGET_OS_IPHONE

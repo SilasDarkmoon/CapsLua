@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
-		1EBCB93C215E56FB0010FAC5 /* Aggregate */ = {
+		1E97437E23AA15E700D38573 /* Aggregate */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 1EBCB93D215E56FB0010FAC5 /* Build configuration list for PBXAggregateTarget "Aggregate" */;
+			buildConfigurationList = 1E97437F23AA15E700D38573 /* Build configuration list for PBXAggregateTarget "Aggregate" */;
 			buildPhases = (
-				1EBCB940215E57050010FAC5 /* ShellScript */,
+				1E97438223AA15F000D38573 /* ShellScript */,
 			);
 			dependencies = (
 			);
@@ -21,11 +21,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		1EBCB93B215E56E40010FAC5 /* LuaJsonNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EBCB938215E56E40010FAC5 /* LuaJsonNative.cpp */; };
+		1E97437C23AA15AF00D38573 /* LuaJsonNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97437823AA15AF00D38573 /* LuaJsonNative.cpp */; };
+		1E97437D23AA15AF00D38573 /* LuaImport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E97437A23AA15AF00D38573 /* LuaImport.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		1EBCB927215E56A70010FAC5 /* CopyFiles */ = {
+		1E97436923AA159100D38573 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
@@ -37,15 +38,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1EBCB929215E56A70010FAC5 /* libLuaJsonNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libLuaJsonNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		1EBCB935215E56E40010FAC5 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaImport.h; sourceTree = "<group>"; };
-		1EBCB936215E56E40010FAC5 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUnityInterface.h; sourceTree = "<group>"; };
-		1EBCB938215E56E40010FAC5 /* LuaJsonNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaJsonNative.cpp; sourceTree = "<group>"; };
-		1EBCB939215E56E40010FAC5 /* rapidjson */ = {isa = PBXFileReference; lastKnownFileType = folder; path = rapidjson; sourceTree = "<group>"; };
+		1E97436B23AA159100D38573 /* libLuaJsonNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libLuaJsonNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E97437723AA15AF00D38573 /* rapidjson */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rapidjson; path = ../../src/rapidjson; sourceTree = "<group>"; };
+		1E97437823AA15AF00D38573 /* LuaJsonNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaJsonNative.cpp; path = ../../src/LuaJsonNative.cpp; sourceTree = "<group>"; };
+		1E97437923AA15AF00D38573 /* IUnityInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IUnityInterface.h; path = ../../src/IUnityInterface.h; sourceTree = "<group>"; };
+		1E97437A23AA15AF00D38573 /* LuaImport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaImport.cpp; path = ../../src/LuaImport.cpp; sourceTree = "<group>"; };
+		1E97437B23AA15AF00D38573 /* LuaImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaImport.h; path = ../../src/LuaImport.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1EBCB926215E56A70010FAC5 /* Frameworks */ = {
+		1E97436823AA159100D38573 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -55,43 +57,36 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1EBCB920215E56A70010FAC5 = {
+		1E97436223AA159100D38573 = {
 			isa = PBXGroup;
 			children = (
-				1EBCB92B215E56A70010FAC5 /* LuaJsonNative */,
-				1EBCB92A215E56A70010FAC5 /* Products */,
+				1E97437923AA15AF00D38573 /* IUnityInterface.h */,
+				1E97437A23AA15AF00D38573 /* LuaImport.cpp */,
+				1E97437B23AA15AF00D38573 /* LuaImport.h */,
+				1E97437823AA15AF00D38573 /* LuaJsonNative.cpp */,
+				1E97437723AA15AF00D38573 /* rapidjson */,
+				1E97436C23AA159100D38573 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		1EBCB92A215E56A70010FAC5 /* Products */ = {
+		1E97436C23AA159100D38573 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1EBCB929215E56A70010FAC5 /* libLuaJsonNative.a */,
+				1E97436B23AA159100D38573 /* libLuaJsonNative.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1EBCB92B215E56A70010FAC5 /* LuaJsonNative */ = {
-			isa = PBXGroup;
-			children = (
-				1EBCB936215E56E40010FAC5 /* IUnityInterface.h */,
-				1EBCB935215E56E40010FAC5 /* LuaImport.h */,
-				1EBCB938215E56E40010FAC5 /* LuaJsonNative.cpp */,
-				1EBCB939215E56E40010FAC5 /* rapidjson */,
-			);
-			path = LuaJsonNative;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1EBCB928215E56A70010FAC5 /* LuaJsonNative */ = {
+		1E97436A23AA159100D38573 /* LuaJsonNative */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1EBCB932215E56A70010FAC5 /* Build configuration list for PBXNativeTarget "LuaJsonNative" */;
+			buildConfigurationList = 1E97437423AA159100D38573 /* Build configuration list for PBXNativeTarget "LuaJsonNative" */;
 			buildPhases = (
-				1EBCB925215E56A70010FAC5 /* Sources */,
-				1EBCB926215E56A70010FAC5 /* Frameworks */,
-				1EBCB927215E56A70010FAC5 /* CopyFiles */,
+				1E97436723AA159100D38573 /* Sources */,
+				1E97436823AA159100D38573 /* Frameworks */,
+				1E97436923AA159100D38573 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -99,46 +94,47 @@
 			);
 			name = LuaJsonNative;
 			productName = LuaJsonNative;
-			productReference = 1EBCB929215E56A70010FAC5 /* libLuaJsonNative.a */;
+			productReference = 1E97436B23AA159100D38573 /* libLuaJsonNative.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		1EBCB921215E56A70010FAC5 /* Project object */ = {
+		1E97436323AA159100D38573 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1000;
-				ORGANIZATIONNAME = Capstones;
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = Silas;
 				TargetAttributes = {
-					1EBCB928215E56A70010FAC5 = {
-						CreatedOnToolsVersion = 10.0;
+					1E97436A23AA159100D38573 = {
+						CreatedOnToolsVersion = 11.3;
 					};
-					1EBCB93C215E56FB0010FAC5 = {
-						CreatedOnToolsVersion = 10.0;
+					1E97437E23AA15E700D38573 = {
+						CreatedOnToolsVersion = 11.3;
 					};
 				};
 			};
-			buildConfigurationList = 1EBCB924215E56A70010FAC5 /* Build configuration list for PBXProject "LuaJsonNative" */;
+			buildConfigurationList = 1E97436623AA159100D38573 /* Build configuration list for PBXProject "LuaJsonNative" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
-			mainGroup = 1EBCB920215E56A70010FAC5;
-			productRefGroup = 1EBCB92A215E56A70010FAC5 /* Products */;
+			mainGroup = 1E97436223AA159100D38573;
+			productRefGroup = 1E97436C23AA159100D38573 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1EBCB928215E56A70010FAC5 /* LuaJsonNative */,
-				1EBCB93C215E56FB0010FAC5 /* Aggregate */,
+				1E97436A23AA159100D38573 /* LuaJsonNative */,
+				1E97437E23AA15E700D38573 /* Aggregate */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1EBCB940215E57050010FAC5 /* ShellScript */ = {
+		1E97438223AA15F000D38573 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -158,18 +154,19 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1EBCB925215E56A70010FAC5 /* Sources */ = {
+		1E97436723AA159100D38573 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1EBCB93B215E56E40010FAC5 /* LuaJsonNative.cpp in Sources */,
+				1E97437C23AA15AF00D38573 /* LuaJsonNative.cpp in Sources */,
+				1E97437D23AA15AF00D38573 /* LuaImport.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1EBCB930215E56A70010FAC5 /* Debug */ = {
+		1E97437223AA159100D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -201,7 +198,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -220,16 +216,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		1EBCB931215E56A70010FAC5 /* Release */ = {
+		1E97437323AA159100D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -261,7 +256,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -274,19 +268,17 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		1EBCB933215E56A70010FAC5 /* Debug */ = {
+		1E97437523AA159100D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -294,10 +286,9 @@
 			};
 			name = Debug;
 		};
-		1EBCB934215E56A70010FAC5 /* Release */ = {
+		1E97437623AA159100D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -305,18 +296,16 @@
 			};
 			name = Release;
 		};
-		1EBCB93E215E56FB0010FAC5 /* Debug */ = {
+		1E97438023AA15E700D38573 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		1EBCB93F215E56FB0010FAC5 /* Release */ = {
+		1E97438123AA15E700D38573 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -324,34 +313,34 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1EBCB924215E56A70010FAC5 /* Build configuration list for PBXProject "LuaJsonNative" */ = {
+		1E97436623AA159100D38573 /* Build configuration list for PBXProject "LuaJsonNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB930215E56A70010FAC5 /* Debug */,
-				1EBCB931215E56A70010FAC5 /* Release */,
+				1E97437223AA159100D38573 /* Debug */,
+				1E97437323AA159100D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1EBCB932215E56A70010FAC5 /* Build configuration list for PBXNativeTarget "LuaJsonNative" */ = {
+		1E97437423AA159100D38573 /* Build configuration list for PBXNativeTarget "LuaJsonNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB933215E56A70010FAC5 /* Debug */,
-				1EBCB934215E56A70010FAC5 /* Release */,
+				1E97437523AA159100D38573 /* Debug */,
+				1E97437623AA159100D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1EBCB93D215E56FB0010FAC5 /* Build configuration list for PBXAggregateTarget "Aggregate" */ = {
+		1E97437F23AA15E700D38573 /* Build configuration list for PBXAggregateTarget "Aggregate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1EBCB93E215E56FB0010FAC5 /* Debug */,
-				1EBCB93F215E56FB0010FAC5 /* Release */,
+				1E97438023AA15E700D38573 /* Debug */,
+				1E97438123AA15E700D38573 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 1EBCB921215E56A70010FAC5 /* Project object */;
+	rootObject = 1E97436323AA159100D38573 /* Project object */;
 }
