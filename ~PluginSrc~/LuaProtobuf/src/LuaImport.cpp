@@ -2,11 +2,12 @@
 #include "IUnityInterface.h"
 
 #if !TARGET_OS_IPHONE
-LuaPluginInterface* g_pLuaPluginInterface = 0;
 
 #if __cplusplus
 extern "C" {
 #endif
+
+LuaPluginInterface* g_pLuaPluginInterface = 0;
 
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces *unityInterfaces)
 {

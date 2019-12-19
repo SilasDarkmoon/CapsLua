@@ -97,7 +97,9 @@ typedef struct luaL_Buffer {
 #define LUA_GCISRUNNING		9
 
 #if TARGET_OS_IPHONE
+#ifdef __cplusplus
 extern "C" {
+#endif
 lua_CFunction   (lua_atpanic) (lua_State *L, lua_CFunction panicf);
 void            (lua_call) (lua_State *L, int nargs, int nresults);
 int             (lua_checkstack) (lua_State *L, int extra);
@@ -212,7 +214,9 @@ void            (luaL_register) (lua_State *L, const char *libname, const luaL_R
 int             (luaL_typerror) (lua_State *L, int narg, const char *tname);
 void            (luaL_unref) (lua_State *L, int t, int ref);
 void            (luaL_where) (lua_State *L, int lvl);
+#ifdef __cplusplus
 }
+#endif
 
 #else
 typedef lua_CFunction   (*del_lua_atpanic) (lua_State *L, lua_CFunction panicf);
@@ -449,7 +453,13 @@ typedef struct LuaPluginInterface
 
 } LuaPluginInterface;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern LuaPluginInterface* g_pLuaPluginInterface;
+#ifdef __cplusplus
+}
+#endif
 
 #define lua_atpanic             g_pLuaPluginInterface->func_lua_atpanic
 #define lua_call                g_pLuaPluginInterface->func_lua_call
