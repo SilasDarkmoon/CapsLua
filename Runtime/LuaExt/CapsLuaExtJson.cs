@@ -35,14 +35,14 @@ namespace Capstones.LuaExt
             {
                 if (IsReady())
                 {
-                    InitFunc = Init;
+                    InitFunc = InitLuaJsonPlugin;
                 }
             }
             catch { }
         }
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init(IntPtr l);
+        public static extern void InitLuaJsonPlugin(IntPtr l);
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool IsReady();
@@ -54,13 +54,13 @@ namespace Capstones.LuaExt
             InitFunc = null;
             try
             {
-                InitFunc = Init;
+                InitFunc = InitLuaJsonPlugin;
             }
             catch { }
         }
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init(IntPtr l);
+        public static extern void InitLuaJsonPlugin(IntPtr l);
 #elif UNITY_ANDROID
         public const string LIB_PATH = "LuaJsonNative";
 
@@ -71,14 +71,14 @@ namespace Capstones.LuaExt
             {
                 if (IsReady())
                 {
-                    InitFunc = Init;
+                    InitFunc = InitLuaJsonPlugin;
                 }
             }
             catch { }
         }
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init(IntPtr l);
+        public static extern void InitLuaJsonPlugin(IntPtr l);
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool IsReady();

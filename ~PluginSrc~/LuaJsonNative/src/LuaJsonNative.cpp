@@ -571,7 +571,7 @@ static int json_encode(lua_State* L)
 
 extern "C"
 {
-    EXPORT_API void Init(void* l)
+    EXPORT_API void InitLuaJsonPlugin(void* l)
     {
         lua_newtable(l);
         lua_pushvalue(l, -1);

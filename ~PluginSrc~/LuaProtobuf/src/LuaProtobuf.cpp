@@ -17,7 +17,7 @@ extern "C"
     extern int luaopen_pb_slice(lua_State *L);
     extern int luaopen_pb(lua_State *L);
     
-    EXPORT_API void Init(void* l)
+    EXPORT_API void InitLuaProtobufPlugin(void* l)
     {
         luaopen_pb(l);
         luaopen_pb_io(l);
