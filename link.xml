@@ -3,5 +3,4 @@
   <assembly fullname="UnityEngine.UI" preserve="all"/>
   <assembly fullname="UnityEngine.CoreModule" preserve="all"/>
   <assembly fullname="CapsLua" preserve="all"/>
-  <assembly fullname="Cinemachine" preserve="all"/>
 </linker>
