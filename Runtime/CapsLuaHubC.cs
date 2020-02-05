@@ -150,11 +150,11 @@ namespace Capstones.LuaLib
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void capslua_setTypeVector3(IntPtr type);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void capslua_pushVector3(IntPtr l, float x, float y, float z);
+            public static extern void capslua_pushVector3(IntPtr l, System.Single x, System.Single y, System.Single z);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void capslua_setVector3(IntPtr l, int index, float x, float y, float z);
+            public static extern void capslua_setVector3(IntPtr l, int index, System.Single x, System.Single y, System.Single z);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void capslua_getVector3(IntPtr l, int index, out float x, out float y, out float z);
+            public static extern void capslua_getVector3(IntPtr l, int index, out System.Single x, out System.Single y, out System.Single z);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void capslua_setTypeBounds(IntPtr type);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]

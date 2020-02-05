@@ -1,0 +1,19 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Capstones.LuaLib
+{
+    public class LuaPrecompileLoaderEx : LuaPrecompileLoader
+    {
+        public override void Init()
+        {
+            LuaHubEx.Init();
+        }
+    }
+
+    public static partial class LuaHubEx
+    {
+        public static void Init() { }
+    }
+}

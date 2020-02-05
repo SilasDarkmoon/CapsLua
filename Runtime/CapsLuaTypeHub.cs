@@ -12,10 +12,26 @@ namespace Capstones.LuaLib
     public static class LuaTypeHub
     {
         public static readonly TypeHubBase EmptyTypeHub = new TypeHubBase(null);
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        private static System.Collections.Concurrent.ConcurrentDictionary<Type, TypeHubBase> _TypeHubCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, TypeHubBase>();
+#else
         private static Dictionary<Type, TypeHubBase> _TypeHubCache = new Dictionary<Type, TypeHubBase>();
+#endif
+        private static Dictionary<Type, Func<Type, TypeHubBase>> _TypeHubCreators = new Dictionary<Type, Func<Type, TypeHubBase>>(); // Notice: this field should be filled only once, on starting.
+
+        public static void RegTypeHubCreator(Type type, Func<Type, TypeHubBase> creator)
+        {
+            if (type != null && creator != null)
+            {
+                _TypeHubCreators[type] = creator;
+            }
+        }
+
         private static void PutIntoCache(TypeHubBase hub)
         {
+#if (UNITY_ENGINE || UNITY_5_3_OR_NEWER) && !NET_4_6 && !NET_STANDARD_2_0
             lock (_TypeHubCache)
+#endif
             {
                 _TypeHubCache[hub.t] = hub;
             }
@@ -28,25 +44,42 @@ namespace Capstones.LuaLib
                 Capstones.LuaExt.Assembly2Lua._SearchAssemblies.Add(type.GetTypeInfo().Assembly);
 #endif
                 TypeHubBase hub = null;
+#if (UNITY_ENGINE || UNITY_5_3_OR_NEWER) && !NET_4_6 && !NET_STANDARD_2_0
                 lock (_TypeHubCache)
+#endif
                 {
                     if (_TypeHubCache.TryGetValue(type, out hub))
                     {
                         return hub;
                     }
                 }
-                // TODO: delegates / structs
-                if (type.IsSubclassOf(typeof(ValueType)))
+                Func<Type, TypeHubBase> creator;
+                if (_TypeHubCreators.TryGetValue(type, out creator))
                 {
-                    hub = new TypeHubValueType(type);
+                    try
+                    {
+                        hub = creator(type);
+                    }
+                    catch (Exception e)
+                    {
+                        PlatDependant.LogError(e);
+                    }
                 }
-                else if (type.IsSubclassOf(typeof(Delegate)))
+                if (hub == null)
                 {
-                    hub = new TypeHubDelegate(type);
-                }
-                else
-                {
-                    hub = new TypeHubCommon(type);
+                    // TODO: delegates / structs
+                    if (type.IsSubclassOf(typeof(ValueType)))
+                    {
+                        hub = new TypeHubValueType(type);
+                    }
+                    else if (type.IsSubclassOf(typeof(Delegate)))
+                    {
+                        hub = new TypeHubDelegate(type);
+                    }
+                    else
+                    {
+                        hub = new TypeHubCommon(type);
+                    }
                 }
                 PutIntoCache(hub);
                 return hub;
@@ -1479,11 +1512,68 @@ namespace Capstones.LuaLib
             }
         }
 
+        public class TypeHubCreator<TOrigin, THubSub> where THubSub : TypeHubBase, new()
+        {
+            public TypeHubCreator()
+            {
+                RegTypeHubCreator(typeof(TOrigin), CreateTypeHubSub);
+            }
+
+            protected THubSub _TypeHubSub;
+            protected object _Locker = new object();
+            public THubSub TypeHubSub
+            {
+                get
+                {
+                    if (_TypeHubSub == null)
+                    {
+                        lock (_Locker)
+                        {
+                            if (_TypeHubSub == null)
+                            {
+                                _TypeHubSub = new THubSub();
+                            }
+                        }
+                    }
+                    return _TypeHubSub;
+                }
+            }
+            protected TypeHubBase CreateTypeHubSub(Type type)
+            {
+                return TypeHubSub;
+            }
+
+            //public void PushLuaObject(IntPtr l, object val)
+            //{
+            //    TypeHubSub.PushLuaObject(l, val);
+            //}
+        }
+
+        //public class TypeHubValueTypeCreator<TOrigin, THubSub>
+        //    : TypeHubCreator<TOrigin, THubSub> where THubSub : TypeHubValueTypePrecompiled<TOrigin>, new()
+        //{
+        //    public void PushLua(IntPtr l, TOrigin val)
+        //    {
+        //        TypeHubSub.PushLua(l, val);
+        //    }
+        //}
+
         // TODO: delegate precompiled?
     }
 
     public static partial class LuaHub
     {
-        
+        static LuaHub()
+        {
+#if (UNITY_ENGINE || UNITY_5_3_OR_NEWER)
+            var asset = UnityEngine.Resources.Load<LuaPrecompileLoader>("LuaPrecompileLoaderEx");
+            if (asset)
+            {
+                asset.Init();
+            }
+#else
+            LuaHubEx.Init();
+#endif
+        }
     }
 }
