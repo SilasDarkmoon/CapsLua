@@ -22,9 +22,7 @@ namespace Capstones.UnityEditorEx
     {
         static LuaPrecompile()
         {
-#if ENABLE_LUA_PRECOMPILE_WHILE_PLAYING
-            Capstones.LuaLib.BaseMethodMeta.OnReflectInvokeMember = LuaPrecompile.WritePrecompileFuncForMemberAsync;
-#endif
+            Capstones.LuaLib.BaseMethodMeta.OnReflectInvokeMember = LuaPrecompile.OnReflectInvokeMember;
         }
 
         private static List<string> _WhiteList;
@@ -144,7 +142,7 @@ namespace Capstones.UnityEditorEx
                         break;
                     if (!string.IsNullOrEmpty(line))
                     {
-                        if (!_BlackList.Contains(TrimComment(line.Trim())))
+                        if (!blacklist.Contains(TrimComment(line.Trim())))
                         {
                             lineindices[line] = memberlines.Count;
                             memberlines.Add(line);
@@ -170,7 +168,18 @@ namespace Capstones.UnityEditorEx
                     {
                         continue;
                     }
-                    var line = "type " + type.FullName;
+
+                    var exsitinghubtype = LuaLib.LuaTypeHub.GetCachedTypeHubType(type);
+                    if (exsitinghubtype != null)
+                    {
+                        if (exsitinghubtype.IsSubclassOf(typeof(LuaLib.LuaTypeHub.TypeHubCommonPrecompiled))
+                            && (exsitinghubtype.Name != "TypeHubPrecompiled_" + GetFileNameForType(type.ToString()) || exsitinghubtype.DeclaringType.Name != "LuaHubEx"))
+                        {
+                            continue; // this is a hub file written by hand. ignore this.
+                        }
+                    }
+
+                    var line = "type " + ReflectAnalyzer.GetIDString(type);
                     if (lineindices.ContainsKey(line))
                     {
                         _TypeList[type.FullName] = type;
@@ -224,6 +233,122 @@ namespace Capstones.UnityEditorEx
             }
             return _MemberList;
         }
+        public static List<string> ParseWhiteListForPrecompileAttribute()
+        {
+            List<string> list = new List<string>();
+            var asms = System.AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var asm in asms)
+            {
+                bool allType = false;
+                var precompileAttribute = asm.GetCustomAttribute<LuaLib.LuaPrecompileAttribute>();
+                if (precompileAttribute != null && precompileAttribute.Ignore)
+                {
+                    continue;
+                }
+                else if (precompileAttribute != null && !precompileAttribute.Ignore)
+                {
+                    allType = true;
+                }
+                var types = asm.GetTypes(); // It seems that the GetTypes returns nested types.
+                foreach (var type in types)
+                {
+                    bool allmember = false;
+                    precompileAttribute = type.GetCustomAttribute<LuaLib.LuaPrecompileAttribute>();
+                    if (allType)
+                    {
+                        if (precompileAttribute != null && precompileAttribute.Ignore)
+                        {
+                            continue;
+                        }
+                        allmember = true;
+                    }
+                    else
+                    {
+                        if (precompileAttribute != null && precompileAttribute.Ignore)
+                        {
+                            continue;
+                        }
+                        else if (precompileAttribute != null && !precompileAttribute.Ignore)
+                        {
+                            allmember = true;
+                        }
+                    }
+
+                    var typestr = ReflectAnalyzer.GetIDString(type);
+                    if (allmember)
+                    {
+                        list.Add("type " + typestr);
+                        list.Add("member * * " + typestr + " *");
+                    }
+                    else
+                    {
+                        foreach (var member in type.GetMembers())
+                        {
+                            precompileAttribute = member.GetCustomAttribute<LuaLib.LuaPrecompileAttribute>();
+                            if (precompileAttribute != null && precompileAttribute.Ignore)
+                            {
+                                continue;
+                            }
+                            else if (precompileAttribute != null && !precompileAttribute.Ignore)
+                            {
+                                list.Add("member * * " + typestr + " " + ReflectAnalyzer.GetIDString(member));
+                            }
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+        public static List<string> ParseFullWhiteList()
+        {
+            List<string> list = new List<string>();
+            HashSet<string> uniqueset = new HashSet<string>();
+            if (_WhiteList != null)
+            {
+                foreach (var line in _WhiteList)
+                {
+                    if (uniqueset.Add(line))
+                    {
+                        list.Add(line);
+                    }
+                }
+            }
+            foreach (var line in ParseWhiteListForPrecompileAttribute())
+            {
+                if (uniqueset.Add(line))
+                {
+                    list.Add(line);
+                }
+            }
+            if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+            {
+                try
+                {
+                    using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                    {
+                        while (true)
+                        {
+                            var line = sr.ReadLine();
+                            if (line == null)
+                                break;
+
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                if (uniqueset.Add(line))
+                                {
+                                    list.Add(line);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    PlatDependant.LogError(e);
+                }
+            }
+            return list;
+        }
 
         public static void CheckBasePrecompileFiles()
         {
@@ -254,6 +379,20 @@ namespace Capstones.UnityEditorEx
         private static ConcurrentQueue<string> _PrecompileCommands = new ConcurrentQueue<string>();
         private static System.Threading.AutoResetEvent _FinishWriting = new System.Threading.AutoResetEvent(false);
         private static System.Threading.AutoResetEvent _PrecompileWorkArrived = new System.Threading.AutoResetEvent(false);
+
+        public static void OnReflectInvokeMember(Type type, string member)
+        {
+            if (type == null || string.IsNullOrEmpty(member))
+            {
+                return;
+            }
+            var command = "member * * " + ReflectAnalyzer.GetIDString(type) + " " + member;
+#if ENABLE_LUA_PRECOMPILE_WHILE_PLAYING
+            WritePrecompileFuncForMemberAsync(command);
+#else
+            RecordPrecompileCommandAsync(command);
+#endif
+        }
 
         public static void WritePrecompileFuncForMemberAsync(string memberstr)
         {
@@ -309,6 +448,7 @@ namespace Capstones.UnityEditorEx
                                 _PrecompileWorkArrived.Set();
 
                                 _FinishWriting.WaitOne();
+                                AssetDatabase.Refresh();
                             }
                         };
                         EditorBridge.OnPlayModeChanged += onPlayModeChanged;
@@ -321,6 +461,151 @@ namespace Capstones.UnityEditorEx
             else
             {
                 WritePrecompileFuncForMember(memberstr, false);
+                AssetDatabase.Refresh();
+            }
+        }
+
+        private static List<string> _CachedPrecompileCommands = null;
+        public static void RecordPrecompileCommandAsync(string cmdstr)
+        {
+            if (_CachedPrecompileCommands != null || Application.isPlaying)
+            {
+                if (_CachedPrecompileCommands == null)
+                {
+                    _CachedPrecompileCommands = new List<string>();
+                    _AyncPrecompileMembers.Clear();
+
+                    if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                    {
+                        try
+                        {
+                            using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            {
+                                while (true)
+                                {
+                                    var line = sr.ReadLine();
+                                    if (line == null)
+                                        break;
+
+                                    if (!string.IsNullOrEmpty(line))
+                                    {
+                                        if (_AyncPrecompileMembers.Add(line))
+                                        {
+                                            _CachedPrecompileCommands.Add(line);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                    }
+
+                    PlatDependant.RunBackground(prog =>
+                    {
+                        while (_PrecompileWorkArrived.WaitOne())
+                        {
+                            string command;
+                            while (_PrecompileCommands.TryDequeue(out command))
+                            {
+                                if (command == "-")
+                                {
+                                    break;
+                                }
+                                if (_AyncPrecompileMembers.Add(command))
+                                {
+                                    _CachedPrecompileCommands.Add(command);
+                                }
+                            }
+                            if (command == "-")
+                            {
+                                break;
+                            }
+                        }
+
+                        var cached = _CachedPrecompileCommands;
+                        _CachedPrecompileCommands = null;
+                        try
+                        {
+                            using (var sw = PlatDependant.OpenWriteText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            {
+                                for (int i = 0; i < cached.Count; ++i)
+                                {
+                                    sw.WriteLine(cached[i]);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                        _FinishWriting.Set();
+                    });
+
+                    Action onPlayModeChanged = null;
+                    onPlayModeChanged = () =>
+                    {
+                        if (!Application.isPlaying)
+                        {
+                            EditorBridge.OnPlayModeChanged -= onPlayModeChanged;
+
+                            _PrecompileCommands.Enqueue("-");
+                            _PrecompileWorkArrived.Set();
+
+                            _FinishWriting.WaitOne();
+                        }
+                    };
+                    EditorBridge.OnPlayModeChanged += onPlayModeChanged;
+                }
+
+                _PrecompileCommands.Enqueue(cmdstr);
+                _PrecompileWorkArrived.Set();
+            }
+            else
+            {
+                if (_AyncPrecompileMembers.Count == 0)
+                {
+                    if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                    {
+                        try
+                        {
+                            using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            {
+                                while (true)
+                                {
+                                    var line = sr.ReadLine();
+                                    if (line == null)
+                                        break;
+
+                                    if (!string.IsNullOrEmpty(line))
+                                    {
+                                        _AyncPrecompileMembers.Add(line);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                    }
+                }
+                if (_AyncPrecompileMembers.Add(cmdstr))
+                {
+                    try
+                    {
+                        using (var sw = PlatDependant.OpenAppendText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                        {
+                            sw.WriteLine(cmdstr);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        PlatDependant.LogError(e);
+                    }
+                }
             }
         }
 
@@ -503,6 +788,38 @@ namespace Capstones.UnityEditorEx
             { typeof(IntPtr), new SpecialTypeInfo(){ type = typeof(IntPtr), sname = "void*", pushfunc = "lua_pushlightuserdata", getfunc = "lua_touserdata" } },
         };
 
+        public static Type GetPrecompileBaseType(Type type)
+        {
+            if (type == null)
+            {
+                return null;
+            }
+            else if (type.IsValueType)
+            {
+                return null;
+            }
+            var basetype = type.BaseType;
+            if (basetype == null)
+            {
+                return null;
+            }
+            else if (basetype == typeof(object))
+            {
+                return null;
+            } 
+            else if (basetype.IsGenericType())
+            {
+                return GetPrecompileBaseType(basetype); // TODO: generic support
+            }
+            else if (!GetTypeList().ContainsKey(basetype.ToString()))
+            {
+                return GetPrecompileBaseType(basetype);
+            }
+            else
+            {
+                return basetype;
+            }
+        }
         public static string GetFileNameForType(string typestr)
         {
             var filename = typestr;
@@ -526,6 +843,8 @@ namespace Capstones.UnityEditorEx
             typelist.TryGetValue(typestr, out type);
             if (type == null || type == typeof(object))
                 return;
+            if (type.IsGenericType())
+                return; // TODO: generic support.
 
             var filename = GetFileNameForType(typestr);
             var path = GetPrecompileFilePath(type);
@@ -536,19 +855,7 @@ namespace Capstones.UnityEditorEx
 
             var sb_type = new System.Text.StringBuilder();
             sb_type.WriteType(type);
-            var basetype = type.BaseType;
-            if (type.IsValueType)
-            {
-                basetype = null;
-            }
-            else if (basetype.IsGenericType())
-            {
-                basetype = null; // TODO: generic support
-            }
-            else if (basetype == typeof(object))
-            {
-                basetype = null;
-            }
+            var basetype = GetPrecompileBaseType(type);
             if (basetype != null)
             {
                 WritePrecompileFileForType(basetype.ToString());
@@ -1093,20 +1400,17 @@ namespace Capstones.UnityEditorEx
             lines.Add("}");
             // write class name END
             // write instance
+#if LUA_PRECOMPILE_INSTANT_TYPE_HUB_CREATION
             if (outtertype == null)
             {
                 sbline.Remove(0, sbline.Length);
-                sbline.Append("private static Capstones.LuaLib.LuaTypeHub.TypeHubCreator<");
-                sbline.Append(sb_type);
-                sbline.Append(", TypeHubPrecompiled_");
+                sbline.Append("private static TypeHubPrecompiled_");
                 sbline.Append(filename);
-                sbline.Append("> ___tp_");
+                sbline.Append(" ___tp_");
                 sbline.Append(filename);
-                sbline.Append(" = new Capstones.LuaLib.LuaTypeHub.TypeHubCreator<");
-                sbline.Append(sb_type);
-                sbline.Append(", TypeHubPrecompiled_");
+                sbline.Append(" = new TypeHubPrecompiled_");
                 sbline.Append(filename);
-                sbline.Append(">();");
+                sbline.Append("();");
                 lines.Add(sbline.ToString());
             }
             else
@@ -1118,31 +1422,73 @@ namespace Capstones.UnityEditorEx
                 if (iend > istart && istart >= 0)
                 {
                     var sb_iline = new System.Text.StringBuilder();
-                    sb_iline.Append("public static Capstones.LuaLib.LuaTypeHub.TypeHubCreator<");
-                    sbline.Append(sb_type);
-                    sbline.Append(", TypeHubPrecompiled_");
-                    sbline.Append(filename);
-                    sbline.Append("> ___tp_");
+                    sb_iline.Append("public static TypeHubPrecompiled_");
                     sb_iline.Append(filename);
-                    sbline.Append(" = new Capstones.LuaLib.LuaTypeHub.TypeHubCreator<");
-                    sbline.Append(sb_type);
-                    sbline.Append(", TypeHubPrecompiled_");
-                    sbline.Append(filename);
-                    sbline.Append(">();");
+                    sb_iline.Append(" ___tp_");
+                    sb_iline.Append(filename);
+                    sb_iline.Append(" = new TypeHubPrecompiled_");
+                    sb_iline.Append(filename);
+                    sb_iline.Append("();");
 
                     outterlines.Insert(iend, sb_iline.ToString());
                     WriteLines(outterpath, outterlines);
                 }
             }
+#else
+            //if (outtertype == null)
+            {
+                sbline.Remove(0, sbline.Length);
+                sbline.Append("private static Capstones.LuaLib.LuaTypeHub.TypeHubCreator<TypeHubPrecompiled_");
+                sbline.Append(filename);
+                sbline.Append("> ___tp_");
+                sbline.Append(filename);
+                sbline.Append(" = new Capstones.LuaLib.LuaTypeHub.TypeHubCreator<TypeHubPrecompiled_");
+                sbline.Append(filename);
+                sbline.Append(">(typeof(");
+                sbline.Append(sb_type);
+                sbline.Append("));");
+                lines.Add(sbline.ToString());
+            }
+            //else
+            //{
+            //    var outterpath = GetPrecompileFilePath(outtertype);
+            //    var outterlines = ReadRawLines(outterpath);
+            //    int istart, iend;
+            //    FindTag(outterlines, "NESTED_TYPE_HUB", out istart, out iend);
+            //    if (iend > istart && istart >= 0)
+            //    {
+            //        var sb_iline = new System.Text.StringBuilder();
+            //        sb_iline.Append("public static Capstones.LuaLib.LuaTypeHub.TypeHubCreator<TypeHubPrecompiled_");
+            //        sb_iline.Append(filename);
+            //        sb_iline.Append("> ___tp_");
+            //        sb_iline.Append(filename);
+            //        sb_iline.Append(" = new Capstones.LuaLib.LuaTypeHub.TypeHubCreator<TypeHubPrecompiled_");
+            //        sb_iline.Append(filename);
+            //        sb_iline.Append(">(typeof(");
+            //        sb_iline.Append(sb_type);
+            //        sb_iline.Append("));");
+
+            //        outterlines.Insert(iend, sb_iline.ToString());
+            //        WriteLines(outterpath, outterlines);
+            //    }
+            //}
+#endif
             // write instance END
             if (!IsNativeType(type) && !(type.IsAbstract && type.IsSealed))
             {
                 // write get set
                 string instance = "___tp_" + filename + ".TypeHubSub";
+#if LUA_PRECOMPILE_INSTANT_TYPE_HUB_CREATION
                 if (outtertype != null)
                 {
                     instance = "TypeHubPrecompiled_" + GetFileNameForType(outtertype.ToString()) + "." + instance;
                 }
+#else
+                //if (outtertype != null)
+                //{
+                //    instance = "TypeHubPrecompiled_" + GetFileNameForType(outtertype.ToString()) + "." + instance;
+                //}
+#endif
                 sbline.Remove(0, sbline.Length);
                 sbline.Append("public static void PushLua(this IntPtr l, ");
                 sbline.Append(sb_type);
@@ -1152,17 +1498,24 @@ namespace Capstones.UnityEditorEx
                 if (!type.IsValueType && !type.IsSealed)
                 {
                     lines.Add("if (object.ReferenceEquals(val, null))");
+                    lines.Add("{");
                     lines.Add("l.pushnil();");
+                    lines.Add("}");
                     lines.Add("else");
+                    lines.Add("{");
                     lines.Add("l.PushLuaObject(val);");
+                    lines.Add("}");
                 }
                 else
                 {
                     if (!type.IsValueType)
                     {
                         lines.Add("if (object.ReferenceEquals(val, null))");
+                        lines.Add("{");
                         lines.Add("l.pushnil();");
+                        lines.Add("}");
                         lines.Add("else");
+                        lines.Add("{");
                     }
                     sbline.Remove(0, sbline.Length);
                     sbline.Append(instance);
@@ -1172,6 +1525,10 @@ namespace Capstones.UnityEditorEx
                         sbline.Append("Object");
                     }
                     sbline.Append("(l, val);");
+                    if (!type.IsValueType)
+                    {
+                        lines.Add("}");
+                    }
                     lines.Add(sbline.ToString());
                 }
                 lines.Add("}");
@@ -1221,6 +1578,8 @@ namespace Capstones.UnityEditorEx
                 return;
             WritePrecompileFileForType(typeName);
             var type = typelist[typeName];
+            if (type.IsGenericType())
+                return; // TODO: generic support.
             List<MemberInfo> members = null;
             var memberlist = GetMemberList();
             if (memberlist.ContainsKey(type))
@@ -1302,19 +1661,7 @@ namespace Capstones.UnityEditorEx
             var filename = GetFileNameForType(type.ToString());
             var path = GetPrecompileFilePath(type);
             var lines = ReadRawLines(path);
-            var basetype = type.BaseType;
-            if (type.IsValueType)
-            {
-                basetype = null;
-            }
-            else if (basetype.IsGenericType())
-            {
-                basetype = null; // TODO: generic support
-            }
-            else if (basetype == typeof(object))
-            {
-                basetype = null;
-            }
+            var basetype = GetPrecompileBaseType(type);
 
             var member0 = members[0];
             var membertype = member0.MemberType;
@@ -4048,7 +4395,44 @@ namespace Capstones.UnityEditorEx
         }
         internal static void WriteMethodBody_0_Single(this WriteMethodBodyContext context, MethodBase method, WriteMethodBodyParamsTreatment treatParams)
         {
+            bool isObsolete = false;
+            bool isObsoleteError = false;
+            var oattrs = method.GetCustomAttributes(typeof(ObsoleteAttribute));
+            if (oattrs != null)
+            {
+                foreach (var oattr in oattrs)
+                {
+                    var realattr = oattr as ObsoleteAttribute;
+                    if (realattr != null)
+                    {
+                        isObsolete = true;
+                        if (realattr.IsError)
+                        {
+                            isObsoleteError = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             var sb = context.sb;
+            
+            if (isObsolete)
+            {
+                if (isObsoleteError)
+                {
+                    PlatDependant.LogError(method.ToString() + " is Obsoleted.");
+                    sb.Append("throw new System.NotSupportedException(\"");
+                    sb.Append(method.ToString());
+                    sb.AppendLine(" is Obsoleted.\");");
+                    return;
+                }
+                else
+                {
+                    PlatDependant.LogWarning(method.ToString() + " is Obsoleted.");
+                }
+            }
+            
             var exinfo = context.GetMethodEx(method);
             if (method is ConstructorInfo)
             {
@@ -5599,7 +5983,7 @@ namespace Capstones.UnityEditorEx
     public class LuaPrecompileEditor : EditorWindow
     {
         string cmdstr = "";
-        [MenuItem("Lua/Precompile Manually", priority = 100010)]
+        [MenuItem("Lua/Precompile/Precompile Manually", priority = 100010)]
         static void Init()
         {
             GetWindow(typeof(LuaPrecompileEditor)).titleContent = new GUIContent("LuaPrecompile");
@@ -5615,7 +5999,39 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        [MenuItem("Lua/Parse Engine Member List", priority = 500010)]
+        [MenuItem("Lua/Precompile/Precompile Batch", priority = 100020)]
+        public static void PrecompileAutoBatch()
+        {
+            ParseEngineMemberList();
+            var list = LuaPrecompile.ParseFullWhiteList();
+
+            foreach (var command in list)
+            {
+                LuaPrecompile.WritePrecompile(command);
+            }
+
+            //PlatDependant.DeleteFile("EditorOutput/LuaPrecompile/CachedCommands.txt"); // maybe we donot need to delete this, in order to regenerate precompile files.
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("Lua/Precompile/Delete All Precompile Files", priority = 100030)]
+        public static void DeleteAllPrecompileFiles()
+        {
+            var manmod = CapsEditorUtils.__MOD__;
+            var manidir = "Assets/Mods/" + manmod + "/LuaHubSub/";
+            var files = PlatDependant.GetAllFiles(manidir);
+            foreach (var file in files)
+            {
+                var sub = file.Substring(manidir.Length);
+                if (!sub.Contains("/") && !sub.Contains("\\") && sub.EndsWith(".cs") && sub.StartsWith("LuaHub_"))
+                {
+                    PlatDependant.DeleteFile(file);
+                }
+            }
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("Lua/Precompile/Parse Engine Member List", priority = 500010)]
         public static void ParseEngineMemberList()
         {
             var fulllist = ReflectAnalyzer.ParseMemberList();
@@ -5628,7 +6044,7 @@ namespace Capstones.UnityEditorEx
             }
             LoadEngineMemberList();
         }
-        [MenuItem("Lua/Load Engine Member List", priority = 500020)]
+        [MenuItem("Lua/Precompile/Load Engine Member List", priority = 500020)]
         public static void LoadEngineMemberList()
         {
             LuaPrecompile.LoadMemberList();

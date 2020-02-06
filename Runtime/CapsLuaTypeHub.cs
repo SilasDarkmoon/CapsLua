@@ -86,6 +86,26 @@ namespace Capstones.LuaLib
             }
             return new TypeHubBase(null);
         }
+        public static Type GetCachedTypeHubType(Type type)
+        {
+            if (type != null)
+            {
+#if NETFX_CORE
+                Capstones.LuaExt.Assembly2Lua._SearchAssemblies.Add(type.GetTypeInfo().Assembly);
+#endif
+                TypeHubBase hub = null;
+#if (UNITY_ENGINE || UNITY_5_3_OR_NEWER) && !NET_4_6 && !NET_STANDARD_2_0
+                lock (_TypeHubCache)
+#endif
+                {
+                    if (_TypeHubCache.TryGetValue(type, out hub))
+                    {
+                        return hub.GetType();
+                    }
+                }
+            }
+            return null;
+        }
 
         public class TypeHubBase : SelfHandled, ILuaTypeHub
         {
@@ -498,7 +518,7 @@ namespace Capstones.LuaLib
                 }
             }
 
-            internal void PushLuaObject(IntPtr l, object val)
+            public void PushLuaObject(IntPtr l, object val)
             {
                 if (l != IntPtr.Zero)
                 {
@@ -693,7 +713,7 @@ namespace Capstones.LuaLib
                                     {
                                         if (!_InstanceMethods_DirectFromBase.Contains(kvp.Key))
                                         {
-                                            BaseMethodMeta.TrigOnReflectInvokeMember(kvp.Key + "@" + t.ToString());
+                                            BaseMethodMeta.TrigOnReflectInvokeMember(t, kvp.Key);
                                         }
                                     }
                                 }
@@ -1512,11 +1532,11 @@ namespace Capstones.LuaLib
             }
         }
 
-        public class TypeHubCreator<TOrigin, THubSub> where THubSub : TypeHubBase, new()
+        public class TypeHubCreator<THubSub> where THubSub : TypeHubBase, new()
         {
-            public TypeHubCreator()
+            public TypeHubCreator(Type tOrigin)
             {
-                RegTypeHubCreator(typeof(TOrigin), CreateTypeHubSub);
+                RegTypeHubCreator(tOrigin, CreateTypeHubSub);
             }
 
             protected THubSub _TypeHubSub;

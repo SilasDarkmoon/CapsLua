@@ -30,7 +30,10 @@ namespace Capstones.LuaLib
 
     //    public class TestNormalClass
     //    {
-
+    //        [LuaPrecompile]
+    //        public void TestFunc() { }
+    //        [LuaPrecompile(Ignore = true)]
+    //        public void TestIgnoreFunc() { }
     //    }
     //}
 }

@@ -471,11 +471,36 @@ namespace Capstones.LuaLib
         //#endregion
 
 #if UNITY_EDITOR
-        public static Action<string> OnReflectInvokeMember = null;
-        internal static void TrigOnReflectInvokeMember(string member)
+        public static Action<Type, string> OnReflectInvokeMember = null;
+        internal static void TrigOnReflectInvokeMember(Type type, string member)
         {
             if (OnReflectInvokeMember != null)
-                OnReflectInvokeMember(member);
+                OnReflectInvokeMember(type, member);
+        }
+        internal static void TrigOnReflectInvokeMember(Type type, System.Reflection.MemberInfo member)
+        {
+            var attrs = member.GetCustomAttributes(typeof(ObsoleteAttribute));
+            if (attrs != null)
+            {
+                foreach (var attr in attrs)
+                {
+                    var oattr = attr as ObsoleteAttribute;
+                    if (oattr != null)
+                    {
+                        if (oattr.IsError)
+                        {
+                            throw new NotSupportedException(member.ToString() + " is Obsoleted.");
+                        }
+                        else
+                        {
+                            PlatDependant.LogWarning(member.ToString() + " is Obsoleted.");
+                        }
+                    }
+                }
+            }
+
+            if (OnReflectInvokeMember != null)
+                OnReflectInvokeMember(type, member.Name);
         }
 #endif
     }
@@ -495,7 +520,7 @@ namespace Capstones.LuaLib
         public void call(IntPtr l, object tar)
         {
 #if UNITY_EDITOR
-            BaseMethodMeta.TrigOnReflectInvokeMember(".ctor@" + _t.ToString());
+            BaseMethodMeta.TrigOnReflectInvokeMember(_t, ".ctor");
 #endif
             var oldtop = l.gettop();
             if (oldtop <= 1 && _t.IsValueType())
@@ -835,7 +860,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_Method != null)
             {
-                TrigOnReflectInvokeMember(_Method.Name + "@" + _Method.ReflectedType.ToString());
+                TrigOnReflectInvokeMember(_Method.ReflectedType, _Method.Name);
             }
 #endif
             try
@@ -1027,7 +1052,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_Method != null)
             {
-                TrigOnReflectInvokeMember(_Method.Name + "@" + _Method.ReflectedType.ToString());
+                TrigOnReflectInvokeMember(_Method.ReflectedType, _Method.Name);
             }
 #endif
             try
@@ -1220,7 +1245,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_Method != null)
             {
-                TrigOnReflectInvokeMember(_Method.Name + "@" + _Method.ReflectedType.ToString());
+                TrigOnReflectInvokeMember(_Method.ReflectedType, _Method.Name);
             }
 #endif
             try

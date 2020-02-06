@@ -231,7 +231,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_fi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.Name + "@" + _fi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.ReflectedType, _fi.Name);
             }
 #endif
             object rv = null;
@@ -261,7 +261,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_fi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.Name + "@" + _fi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.ReflectedType, _fi.Name);
             }
 #endif
             object val = l.GetLua(1);
@@ -299,7 +299,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_pi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.Name + "@" + _pi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.ReflectedType, _pi.Name);
             }
 #endif
             if (_Getter == null)
@@ -342,7 +342,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_pi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.Name + "@" + _pi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.ReflectedType, _pi.Name);
             }
 #endif
             if (_Setter == null)
@@ -380,7 +380,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_fi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.Name + "@" + _fi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.ReflectedType, _fi.Name);
             }
 #endif
             tar = l.GetLuaObject(1);
@@ -411,7 +411,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_fi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.Name + "@" + _fi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.ReflectedType, _fi.Name);
             }
 #endif
             tar = l.GetLuaObject(1);
@@ -450,7 +450,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_pi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.Name + "@" + _pi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.ReflectedType, _pi.Name);
             }
 #endif
             if (_Getter == null)
@@ -494,7 +494,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_pi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.Name + "@" + _pi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.ReflectedType, _pi.Name);
             }
 #endif
             if (_Setter == null)
@@ -533,7 +533,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_fi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.Name + "@" + _fi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_fi.ReflectedType, _fi.Name);
             }
 #endif
             tar = l.GetLuaObject(1);
@@ -573,7 +573,7 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR
             if (_pi != null)
             {
-                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.Name + "@" + _pi.ReflectedType.ToString());
+                BaseMethodMeta.TrigOnReflectInvokeMember(_pi.ReflectedType, _pi.Name);
             }
 #endif
             if (_Setter == null)
