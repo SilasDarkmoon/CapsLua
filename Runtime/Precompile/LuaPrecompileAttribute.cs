@@ -35,5 +35,17 @@ namespace Capstones.LuaLib
     //        [LuaPrecompile(Ignore = true)]
     //        public void TestIgnoreFunc() { }
     //    }
+
+    //    public class TestGenBase<T, U>
+    //    {
+    //        public void Func1(T t, U u) { }
+    //    }
+    //    public class TestGenBase<T> : TestGenBase<T, int>
+    //    {
+    //        public void Func2(T t) { }
+    //    }
+    //    public class TestGenChild : TestGenBase<float>
+    //    {
+    //    }
     //}
 }

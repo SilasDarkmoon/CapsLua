@@ -320,33 +320,33 @@ namespace Capstones.UnityEditorEx
                     list.Add(line);
                 }
             }
-            if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
-            {
-                try
-                {
-                    using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
-                    {
-                        while (true)
-                        {
-                            var line = sr.ReadLine();
-                            if (line == null)
-                                break;
+            //if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+            //{
+            //    try
+            //    {
+            //        using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+            //        {
+            //            while (true)
+            //            {
+            //                var line = sr.ReadLine();
+            //                if (line == null)
+            //                    break;
 
-                            if (!string.IsNullOrEmpty(line))
-                            {
-                                if (uniqueset.Add(line))
-                                {
-                                    list.Add(line);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    PlatDependant.LogError(e);
-                }
-            }
+            //                if (!string.IsNullOrEmpty(line))
+            //                {
+            //                    if (uniqueset.Add(line))
+            //                    {
+            //                        list.Add(line);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        PlatDependant.LogError(e);
+            //    }
+            //}
             return list;
         }
 
@@ -468,6 +468,7 @@ namespace Capstones.UnityEditorEx
         private static List<string> _CachedPrecompileCommands = null;
         public static void RecordPrecompileCommandAsync(string cmdstr)
         {
+            var cachedPath = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt";
             if (_CachedPrecompileCommands != null || Application.isPlaying)
             {
                 if (_CachedPrecompileCommands == null)
@@ -475,11 +476,12 @@ namespace Capstones.UnityEditorEx
                     _CachedPrecompileCommands = new List<string>();
                     _AyncPrecompileMembers.Clear();
 
-                    if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                    //var cachedPath = "EditorOutput/LuaPrecompile/CachedCommands.txt";
+                    if (PlatDependant.IsFileExist(cachedPath))
                     {
                         try
                         {
-                            using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            using (var sr = PlatDependant.OpenReadText(cachedPath))
                             {
                                 while (true)
                                 {
@@ -529,7 +531,7 @@ namespace Capstones.UnityEditorEx
                         _CachedPrecompileCommands = null;
                         try
                         {
-                            using (var sw = PlatDependant.OpenWriteText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            using (var sw = PlatDependant.OpenWriteText(cachedPath))
                             {
                                 for (int i = 0; i < cached.Count; ++i)
                                 {
@@ -567,11 +569,11 @@ namespace Capstones.UnityEditorEx
             {
                 if (_AyncPrecompileMembers.Count == 0)
                 {
-                    if (PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                    if (PlatDependant.IsFileExist(cachedPath))
                     {
                         try
                         {
-                            using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                            using (var sr = PlatDependant.OpenReadText(cachedPath))
                             {
                                 while (true)
                                 {
@@ -596,7 +598,7 @@ namespace Capstones.UnityEditorEx
                 {
                     try
                     {
-                        using (var sw = PlatDependant.OpenAppendText("EditorOutput/LuaPrecompile/CachedCommands.txt"))
+                        using (var sw = PlatDependant.OpenAppendText(cachedPath))
                         {
                             sw.WriteLine(cmdstr);
                         }
@@ -2102,6 +2104,7 @@ namespace Capstones.UnityEditorEx
                                                     if (!dfound)
                                                     {
                                                         lines.Insert(etag, dline);
+                                                        WriteLines(path, TrimRawLines(lines));
                                                     }
                                                 }
                                             }
@@ -6011,6 +6014,8 @@ namespace Capstones.UnityEditorEx
             }
 
             //PlatDependant.DeleteFile("EditorOutput/LuaPrecompile/CachedCommands.txt"); // maybe we donot need to delete this, in order to regenerate precompile files.
+            //PlatDependant.DeleteFile("Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt"); // maybe we donot need to delete this, in order to regenerate precompile files.
+            
             AssetDatabase.Refresh();
         }
 
