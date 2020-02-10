@@ -429,9 +429,10 @@ namespace Capstones.LuaExt
                     {
                         vtype = typeof(object);
                     }
-                    dict = typeof(Dictionary<,>).MakeGenericType(ktype, vtype).GetConstructor(new Type[0]).Invoke(null) as IDictionary;
+                    dict = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(ktype, vtype)) as IDictionary;
+                    //dict = typeof(Dictionary<,>).MakeGenericType(ktype, vtype).GetConstructor(new Type[0]).Invoke(null) as IDictionary;
                     l.pushnil();
-                    while (l.next(-2))
+                    while (l.next(1))
                     {
                         object key = l.GetLua(-2);
                         object val = l.GetLua(-1);

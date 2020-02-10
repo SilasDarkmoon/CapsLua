@@ -59,6 +59,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "trans");
                         L.pushcfunction(ClrDelGetLangValueOfStringType);
                         L.SetField(-2, "transstr");
+                        L.pushcfunction(ClrDelUpdateLanguageConverter);
+                        L.SetField(-2, "updatetrans");
                     }
                     L.pop(1); // (empty)
 
@@ -163,6 +165,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelSplitStr = new lua.CFunction(ClrFuncSplitStr);
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
+        public static readonly lua.CFunction ClrDelUpdateLanguageConverter = new lua.CFunction(UpdateLanguageConverter);
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
@@ -459,6 +462,28 @@ namespace Capstones.LuaExt
         public static int ClrFuncGetLangValueOfStringType(IntPtr l)
         {
             return ClrFuncGetLangValue(l, true);
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int UpdateLanguageConverter(IntPtr l)
+        {
+            if (l.istable(1))
+            {
+                Dictionary<string, string> updatedMap = new Dictionary<string, string>();
+                l.pushnil();
+                while (l.next(1))
+                {
+                    string key, val;
+                    l.GetLua(-2, out key);
+                    l.GetLua(-1, out val);
+                    if (key != null)
+                    {
+                        updatedMap[key] = val;
+                    }
+                    l.pop(1);
+                }
+                LanguageConverter.UpdateDict(updatedMap);
+            }
+            return 0;
         }
     }
 }

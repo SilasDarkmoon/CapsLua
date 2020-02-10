@@ -374,8 +374,9 @@ namespace Capstones.UnityEditorEx
             }
         }
 
-        private static HashSet<string> _AyncPrecompileMembers = new HashSet<string>();
-        private static Dictionary<string, List<string>> _CachedFiles = null;
+        private static volatile int _IsAsyncCompileWorking = 0;
+        private static volatile HashSet<string> _AyncPrecompileMembers = null;
+        private static volatile Dictionary<string, List<string>> _CachedFiles = null;
         private static ConcurrentQueue<string> _PrecompileCommands = new ConcurrentQueue<string>();
         private static System.Threading.AutoResetEvent _FinishWriting = new System.Threading.AutoResetEvent(false);
         private static System.Threading.AutoResetEvent _PrecompileWorkArrived = new System.Threading.AutoResetEvent(false);
@@ -387,29 +388,50 @@ namespace Capstones.UnityEditorEx
                 return;
             }
             var command = "member * * " + ReflectAnalyzer.GetIDString(type) + " " + member;
-#if ENABLE_LUA_PRECOMPILE_WHILE_PLAYING
             WritePrecompileFuncForMemberAsync(command);
-#else
-            RecordPrecompileCommandAsync(command);
-#endif
         }
 
         public static void WritePrecompileFuncForMemberAsync(string memberstr)
         {
-            if (_CachedFiles != null || Application.isPlaying)
+            if (_IsAsyncCompileWorking != 0 || ThreadSafeValues.IsMainThread && Application.isPlaying)
             {
-                bool isnewmember = false;
-                lock (_AyncPrecompileMembers)
+                if (System.Threading.Interlocked.CompareExchange(ref _IsAsyncCompileWorking, 1, 0) == 0)
                 {
-                    isnewmember = _AyncPrecompileMembers.Add(memberstr);
-                }
-                if (isnewmember)
-                {
-                    if (_CachedFiles == null)
-                    {
-                        _CachedFiles = new Dictionary<string, List<string>>();
+                    _CachedFiles = new Dictionary<string, List<string>>();
 
-                        PlatDependant.RunBackground(prog =>
+                    PlatDependant.RunBackground(prog =>
+                    {
+                        HashSet<string> recordedMembers = new HashSet<string>();
+                        HashSet<string> compiledMembers = new HashSet<string>();
+
+                        var cachedPath = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt";
+                        //var cachedPath = "EditorOutput/LuaPrecompile/CachedCommands.txt";
+                        if (PlatDependant.IsFileExist(cachedPath))
+                        {
+                            try
+                            {
+                                using (var sr = PlatDependant.OpenReadText(cachedPath))
+                                {
+                                    while (true)
+                                    {
+                                        var line = sr.ReadLine();
+                                        if (line == null)
+                                            break;
+
+                                        if (!string.IsNullOrEmpty(line))
+                                        {
+                                            recordedMembers.Add(line);
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PlatDependant.LogError(e);
+                            }
+                        }
+
+                        using (var swrecord = PlatDependant.OpenAppendText(cachedPath))
                         {
                             while (_PrecompileWorkArrived.WaitOne())
                             {
@@ -420,129 +442,42 @@ namespace Capstones.UnityEditorEx
                                     {
                                         break;
                                     }
-                                    WritePrecompileFuncForMember(command, false);
-                                }
-                                if (command == "-")
-                                {
-                                    break;
-                                }
-                            }
-
-                            var cached = _CachedFiles;
-                            _CachedFiles = null;
-                            foreach (var kvp in cached)
-                            {
-                                WriteLines(kvp.Key, kvp.Value);
-                            }
-                            _FinishWriting.Set();
-                        });
-
-                        Action onPlayModeChanged = null;
-                        onPlayModeChanged = () =>
-                        {
-                            if (!Application.isPlaying)
-                            {
-                                EditorBridge.OnPlayModeChanged -= onPlayModeChanged;
-
-                                _PrecompileCommands.Enqueue("-");
-                                _PrecompileWorkArrived.Set();
-
-                                _FinishWriting.WaitOne();
-                                AssetDatabase.Refresh();
-                            }
-                        };
-                        EditorBridge.OnPlayModeChanged += onPlayModeChanged;
-                    }
-
-                    _PrecompileCommands.Enqueue(memberstr);
-                    _PrecompileWorkArrived.Set();
-                }
-            }
-            else
-            {
-                WritePrecompileFuncForMember(memberstr, false);
-                AssetDatabase.Refresh();
-            }
-        }
-
-        private static List<string> _CachedPrecompileCommands = null;
-        public static void RecordPrecompileCommandAsync(string cmdstr)
-        {
-            var cachedPath = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt";
-            if (_CachedPrecompileCommands != null || Application.isPlaying)
-            {
-                if (_CachedPrecompileCommands == null)
-                {
-                    _CachedPrecompileCommands = new List<string>();
-                    _AyncPrecompileMembers.Clear();
-
-                    //var cachedPath = "EditorOutput/LuaPrecompile/CachedCommands.txt";
-                    if (PlatDependant.IsFileExist(cachedPath))
-                    {
-                        try
-                        {
-                            using (var sr = PlatDependant.OpenReadText(cachedPath))
-                            {
-                                while (true)
-                                {
-                                    var line = sr.ReadLine();
-                                    if (line == null)
-                                        break;
-
-                                    if (!string.IsNullOrEmpty(line))
+                                    if (compiledMembers.Add(command))
                                     {
-                                        if (_AyncPrecompileMembers.Add(line))
+                                        if (recordedMembers.Add(command))
                                         {
-                                            _CachedPrecompileCommands.Add(line);
+                                            try
+                                            {
+                                                swrecord.WriteLine(command);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                PlatDependant.LogError(e);
+                                            }
                                         }
+#if ENABLE_LUA_PRECOMPILE_WHILE_PLAYING
+                                        WritePrecompileFuncForMember(command, false);
+#endif
                                     }
                                 }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            PlatDependant.LogError(e);
-                        }
-                    }
-
-                    PlatDependant.RunBackground(prog =>
-                    {
-                        while (_PrecompileWorkArrived.WaitOne())
-                        {
-                            string command;
-                            while (_PrecompileCommands.TryDequeue(out command))
-                            {
                                 if (command == "-")
                                 {
                                     break;
                                 }
-                                if (_AyncPrecompileMembers.Add(command))
-                                {
-                                    _CachedPrecompileCommands.Add(command);
-                                }
-                            }
-                            if (command == "-")
-                            {
-                                break;
                             }
                         }
 
-                        var cached = _CachedPrecompileCommands;
-                        _CachedPrecompileCommands = null;
-                        try
+                        var cached = _CachedFiles;
+                        _CachedFiles = null;
+
+                        foreach (var kvp in cached)
                         {
-                            using (var sw = PlatDependant.OpenWriteText(cachedPath))
-                            {
-                                for (int i = 0; i < cached.Count; ++i)
-                                {
-                                    sw.WriteLine(cached[i]);
-                                }
-                            }
+                            WriteLines(kvp.Key, kvp.Value);
                         }
-                        catch (Exception e)
-                        {
-                            PlatDependant.LogError(e);
-                        }
+
+                        _AyncPrecompileMembers = recordedMembers;
+
+                        _IsAsyncCompileWorking = 0;
                         _FinishWriting.Set();
                     });
 
@@ -557,18 +492,23 @@ namespace Capstones.UnityEditorEx
                             _PrecompileWorkArrived.Set();
 
                             _FinishWriting.WaitOne();
+                            AssetDatabase.Refresh();
                         }
                     };
                     EditorBridge.OnPlayModeChanged += onPlayModeChanged;
                 }
 
-                _PrecompileCommands.Enqueue(cmdstr);
+                _PrecompileCommands.Enqueue(memberstr);
                 _PrecompileWorkArrived.Set();
             }
             else
             {
-                if (_AyncPrecompileMembers.Count == 0)
+                var cachedPath = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt";
+                //var cachedPath = "EditorOutput/LuaPrecompile/CachedCommands.txt";
+                if (_AyncPrecompileMembers == null)
                 {
+                    _AyncPrecompileMembers = new HashSet<string>();
+
                     if (PlatDependant.IsFileExist(cachedPath))
                     {
                         try
@@ -594,13 +534,13 @@ namespace Capstones.UnityEditorEx
                         }
                     }
                 }
-                if (_AyncPrecompileMembers.Add(cmdstr))
+                if (_AyncPrecompileMembers.Add(memberstr))
                 {
                     try
                     {
                         using (var sw = PlatDependant.OpenAppendText(cachedPath))
                         {
-                            sw.WriteLine(cmdstr);
+                            sw.WriteLine(memberstr);
                         }
                     }
                     catch (Exception e)
@@ -608,6 +548,10 @@ namespace Capstones.UnityEditorEx
                         PlatDependant.LogError(e);
                     }
                 }
+#if ENABLE_LUA_PRECOMPILE_WHILE_PLAYING
+                WritePrecompileFuncForMember(memberstr, false);
+                AssetDatabase.Refresh();
+#endif
             }
         }
 
@@ -6036,7 +5980,7 @@ namespace Capstones.UnityEditorEx
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("Lua/Precompile/Parse Engine Member List", priority = 500010)]
+        [MenuItem("Lua/Precompile/Parse Engine Member List", priority = 150010)]
         public static void ParseEngineMemberList()
         {
             var fulllist = ReflectAnalyzer.ParseMemberList();
@@ -6049,7 +5993,7 @@ namespace Capstones.UnityEditorEx
             }
             LoadEngineMemberList();
         }
-        [MenuItem("Lua/Precompile/Load Engine Member List", priority = 500020)]
+        [MenuItem("Lua/Precompile/Load Engine Member List", priority = 150020)]
         public static void LoadEngineMemberList()
         {
             LuaPrecompile.LoadMemberList();

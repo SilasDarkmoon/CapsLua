@@ -727,11 +727,6 @@ namespace Capstones.LuaWrap
 
         public static bool SetHierarchicalRaw(this IntPtr l, int index, string key, int valindex)
         {
-            var val = l.GetLuaOnStack(valindex);
-            return SetHierarchical(l, index, key, val);
-        }
-        public static bool SetHierarchical(this IntPtr l, int index, string key, object val)
-        {
             if (string.IsNullOrEmpty(key))
                 return false;
             var hkeys = key.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
@@ -740,6 +735,7 @@ namespace Capstones.LuaWrap
             if (l == IntPtr.Zero)
                 return false;
 
+            var rindex = l.NormalizeIndex(valindex);
             l.pushvalue(index); // table
             for (int i = 0; i < hkeys.Length - 1; ++i)
             {
@@ -763,7 +759,7 @@ namespace Capstones.LuaWrap
             }
             if (l.istable(-1) || l.IsUserData(-1))
             {
-                l.PushLua(val); // table val
+                l.pushvalue(rindex); // table val
                 l.SetField(-2, hkeys[hkeys.Length - 1]); // table
                 l.pop(1);
                 return true;
@@ -773,6 +769,22 @@ namespace Capstones.LuaWrap
                 l.pop(1);
                 return false;
             }
+        }
+        public static bool SetHierarchical(this IntPtr l, int index, string key, object val)
+        {
+            if (string.IsNullOrEmpty(key))
+                return false;
+            var hkeys = key.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+            if (hkeys == null || hkeys.Length < 1)
+                return false;
+            if (l == IntPtr.Zero)
+                return false;
+
+            var rindex = l.NormalizeIndex(index);
+            l.PushLua(val);
+            var rv = SetHierarchicalRaw(l, rindex, key, -1);
+            l.pop(1);
+            return rv;
         }
         public static bool SetHierarchical(this LuaOnStackTable tab, string key, object val)
         {
