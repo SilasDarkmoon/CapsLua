@@ -302,6 +302,11 @@ namespace Capstones.UnityEditorEx
             }
         }
 
+        [MenuItem("Lua/HotFix/Generate ByRefUtils.dll", priority = 200020)]
+        public static void GenerateByRefUtils()
+        {
+            LuaHotFixCodeInjector.GenerateByRefUtils();
+        }
 
 #if UNITY_INCLUDE_TESTS
         #region TESTS
