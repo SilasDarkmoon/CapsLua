@@ -18,7 +18,6 @@ namespace Capstones.UnityEditorEx
             CapsPackageEditor.OnPackagesChanged += ReinitGlobalLua;
             CapsDistributeEditor.OnDistributeFlagsChanged += ReinitGlobalLua;
         }
-
         private static void ReinitGlobalLua()
         {
             GlobalLua.Reinit();
@@ -32,6 +31,19 @@ namespace Capstones.UnityEditorEx
             var work = CapsSptBuilder.BuildSptAsync(null, null, new[] { new CapsSptBuilder.SptBuilderEx_RawCopy() });
             while (work.MoveNext()) ;
             CapsResBuilder.BuildingParams = null;
+        }
+
+        [MenuItem("Lua/Reinit Global Lua", priority = 300010)]
+        public static void ReinitGlobalLuaInEditor()
+        {
+            if (!Application.isPlaying)
+            {
+                ReinitGlobalLua();
+            }
+            else
+            {
+                PlatDependant.LogError("Cannot reinit global lua while playing.");
+            }
         }
     }
 }

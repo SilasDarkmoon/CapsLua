@@ -21,6 +21,7 @@ using Types = Capstones.LuaLib.Types;
 
 namespace Capstones.UnityEditorEx
 {
+    [InitializeOnLoad]
     public static class LuaHotFixWriter
     {
         public static Type GetLuaPackType(int paramCnt)
@@ -53,7 +54,7 @@ namespace Capstones.UnityEditorEx
 
             //string codefolder = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaHotFix/";
             //string file = codefolder + "LuaPack" + paramCnt + ".cs";
-            string file = "EditorOutput/" + "LuaPack" + paramCnt + ".cs";
+            string file = "EditorOutput/LuaHotFix/LuaPack/" + "LuaPack" + paramCnt + ".cs";
             var sb = new System.Text.StringBuilder();
             sb.Clear();
             for (int i = 0; i < paramCnt; ++i)
@@ -139,8 +140,8 @@ namespace Capstones.UnityEditorEx
                 sw.WriteLine("        }");
                 sw.WriteLine("        public object this[int index]");
                 sw.WriteLine("        {");
-                sw.WriteLine("            get { return _IndexAccessors[index].Getter(this); }");
-                sw.WriteLine("            set { _IndexAccessors[index].Setter(ref this, value); }");
+                sw.WriteLine("            get { return _IndexAccessors.GetItem(ref this, index); }");
+                sw.WriteLine("            set { _IndexAccessors.SetItem(ref this, index, value); }");
                 sw.WriteLine("        }");
                 sw.Write("        private static LuaPackIndexAccessorList<LuaPack<");
                 sw.Write(gargs);
@@ -150,7 +151,9 @@ namespace Capstones.UnityEditorEx
                 sw.WriteLine("        {");
                 for (int i = 0; i < paramCnt; ++i)
                 {
-                    sw.Write("            { thiz => thiz.t");
+                    sw.Write("            { (ref LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> thiz) => thiz.t");
                     sw.Write(i);
                     sw.Write(", (ref LuaPack<");
                     sw.Write(gargs);
@@ -222,133 +225,136 @@ namespace Capstones.UnityEditorEx
             //    }
             //};
             //comp.Build();
+
+            //new Microsoft.CSharp.CSharpCodeProvider().CompileAssemblyFromFile()
         }
 
-        public static Types GetMethodSigTypes(MethodBase method)
+        public static List<string> ParseHotFixList()
         {
-            Types types = new Types();
-            if (method is ConstructorInfo)
+            List<string> list = new List<string>();
+            var prelists = CapsModEditor.FindAssetsInMods("LuaHotFix/MemberList.txt");
+            foreach (var listfile in prelists)
             {
-                types.Add(typeof(void));
-                types.Add(method.ReflectedType);
-            }
-            else if (method is MethodInfo)
-            {
-                var minfo = method as MethodInfo;
-                types.Add(minfo.ReturnType);
-                if (!minfo.IsStatic)
+                using (var sr = PlatDependant.OpenReadText(listfile))
                 {
-                    types.Add(method.ReflectedType);
+                    while (true)
+                    {
+                        var line = sr.ReadLine();
+                        if (line == null)
+                            break;
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            if (line.StartsWith("--"))
+                            {
+                            }
+                            else
+                            {
+                                list.Add(line);
+                            }
+                        }
+                    }
                 }
             }
-            foreach (var par in method.GetParameters())
-            {
-                types.Add(par.ParameterType);
-            }
-            return types;
+            return list;
         }
-        private static Dictionary<Types, int> _SigTypesMap = new Dictionary<Types, int>();
-        private static AssemblyBuilder _AssemblyBuilder;
-        private static ModuleBuilder _ModuleBuilder;
-        public static void GenerateStubFuncFor(MethodBase method)
+
+        static LuaHotFixWriter()
         {
-            var asmbuilder = _AssemblyBuilder;
-            var codeEmitModule = _ModuleBuilder;
-            if (asmbuilder == null)
+#if !DISABLE_LUA_HOTFIX
+            UnityEditor.Compilation.CompilationPipeline.assemblyCompilationFinished += (file, messages) =>
             {
-                var assemblyName = new AssemblyName();
-                assemblyName.Name = "LuaHotFixCodeEmit";
-                _AssemblyBuilder = asmbuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-                _ModuleBuilder = codeEmitModule = asmbuilder.DefineDynamicModule("LuaHotFixCodeEmit", "LuaHotFixCodeEmit.dll");
-            }
+                LuaHotFixCodeInjector.AssembliesDirectory = System.IO.Path.GetDirectoryName(file);
+                LuaHotFixCodeInjector.TryLoadAssembly(file);
+            };
 
-            var sigtypes = GetMethodSigTypes(method);
-            if (sigtypes.Count < 1)
+            UnityEditor.Compilation.CompilationPipeline.compilationFinished += state =>
             {
-                return;
-            }
-
-            Type rettype = sigtypes[0];
-            Type[] argstype = new Type[sigtypes.Count - 1];
-            for (int i = 1; i < sigtypes.Count; ++i)
-            {
-                argstype[i - 1] = sigtypes[i];
-            }
-            int methodid;
-            if (!_SigTypesMap.TryGetValue(sigtypes, out methodid))
-            {
-                _SigTypesMap[sigtypes] = methodid = _SigTypesMap.Count + 1;
-            }
-
-            var typebuilder = codeEmitModule.DefineType("LuaHotFixCodeEmitStub" + methodid, TypeAttributes.Public | TypeAttributes.Class, typeof(object));
-            var mbuilder = typebuilder.DefineMethod("StubFunc" + methodid, MethodAttributes.Public | MethodAttributes.Static, rettype, argstype);
-            ParameterExpression[] argsexp = new ParameterExpression[argstype.Length];
-            for (int i = 0; i< argstype.Length; ++i)
-            {
-                argsexp[i] = Expression.Parameter(argstype[i], "p" + i);
-            }
-            LabelTarget returnTarget = Expression.Label(rettype);
-            GotoExpression returnExp;
-            if (rettype == typeof(void))
-            {
-                returnExp = Expression.Return(returnTarget);
-            }
-            else
-            {
-                returnExp = Expression.Return(returnTarget, Expression.Default(rettype));
-            }
-            var body = Expression.Block(returnExp, Expression.Label(returnTarget));
-            var lambda = Expression.Lambda(body, argsexp);
-            lambda.CompileToMethod(mbuilder);
-
-            var createdtype = typebuilder.CreateType();
-            asmbuilder.Save("Temp.dll");
+                LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
+                LuaHotFixCodeInjector.UnloadAssemblies();
+            };
+#endif
         }
     }
 
     public class LuaHotFixEditor : EditorWindow
     {
-        [MenuItem("Lua/HotFix/Test", priority = 200010)]
-        public static void Test()
+        [MenuItem("Lua/HotFix/Generate LuaPack File", priority = 200010)]
+        static void Init()
         {
-            //var comp = new UnityEditor.Compilation.AssemblyBuilder("EditorOutput/Temp.dll", "EditorOutput/Test1.cs");
-            //comp.additionalReferences = new[] { "Library/ScriptAssemblies/CapsLua.dll" };
-            //comp.buildStarted += assemblyPath =>
-            //{
-            //    Debug.LogFormat("Assembly build started for {0}", assemblyPath);
-            //};
+            GetWindow(typeof(LuaHotFixEditor)).titleContent = new GUIContent("GenerateLuaPack");
+        }
 
-            //// Called on main thread
-            //comp.buildFinished += (assemblyPath, compilerMessages) =>
-            //{
-            //    foreach (var message in compilerMessages)
-            //    {
-            //        if (message.type == UnityEditor.Compilation.CompilerMessageType.Error)
-            //        {
-            //            Debug.LogError(message.message);
-            //        }
-            //        else if (message.type == UnityEditor.Compilation.CompilerMessageType.Warning)
-            //        {
-            //            Debug.LogWarning(message.message);
-            //        }
-            //    }
-
-            //    var errorCount = compilerMessages.Count(m => m.type == UnityEditor.Compilation.CompilerMessageType.Error);
-            //    var warningCount = compilerMessages.Count(m => m.type == UnityEditor.Compilation.CompilerMessageType.Warning);
-
-            //    Debug.LogFormat("Assembly build finished for {0}", assemblyPath);
-            //    Debug.LogFormat("Warnings: {0} - Errors: {0}", errorCount, warningCount);
-
-            //    if (errorCount == 0)
-            //    {
-            //    }
-            //};
-            //comp.Build();
-
-            for (int i = 11; i < 18; ++i)
+        int luaPackParamCnt = 18;
+        void OnGUI()
+        {
+            luaPackParamCnt = EditorGUILayout.IntField(luaPackParamCnt);
+            if (GUILayout.Button("Go!"))
             {
-                LuaHotFixWriter.GenerateLuaPackFile(i);
+                if (luaPackParamCnt > 0)
+                {
+                    var existing = LuaHotFixWriter.GetLuaPackType(luaPackParamCnt);
+                    if (existing == null)
+                    {
+                        LuaHotFixWriter.GenerateLuaPackFile(luaPackParamCnt);
+                        EditorUtility.OpenWithDefaultApp("EditorOutput/LuaHotFix/LuaPack/" + "LuaPack" + luaPackParamCnt + ".cs");
+                    }
+                }
             }
         }
+
+
+#if UNITY_INCLUDE_TESTS
+        #region TESTS
+        public static void TestPack<TLuaPack>()
+            where TLuaPack : struct, ILuaPack
+        {
+            var l = GlobalLua.L.L;
+            TLuaPack pin = default;
+            TLuaPack pout = default;
+            l.CallGlobal("TestPack", pin, out pout);
+            for (int i = 0; i < pout.ElementCount; ++i)
+            {
+                PlatDependant.LogError(pout[i]);
+            }
+        }
+
+        [MenuItem("Lua/HotFix/Test HotFix", priority = 290010)]
+        public static void TestHotFix()
+        {
+            var test1 = new Capstones.LuaWrap.HotFixTest.TestGenericClass<int>();
+            int a, b;
+            a = test1.TestReturnOutGenericFunc("this", 2, 3, out b);
+            Debug.LogError(a);
+            Debug.LogError(b);
+
+            var test2 = new Capstones.LuaWrap.HotFixTest.TestGenericClass<string>();
+            string c, d;
+            c = test2.TestReturnOutGenericFunc("me", 5, "???", out d);
+            Debug.LogError(c);
+            Debug.LogError(d);
+
+            var test3 = new Capstones.LuaWrap.HotFixTest.TestStruct(5);
+            Debug.LogError(test3.Value);
+
+            var test4 = new Capstones.LuaWrap.HotFixTest.TestClass(5);
+            Debug.LogError(test4.Value);
+
+            var test5 = new Capstones.LuaWrap.HotFixTest.TestGenericClass<int>();
+            test5.TestVoidFunc();
+        }
+
+        [MenuItem("Lua/HotFix/Test LuaPack", priority = 290020)]
+        public static void TestLuaPack()
+        {
+            Type[] genargs = new Type[18];
+            for (int i = 0; i < genargs.Length; ++i)
+            {
+                genargs[i] = typeof(int);
+            }
+            var packtype = typeof(LuaPack).Assembly.GetTypes().Where(type => type.Name == "LuaPack`18").FirstOrDefault().MakeGenericType(genargs);
+            typeof(LuaHotFixEditor).GetMethod("TestPack").MakeGenericMethod(packtype).Invoke(null, new object[0]);
+        }
+        #endregion
+#endif
     }
 }

@@ -39,52 +39,39 @@ namespace Capstones.LuaWrap
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack
         {
+#if UNITY_EDITOR && !DEBUG_LUA_HOTFIX_IN_EDITOR
+            result = default(TOut);
+            return false;
+#else
             result = default(TOut);
             var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())
             {
-                l.GetGlobal("require"); // require
-                l.PushString("hotfix"); // require "hotfix"
-                if (l.pcall(1, 1, 0) == 0) // hotfix
+                l.Require("hotfix");
+                if (l.istable(-1))
                 {
-                    if (l.istable(-1))
+                    l.GetField(-1, token); // hotfix func
+                    if (l.isfunction(-1))
                     {
-                        l.GetField(-1, token); // hotfix func
-                        if (l.isfunction(-1))
+                        var oldtop = l.gettop();
+                        l.pushcfunction(LuaHub.LuaFuncOnError); // hotfix func error
+                        l.insert(-2); // hotfix error func
+                        var argc = args.ElementCount;
+                        args.PushToLua(l); // hotfix error func args
+                        var code = l.pcall(argc, result.ElementCount + 1, oldtop); // hotfix error success results
+                        if (code == 0)
                         {
-                            var oldtop = l.gettop();
-                            l.pushcfunction(LuaHub.LuaFuncOnError); // hotfix func error
-                            l.insert(-2); // hotfix error func
-                            var argc = args.ElementCount;
-                            args.PushToLua(l); // hotfix error func args
-                            var code = l.pcall(argc, result.ElementCount + 1, oldtop); // hotfix error success results
-                            if (code == 0)
+                            if (l.toboolean(oldtop + 1))
                             {
-                                if (l.toboolean(oldtop + 1))
-                                {
-                                    result.GetFromLua(l);
-                                    return true;
-                                }
+                                result.GetFromLua(l);
+                                return true;
                             }
                         }
                     }
                 }
             }
             return false;
-        }
-
-        public static void TestFunc(int ddd)
-        {
-        }
-
-        public static void TestFunc(int ddd, float bbb)
-        {
-            LuaPack<int, float> ___lua_hotfix_generated_input_pack___ = new LuaPack<int, float>(ddd, bbb);
-            LuaPack ___lua_hotfix_generated_output_pack___;
-            if (HotFixCaller.CallHotFix("asdfasf", ___lua_hotfix_generated_input_pack___, out ___lua_hotfix_generated_output_pack___))
-            {
-                return;
-            }
+#endif
         }
     }
 }

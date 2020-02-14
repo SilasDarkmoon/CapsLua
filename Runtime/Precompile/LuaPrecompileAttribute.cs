@@ -16,36 +16,40 @@ namespace Capstones.LuaLib
         public bool Ignore { get; set; }
     }
 
-    //public class ReflectAnalyzerTestClass
-    //{
-    //    public class TestGenericClass<T>
-    //    {
-    //        public class TestNestedGenericClass<U>
-    //        {
+//#if UNITY_INCLUDE_TESTS
+//    #region TESTS
+//    public class ReflectAnalyzerTestClass
+//    {
+//        public class TestGenericClass<T>
+//        {
+//            public class TestNestedGenericClass<U>
+//            {
 
-    //        }
+//            }
 
-    //        public static void TestFuncGenericFunc<Y>(ref Y y) { }
-    //    }
+//            public static void TestFuncGenericFunc<Y>(ref Y y) { }
+//        }
 
-    //    public class TestNormalClass
-    //    {
-    //        [LuaPrecompile]
-    //        public void TestFunc() { }
-    //        [LuaPrecompile(Ignore = true)]
-    //        public void TestIgnoreFunc() { }
-    //    }
+//        public class TestNormalClass
+//        {
+//            [LuaPrecompile]
+//            public void TestFunc() { }
+//            [LuaPrecompile(Ignore = true)]
+//            public void TestIgnoreFunc() { }
+//        }
 
-    //    public class TestGenBase<T, U>
-    //    {
-    //        public void Func1(T t, U u) { }
-    //    }
-    //    public class TestGenBase<T> : TestGenBase<T, int>
-    //    {
-    //        public void Func2(T t) { }
-    //    }
-    //    public class TestGenChild : TestGenBase<float>
-    //    {
-    //    }
-    //}
+//        public class TestGenBase<T, U>
+//        {
+//            public void Func1(T t, U u) { }
+//        }
+//        public class TestGenBase<T> : TestGenBase<T, int>
+//        {
+//            public void Func2(T t) { }
+//        }
+//        public class TestGenChild : TestGenBase<float>
+//        {
+//        }
+//    }
+//    #endregion
+//#endif
 }

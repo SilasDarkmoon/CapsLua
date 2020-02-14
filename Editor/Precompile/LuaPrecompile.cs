@@ -109,7 +109,6 @@ namespace Capstones.UnityEditorEx
             {
                 using (var sr = PlatDependant.OpenReadText(listfile))
                 {
-                    HashSet<string> comments = new HashSet<string>();
                     while (true)
                     {
                         var line = sr.ReadLine();
