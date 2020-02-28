@@ -369,6 +369,591 @@ namespace Capstones.LuaWrap
             }
         }
 
+        public static Dictionary<TKey, TVal> GetDict<TKey, TVal>(this IntPtr l, int index)
+        {
+            Dictionary<TKey, TVal> dict = new Dictionary<TKey, TVal>();
+            GetDict(l, index, dict);
+            return dict;
+        }
+        public static void GetDict<TKey, TVal>(this IntPtr l, int index, IDictionary<TKey, TVal> dict)
+        {
+            dict.Clear();
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        {
+                            l.pushnil();
+                            while (l.next(-2))
+                            {
+                                TKey key;
+                                TVal val;
+                                l.GetLua(-2, out key);
+                                l.GetLua(-1, out val);
+                                dict[key] = val;
+                                l.pop(1);
+                            }
+                        }
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void SetDict<TKey, TVal>(this IntPtr l, int index, IDictionary<TKey, TVal> dict)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        foreach (var kvp in dict)
+                        {
+                            l.PushLua(kvp.Key);
+                            l.PushLua(kvp.Value);
+                            l.settable(-3);
+                        }
+                    }
+                }
+            }
+        }
+        public static Dictionary<TKey, TVal> GetDict<TKey, TVal>(this IntPtr l, int index, string fieldname)
+        {
+            Dictionary<TKey, TVal> dict = new Dictionary<TKey, TVal>();
+            GetDict(l, index, fieldname, dict);
+            return dict;
+        }
+        public static void GetDict<TKey, TVal>(this IntPtr l, int index, string fieldname, IDictionary<TKey, TVal> dict)
+        {
+            dict.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetDict(l, index, dict);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        GetDict(l, -1, dict);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void SetDict<TKey, TVal>(this IntPtr l, int index, string fieldname, IDictionary<TKey, TVal> dict)
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetDict(l, index, dict);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        if (l.isnoneornil(-1))
+                        {
+                            l.pop(1);
+                            var rindex = l.NormalizeIndex(index);
+                            l.newtable();
+                            l.pushvalue(-1);
+                            l.SetField(rindex, fieldname);
+                        }
+                        SetDict(l, -1, dict);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static Dictionary<TKey, TVal> GetDictHierarchical<TKey, TVal>(this IntPtr l, int index, string fieldname)
+        {
+            Dictionary<TKey, TVal> dict = new Dictionary<TKey, TVal>();
+            GetDictHierarchical(l, index, fieldname, dict);
+            return dict;
+        }
+        public static void GetDictHierarchical<TKey, TVal>(this IntPtr l, int index, string fieldname, IDictionary<TKey, TVal> dict)
+        {
+            dict.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetDict(l, index, dict);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            GetDict(l, -1, dict);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetDictHierarchical<TKey, TVal>(this IntPtr l, int index, string fieldname, IDictionary<TKey, TVal> dict)
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetDict(l, index, dict);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            if (l.isnoneornil(-1))
+                            {
+                                l.pop(1);
+                                var rindex = l.NormalizeIndex(index);
+                                l.newtable();
+                                l.SetHierarchicalRaw(rindex, fieldname, -1);
+                            }
+                            SetDict(l, -1, dict);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static Dictionary<TKey, TVal> GetGlobalDict<TKey, TVal>(this IntPtr l, string name)
+        {
+            Dictionary<TKey, TVal> dict = new Dictionary<TKey, TVal>();
+            GetGlobalDict(l, name, dict);
+            return dict;
+        }
+        public static void GetGlobalDict<TKey, TVal>(this IntPtr l, string name, IDictionary<TKey, TVal> dict)
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                GetDict(l, -1, dict);
+                l.pop(1);
+            }
+            else
+            {
+                dict.Clear();
+            }
+        }
+        public static void SetGlobalDict<TKey, TVal>(this IntPtr l, string name, IDictionary<TKey, TVal> dict)
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                if (l.isnoneornil(-1))
+                {
+                    l.pop(1);
+                    l.newtable();
+                    l.pushvalue(-1);
+                    l.SetGlobal(name);
+                }
+                SetDict(l, -1, dict);
+                l.pop(1);
+            }
+        }
+        public static Dictionary<TKey, TVal> GetGlobalDictHierarchical<TKey, TVal>(this IntPtr l, string name)
+        {
+            Dictionary<TKey, TVal> dict = new Dictionary<TKey, TVal>();
+            GetGlobalDictHierarchical(l, name, dict);
+            return dict;
+        }
+        public static void GetGlobalDictHierarchical<TKey, TVal>(this IntPtr l, string name, IDictionary<TKey, TVal> dict)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    GetDict(l, -1, dict);
+                    l.pop(1);
+                    return;
+                }
+            }
+            dict.Clear();
+        }
+        public static void SetGlobalDictHierarchical<TKey, TVal>(this IntPtr l, string name, IDictionary<TKey, TVal> dict)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    if (l.isnoneornil(-1))
+                    {
+                        l.pop(1);
+                        l.newtable();
+                        l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
+                    }
+                    SetDict(l, -1, dict);
+                    l.pop(1);
+                }
+            }
+        }
+
+        public static T[] GetArray<T>(this IntPtr l, int index)
+        {
+            return GetList<T>(l, index).ToArray();
+        }
+        public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index)
+        {
+            Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
+            GetList(l, index, list);
+            return list;
+        }
+        public static void GetList<T>(this IntPtr l, int index, IList<T> list)
+        {
+            GetList<T, IList<T>>(l, index, list);
+        }
+        public static void GetList<T>(this IntPtr l, int index, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, list);
+        }
+        public static void GetList<T, L>(this IntPtr l, int index, L list)
+            where L : IList<T>
+        {
+            list.Clear();
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        var cnt = l.getn(-1);
+
+                        for (int i = 1; i <= cnt; ++i)
+                        {
+                            l.pushnumber(i);
+                            l.gettable(-2);
+                            var val = l.GetLua<T>(-1);
+                            list.Add(val);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetList<T>(this IntPtr l, int index, IList<T> list)
+        {
+            SetList<T, IList<T>>(l, index, list);
+        }
+        public static void SetList<T>(this IntPtr l, int index, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, list);
+        }
+        public static void SetList<T, L>(this IntPtr l, int index, L list)
+            where L : IList<T>
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        var cnt = list.Count;
+                        for (int i = 0; i < cnt; ++i)
+                        {
+                            l.pushnumber(i + 1);
+                            l.PushLua(list[i]);
+                            l.settable(-3);
+                        }
+                        var lcnt = l.getn(-1);
+                        for (int i = cnt + 1; i <= lcnt; ++i)
+                        {
+                            l.pushnumber(i);
+                            l.pushnil();
+                            l.settable(-3);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static T[] GetArray<T>(this IntPtr l, int index, string fieldname)
+        {
+            return GetList<T>(l, index, fieldname).ToArray();
+        }
+        public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index, string fieldname)
+        {
+            Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
+            GetList(l, index, fieldname, list);
+            return list;
+        }
+        public static void GetList<T>(this IntPtr l, int index, string fieldname, IList<T> list)
+        {
+            GetList<T, IList<T>>(l, index, fieldname, list);
+        }
+        public static void GetList<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+        }
+        public static void GetList<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            list.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetList<T, L>(l, index, list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        GetList<T, L>(l, -1, list);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void SetList<T>(this IntPtr l, int index, string fieldname, IList<T> list)
+        {
+            SetList<T, IList<T>>(l, index, fieldname, list);
+        }
+        public static void SetList<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+        }
+        public static void SetList<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetList<T, L>(l, index, list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        if (l.isnoneornil(-1))
+                        {
+                            l.pop(1);
+                            var rindex = l.NormalizeIndex(index);
+                            l.newtable();
+                            l.pushvalue(-1);
+                            l.SetField(rindex, fieldname);
+                        }
+                        SetList<T, L>(l, -1, list);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+
+        public static T[] GetArrayHierarchical<T>(this IntPtr l, int index, string fieldname)
+        {
+            return GetListHierarchical<T>(l, index, fieldname).ToArray();
+        }
+        public static Capstones.UnityEngineEx.ValueList<T> GetListHierarchical<T>(this IntPtr l, int index, string fieldname)
+        {
+            Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
+            GetListHierarchical(l, index, fieldname, list);
+            return list;
+        }
+        public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, IList<T> list)
+        {
+            GetListHierarchical<T, IList<T>>(l, index, fieldname, list);
+        }
+        public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            GetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+        }
+        public static void GetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            list.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetList<T, L>(l, index, list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            GetList<T, L>(l, -1, list);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetListHierarchical<T>(this IntPtr l, int index, string fieldname, IList<T> list)
+        {
+            SetListHierarchical<T, IList<T>>(l, index, fieldname, list);
+        }
+        public static void SetListHierarchical<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            SetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+        }
+        public static void SetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetList<T, L>(l, index, list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            if (l.isnoneornil(-1))
+                            {
+                                l.pop(1);
+                                var rindex = l.NormalizeIndex(index);
+                                l.newtable();
+                                l.SetHierarchicalRaw(rindex, fieldname, -1);
+                            }
+                            SetList<T, L>(l, -1, list);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static T[] GetGlobalArray<T>(this IntPtr l, string name)
+        {
+            return GetGlobalList<T>(l, name).ToArray();
+        }
+        public static Capstones.UnityEngineEx.ValueList<T> GetGlobalList<T>(this IntPtr l, string name)
+        {
+            Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
+            GetGlobalList(l, name, list);
+            return list;
+        }
+        public static void GetGlobalList<T>(this IntPtr l, string name, IList<T> list)
+        {
+            GetGlobalList<T, IList<T>>(l, name, list);
+        }
+        public static void GetGlobalList<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            GetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+        }
+        public static void GetGlobalList<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                GetList<T, L>(l, -1, list);
+                l.pop(1);
+            }
+            else
+            {
+                list.Clear();
+            }
+        }
+        public static void SetGlobalList<T>(this IntPtr l, string name, IList<T> list)
+        {
+            SetGlobalList<T, IList<T>>(l, name, list);
+        }
+        public static void SetGlobalList<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            SetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+        }
+        public static void SetGlobalList<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                if (l.isnoneornil(-1))
+                {
+                    l.pop(1);
+                    l.newtable();
+                    l.pushvalue(-1);
+                    l.SetGlobal(name);
+                }
+                SetList<T, L>(l, -1, list);
+                l.pop(1);
+            }
+        }
+
+        public static T[] GetGlobalArrayHierarchical<T>(this IntPtr l, string name)
+        {
+            return GetGlobalListHierarchical<T>(l, name).ToArray();
+        }
+        public static Capstones.UnityEngineEx.ValueList<T> GetGlobalListHierarchical<T>(this IntPtr l, string name)
+        {
+            Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
+            GetGlobalListHierarchical(l, name, list);
+            return list;
+        }
+        public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, IList<T> list)
+        {
+            GetGlobalListHierarchical<T, IList<T>>(l, name, list);
+        }
+        public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            GetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+        }
+        public static void GetGlobalListHierarchical<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    GetList<T, L>(l, -1, list);
+                    l.pop(1);
+                    return;
+                }
+            }
+            list.Clear();
+        }
+        public static void SetGlobalListHierarchical<T>(this IntPtr l, string name, IList<T> list)
+        {
+            SetGlobalListHierarchical<T, IList<T>>(l, name, list);
+        }
+        public static void SetGlobalListHierarchical<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        {
+            SetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+        }
+        public static void SetGlobalListHierarchical<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    if (l.isnoneornil(-1))
+                    {
+                        l.pop(1);
+                        l.newtable();
+                        l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
+                    }
+                    SetList<T, L>(l, -1, list);
+                    l.pop(1);
+                }
+            }
+        }
+
         public static void Require(this IntPtr l, string lib)
         {
             l.GetGlobal("require");
