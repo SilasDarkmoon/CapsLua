@@ -262,3 +262,32 @@ function string.formatIntWithComma(amount)
     end
     return formatted
 end
+
+--- 换算数字，超过1万数字形式为xx万，超过1亿数字形式为xx亿
+-- @param num 数字，类型number
+-- @param n 保留小数位数（默认两位）
+-- @return 数字转换后的字符串形式，类型string
+function string.formatNumWithUnit(num, n)
+    num = tonumber(num)
+    if not n then
+        n = 2
+    else
+        n = tonumber(n)
+    end
+    local baseUnit = 10000
+    local baseBit = 4
+    -- if unity.checkPlatform("ww","en") then-- @des 为了配合全球版显示 ，如果是全球版则要做一下处理
+    --     baseUnit = 1000
+    --     baseBit = 3
+    -- end
+
+    if num < baseUnit then
+        return tostring(num)
+    elseif num < baseUnit * baseUnit then
+        num = math.floor(num / math.pow(10, baseBit - n)) / math.pow(10, n)
+        return clr.transstr("logogramMoneyTenThousand", num)
+    else
+        num = math.floor(num / math.pow(10, 2*baseBit - n)) / math.pow(10, n)
+        return clr.transstr("logogramMoneyHundredMillon", num)
+    end
+end
