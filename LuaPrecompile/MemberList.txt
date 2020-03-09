@@ -70,3 +70,5 @@ type System.Single
 type System.UInt16
 type System.UInt32
 type System.UInt64
+
+type System.Type

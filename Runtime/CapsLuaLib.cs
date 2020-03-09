@@ -1671,3 +1671,13 @@ namespace Capstones.LuaLib
         }
     }
 }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+namespace AOT
+{
+    public class MonoPInvokeCallbackAttribute : System.Attribute
+    {
+        public MonoPInvokeCallbackAttribute(System.Type t) { }
+    }
+}
+#endif
