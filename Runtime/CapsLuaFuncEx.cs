@@ -1275,6 +1275,64 @@ namespace Capstones.LuaWrap
                 l.pop(1);
             }
         }
+        public static void ForEachIndex(this IntPtr l, int index, Action action)
+        {
+            if (l != IntPtr.Zero && action != null)
+            {
+                l.pushvalue(index);
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var cnt = l.getn(-1);
+                    for (int i = 1; i <= cnt; ++i)
+                    {
+                        l.pushnumber(i);
+                        l.pushvalue(-1);
+                        l.gettable(-3);
+                        action();
+                        l.pop(2);
+                    }
+                }
+                l.pop(1);
+            }
+        }
+        public static void ForEachIndex(this IntPtr l, int index, Action<int> action)
+        {
+            if (l != IntPtr.Zero && action != null)
+            {
+                l.pushvalue(index);
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var cnt = l.getn(-1);
+                    for (int i = 1; i <= cnt; ++i)
+                    {
+                        l.pushnumber(i);
+                        l.gettable(-2);
+                        action(i);
+                        l.pop(1);
+                    }
+                }
+                l.pop(1);
+            }
+        }
+        public static void ForEachIndex(this IntPtr l, int index, Action<IntPtr, int> action)
+        {
+            if (l != IntPtr.Zero && action != null)
+            {
+                l.pushvalue(index);
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var cnt = l.getn(-1);
+                    for (int i = 1; i <= cnt; ++i)
+                    {
+                        l.pushnumber(i);
+                        l.gettable(-2);
+                        action(l, i);
+                        l.pop(1);
+                    }
+                }
+                l.pop(1);
+            }
+        }
     }
 }
 
