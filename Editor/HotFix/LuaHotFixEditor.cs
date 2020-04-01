@@ -47,10 +47,10 @@ namespace Capstones.UnityEditorEx
             {
                 return;
             }
-            if (GetLuaPackType(paramCnt) != null)
-            {
-                return;
-            }
+            //if (GetLuaPackType(paramCnt) != null)
+            //{
+            //    return;
+            //}
 
             //string codefolder = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaHotFix/";
             //string file = codefolder + "LuaPack" + paramCnt + ".cs";
@@ -187,6 +187,76 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine(";");
                 }
                 sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0");
+                sw.Write("        public static implicit operator LuaPack<");
+                sw.Write(gargs);
+                sw.Write(">(");
+                if (paramCnt >= 8)
+                {
+                    sw.Write("(");
+                    sw.Write(gargs);
+                    sw.Write(")");
+                }
+                else
+                {
+                    sw.Write("ValueTuple<");
+                    sw.Write(gargs);
+                    sw.Write(">");
+                }
+                sw.WriteLine(" t)");
+                sw.WriteLine("        {");
+                sw.Write("            return new LuaPack<");
+                sw.Write(gargs);
+                sw.Write(">(");
+                for (int i = 0; i < paramCnt; ++i)
+                {
+                    if (i > 0)
+                    {
+                        sw.Write(", ");
+                    }
+                    sw.Write("t.Item");
+                    sw.Write(i + 1);
+                }
+                sw.WriteLine(");");
+                sw.WriteLine("        }");
+                sw.Write("        public static implicit operator ");
+                if (paramCnt >= 8)
+                {
+                    sw.Write("(");
+                    sw.Write(gargs);
+                    sw.Write(")");
+                }
+                else
+                {
+                    sw.Write("ValueTuple<");
+                    sw.Write(gargs);
+                    sw.Write(">");
+                }
+                sw.Write("(LuaPack<");
+                sw.Write(gargs);
+                sw.WriteLine("> p)");
+                sw.WriteLine("        {");
+                sw.Write("            return ");
+                if (paramCnt < 8)
+                {
+                    sw.Write("new ValueTuple<");
+                    sw.Write(gargs);
+                    sw.Write(">");
+                }
+                sw.Write("(");
+                for (int i = 0; i < paramCnt; ++i)
+                {
+                    if (i > 0)
+                    {
+                        sw.Write(", ");
+                    }
+                    sw.Write("p.t");
+                    sw.Write(i);
+                }
+                sw.WriteLine(");");
+                sw.WriteLine("        }");
+                sw.WriteLine("#endif");
                 sw.WriteLine("    }");
                 sw.WriteLine("}");
             }
@@ -292,8 +362,8 @@ namespace Capstones.UnityEditorEx
             {
                 if (luaPackParamCnt > 0)
                 {
-                    var existing = LuaHotFixWriter.GetLuaPackType(luaPackParamCnt);
-                    if (existing == null)
+                    //var existing = LuaHotFixWriter.GetLuaPackType(luaPackParamCnt);
+                    //if (existing == null)
                     {
                         LuaHotFixWriter.GenerateLuaPackFile(luaPackParamCnt);
                         EditorUtility.OpenWithDefaultApp("EditorOutput/LuaHotFix/LuaPack/" + "LuaPack" + luaPackParamCnt + ".cs");

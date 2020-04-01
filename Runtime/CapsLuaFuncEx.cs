@@ -609,18 +609,23 @@ namespace Capstones.LuaWrap
         public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index)
         {
             Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
-            GetList(l, index, list);
+            GetList(l, index, ref list);
             return list;
         }
         public static void GetList<T>(this IntPtr l, int index, IList<T> list)
         {
             GetList<T, IList<T>>(l, index, list);
         }
-        public static void GetList<T>(this IntPtr l, int index, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void GetList<T>(this IntPtr l, int index, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, list);
+            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, ref list);
         }
         public static void GetList<T, L>(this IntPtr l, int index, L list)
+            where L : IList<T>
+        {
+            GetList<T, L>(l, index, ref list);
+        }
+        public static void GetList<T, L>(this IntPtr l, int index, ref L list)
             where L : IList<T>
         {
             list.Clear();
@@ -649,11 +654,16 @@ namespace Capstones.LuaWrap
         {
             SetList<T, IList<T>>(l, index, list);
         }
-        public static void SetList<T>(this IntPtr l, int index, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void SetList<T>(this IntPtr l, int index, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, list);
+            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, ref list);
         }
         public static void SetList<T, L>(this IntPtr l, int index, L list)
+            where L : IList<T>
+        {
+            SetList<T, L>(l, index, ref list);
+        }
+        public static void SetList<T, L>(this IntPtr l, int index, ref L list)
             where L : IList<T>
         {
             if (l != IntPtr.Zero)
@@ -689,18 +699,23 @@ namespace Capstones.LuaWrap
         public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index, string fieldname)
         {
             Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
-            GetList(l, index, fieldname, list);
+            GetList(l, index, fieldname, ref list);
             return list;
         }
         public static void GetList<T>(this IntPtr l, int index, string fieldname, IList<T> list)
         {
             GetList<T, IList<T>>(l, index, fieldname, list);
         }
-        public static void GetList<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void GetList<T>(this IntPtr l, int index, string fieldname, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+            GetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, ref list);
         }
         public static void GetList<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            GetList<T, L>(l, index, fieldname, ref list);
+        }
+        public static void GetList<T, L>(this IntPtr l, int index, string fieldname, ref L list)
             where L : IList<T>
         {
             list.Clear();
@@ -725,11 +740,16 @@ namespace Capstones.LuaWrap
         {
             SetList<T, IList<T>>(l, index, fieldname, list);
         }
-        public static void SetList<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void SetList<T>(this IntPtr l, int index, string fieldname, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+            SetList<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, ref list);
         }
         public static void SetList<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            SetList<T, L>(l, index, fieldname, ref list);
+        }
+        public static void SetList<T, L>(this IntPtr l, int index, string fieldname, ref L list)
             where L : IList<T>
         {
             if (string.IsNullOrEmpty(fieldname))
@@ -765,18 +785,23 @@ namespace Capstones.LuaWrap
         public static Capstones.UnityEngineEx.ValueList<T> GetListHierarchical<T>(this IntPtr l, int index, string fieldname)
         {
             Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
-            GetListHierarchical(l, index, fieldname, list);
+            GetListHierarchical(l, index, fieldname, ref list);
             return list;
         }
         public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, IList<T> list)
         {
             GetListHierarchical<T, IList<T>>(l, index, fieldname, list);
         }
-        public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            GetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+            GetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, ref list);
         }
         public static void GetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            GetListHierarchical<T, L>(l, index, fieldname, ref list);
+        }
+        public static void GetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, ref L list)
             where L : IList<T>
         {
             list.Clear();
@@ -803,11 +828,16 @@ namespace Capstones.LuaWrap
         {
             SetListHierarchical<T, IList<T>>(l, index, fieldname, list);
         }
-        public static void SetListHierarchical<T>(this IntPtr l, int index, string fieldname, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void SetListHierarchical<T>(this IntPtr l, int index, string fieldname, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            SetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, list);
+            SetListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, index, fieldname, ref list);
         }
         public static void SetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, L list)
+            where L : IList<T>
+        {
+            SetListHierarchical<T, L>(l, index, fieldname, ref list);
+        }
+        public static void SetListHierarchical<T, L>(this IntPtr l, int index, string fieldname, ref L list)
             where L : IList<T>
         {
             if (string.IsNullOrEmpty(fieldname))
@@ -844,18 +874,23 @@ namespace Capstones.LuaWrap
         public static Capstones.UnityEngineEx.ValueList<T> GetGlobalList<T>(this IntPtr l, string name)
         {
             Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
-            GetGlobalList(l, name, list);
+            GetGlobalList(l, name, ref list);
             return list;
         }
         public static void GetGlobalList<T>(this IntPtr l, string name, IList<T> list)
         {
             GetGlobalList<T, IList<T>>(l, name, list);
         }
-        public static void GetGlobalList<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void GetGlobalList<T>(this IntPtr l, string name, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            GetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+            GetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, ref list);
         }
         public static void GetGlobalList<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            GetGlobalList<T, L>(l, name, ref list);
+        }
+        public static void GetGlobalList<T, L>(this IntPtr l, string name, ref L list)
             where L : IList<T>
         {
             if (l != IntPtr.Zero)
@@ -873,11 +908,16 @@ namespace Capstones.LuaWrap
         {
             SetGlobalList<T, IList<T>>(l, name, list);
         }
-        public static void SetGlobalList<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void SetGlobalList<T>(this IntPtr l, string name, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            SetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+            SetGlobalList<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, ref list);
         }
         public static void SetGlobalList<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            SetGlobalList<T, L>(l, name, ref list);
+        }
+        public static void SetGlobalList<T, L>(this IntPtr l, string name, ref L list)
             where L : IList<T>
         {
             if (l != IntPtr.Zero)
@@ -902,18 +942,23 @@ namespace Capstones.LuaWrap
         public static Capstones.UnityEngineEx.ValueList<T> GetGlobalListHierarchical<T>(this IntPtr l, string name)
         {
             Capstones.UnityEngineEx.ValueList<T> list = new Capstones.UnityEngineEx.ValueList<T>();
-            GetGlobalListHierarchical(l, name, list);
+            GetGlobalListHierarchical(l, name, ref list);
             return list;
         }
         public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, IList<T> list)
         {
             GetGlobalListHierarchical<T, IList<T>>(l, name, list);
         }
-        public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            GetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+            GetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, ref list);
         }
         public static void GetGlobalListHierarchical<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            GetGlobalListHierarchical<T, L>(l, name, ref list);
+        }
+        public static void GetGlobalListHierarchical<T, L>(this IntPtr l, string name, ref L list)
             where L : IList<T>
         {
             if (l != IntPtr.Zero)
@@ -931,11 +976,16 @@ namespace Capstones.LuaWrap
         {
             SetGlobalListHierarchical<T, IList<T>>(l, name, list);
         }
-        public static void SetGlobalListHierarchical<T>(this IntPtr l, string name, Capstones.UnityEngineEx.ValueList<T> list)
+        public static void SetGlobalListHierarchical<T>(this IntPtr l, string name, ref Capstones.UnityEngineEx.ValueList<T> list)
         {
-            SetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, list);
+            SetGlobalListHierarchical<T, Capstones.UnityEngineEx.ValueList<T>>(l, name, ref list);
         }
         public static void SetGlobalListHierarchical<T, L>(this IntPtr l, string name, L list)
+            where L : IList<T>
+        {
+            SetGlobalListHierarchical<T, L>(l, name, ref list);
+        }
+        public static void SetGlobalListHierarchical<T, L>(this IntPtr l, string name, ref L list)
             where L : IList<T>
         {
             if (l != IntPtr.Zero)
@@ -1117,6 +1167,17 @@ namespace Capstones.LuaWrap
         {
             o0 = t0;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0>(ValueTuple<T0> t)
+        {
+            return new LuaPack<T0>(t.Item1);
+        }
+        public static implicit operator ValueTuple<T0>(LuaPack<T0> p)
+        {
+            return new ValueTuple<T0>(p.t0);
+        }
+#endif
     }
     public struct LuaPack<T0, T1> : ILuaPack
     {
@@ -1154,6 +1215,17 @@ namespace Capstones.LuaWrap
             o0 = t0;
             o1 = t1;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1>(ValueTuple<T0, T1> t)
+        {
+            return new LuaPack<T0, T1>(t.Item1, t.Item2);
+        }
+        public static implicit operator ValueTuple<T0, T1>(LuaPack<T0, T1> p)
+        {
+            return new ValueTuple<T0, T1>(p.t0, p.t1);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2> : ILuaPack
     {
@@ -1197,6 +1269,17 @@ namespace Capstones.LuaWrap
             o1 = t1;
             o2 = t2;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2>(ValueTuple<T0, T1, T2> t)
+        {
+            return new LuaPack<T0, T1, T2>(t.Item1, t.Item2, t.Item3);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2>(LuaPack<T0, T1, T2> p)
+        {
+            return new ValueTuple<T0, T1, T2>(p.t0, p.t1, p.t2);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3> : ILuaPack
     {
@@ -1246,6 +1329,17 @@ namespace Capstones.LuaWrap
             o2 = t2;
             o3 = t3;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3>(ValueTuple<T0, T1, T2, T3> t)
+        {
+            return new LuaPack<T0, T1, T2, T3>(t.Item1, t.Item2, t.Item3, t.Item4);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2, T3>(LuaPack<T0, T1, T2, T3> p)
+        {
+            return new ValueTuple<T0, T1, T2, T3>(p.t0, p.t1, p.t2, p.t3);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4> : ILuaPack
     {
@@ -1301,6 +1395,17 @@ namespace Capstones.LuaWrap
             o3 = t3;
             o4 = t4;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4>(ValueTuple<T0, T1, T2, T3, T4> t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2, T3, T4>(LuaPack<T0, T1, T2, T3, T4> p)
+        {
+            return new ValueTuple<T0, T1, T2, T3, T4>(p.t0, p.t1, p.t2, p.t3, p.t4);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5> : ILuaPack
     {
@@ -1362,6 +1467,17 @@ namespace Capstones.LuaWrap
             o4 = t4;
             o5 = t5;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5>(ValueTuple<T0, T1, T2, T3, T4, T5> t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2, T3, T4, T5>(LuaPack<T0, T1, T2, T3, T4, T5> p)
+        {
+            return new ValueTuple<T0, T1, T2, T3, T4, T5>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6> : ILuaPack
     {
@@ -1429,6 +1545,17 @@ namespace Capstones.LuaWrap
             o5 = t5;
             o6 = t6;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6>(ValueTuple<T0, T1, T2, T3, T4, T5, T6> t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2, T3, T4, T5, T6>(LuaPack<T0, T1, T2, T3, T4, T5, T6> p)
+        {
+            return new ValueTuple<T0, T1, T2, T3, T4, T5, T6>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> : ILuaPack
     {
@@ -1502,6 +1629,17 @@ namespace Capstones.LuaWrap
             o6 = t6;
             o7 = t7;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7>((T0, T1, T2, T3, T4, T5, T6, T7) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> : ILuaPack
     {
@@ -1581,6 +1719,17 @@ namespace Capstones.LuaWrap
             o7 = t7;
             o8 = t8;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8>((T0, T1, T2, T3, T4, T5, T6, T7, T8) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : ILuaPack
     {
@@ -1666,6 +1815,17 @@ namespace Capstones.LuaWrap
             o8 = t8;
             o9 = t9;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ILuaPack
     {
@@ -1757,6 +1917,17 @@ namespace Capstones.LuaWrap
             o9 = t9;
             o10 = t10;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : ILuaPack
     {
@@ -1854,6 +2025,17 @@ namespace Capstones.LuaWrap
             o10 = t10;
             o11 = t11;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : ILuaPack
     {
@@ -1957,6 +2139,17 @@ namespace Capstones.LuaWrap
             o11 = t11;
             o12 = t12;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12, t.Item13);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : ILuaPack
     {
@@ -2066,6 +2259,17 @@ namespace Capstones.LuaWrap
             o12 = t12;
             o13 = t13;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12, t.Item13, t.Item14);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : ILuaPack
     {
@@ -2181,6 +2385,17 @@ namespace Capstones.LuaWrap
             o13 = t13;
             o14 = t14;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12, t.Item13, t.Item14, t.Item15);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : ILuaPack
     {
@@ -2302,6 +2517,17 @@ namespace Capstones.LuaWrap
             o14 = t14;
             o15 = t15;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12, t.Item13, t.Item14, t.Item15, t.Item16);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15);
+        }
+#endif
     }
     public struct LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : ILuaPack
     {
@@ -2429,5 +2655,120 @@ namespace Capstones.LuaWrap
             o15 = t15;
             o16 = t16;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) t)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Item8, t.Item9, t.Item10, t.Item11, t.Item12, t.Item13, t.Item14, t.Item15, t.Item16, t.Item17);
+        }
+        public static implicit operator (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> p)
+        {
+            return (p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16);
+        }
+#endif
+    }
+    public struct LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> : ILuaPack where TRest : struct, ILuaPack
+    {
+        public T0 t0;
+        public T1 t1;
+        public T2 t2;
+        public T3 t3;
+        public T4 t4;
+        public T5 t5;
+        public T6 t6;
+        public TRest trest;
+        public LuaPackEx(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, TRest prest)
+        {
+            t0 = p0;
+            t1 = p1;
+            t2 = p2;
+            t3 = p3;
+            t4 = p4;
+            t5 = p5;
+            t6 = p6;
+            trest = prest;
+        }
+
+        public int ElementCount { get { return 7 + trest.ElementCount; } }
+        public void GetFromLua(IntPtr l)
+        {
+            var cnt = ElementCount;
+            trest.GetFromLua(l);
+            l.GetLua(6 - cnt, out t6);
+            l.GetLua(5 - cnt, out t5);
+            l.GetLua(4 - cnt, out t4);
+            l.GetLua(3 - cnt, out t3);
+            l.GetLua(2 - cnt, out t2);
+            l.GetLua(1 - cnt, out t1);
+            l.GetLua(-cnt, out t0);
+        }
+        public void PushToLua(IntPtr l)
+        {
+            l.PushLua(t0);
+            l.PushLua(t1);
+            l.PushLua(t2);
+            l.PushLua(t3);
+            l.PushLua(t4);
+            l.PushLua(t5);
+            l.PushLua(t6);
+            trest.PushToLua(l);
+        }
+        public object this[int index]
+        {
+            get
+            {
+                if (index < 7)
+                {
+                    return _IndexAccessors.GetItem(ref this, index);
+                }
+                else
+                {
+                    return trest[index - 7];
+                }
+            }
+            set
+            {
+                if (index < 7)
+                {
+                    _IndexAccessors.SetItem(ref this, index, value);
+                }
+                else
+                {
+                    trest[index - 7] = value;
+                }
+            }
+        }
+        private static LuaPackIndexAccessorList<LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest>> _IndexAccessors = new LuaPackIndexAccessorList<LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest>>
+        {
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t0, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t0 = (T0)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t1, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t1 = (T1)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t2, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t2 = (T2)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t3, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t3 = (T3)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t4, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t4 = (T4)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t5, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t5 = (T5)val },
+            { (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz) => thiz.t6, (ref LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> thiz, object val) => thiz.t6 = (T6)val },
+        };
+        public void Deconstruct(out T0 o0, out T1 o1, out T2 o2, out T3 o3, out T4 o4, out T5 o5, out T6 o6, out TRest orest)
+        {
+            o0 = t0;
+            o1 = t1;
+            o2 = t2;
+            o3 = t3;
+            o4 = t4;
+            o5 = t5;
+            o6 = t6;
+            orest = trest;
+        }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static implicit operator LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest>(ValueTuple<T0, T1, T2, T3, T4, T5, T6, TRest> t)
+        {
+            return new LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, t.Rest);
+        }
+        public static implicit operator ValueTuple<T0, T1, T2, T3, T4, T5, T6, TRest>(LuaPackEx<T0, T1, T2, T3, T4, T5, T6, TRest> p)
+        {
+            return new ValueTuple<T0, T1, T2, T3, T4, T5, T6, TRest>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.trest);
+        }
+#endif
     }
 }
