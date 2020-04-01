@@ -1004,6 +1004,216 @@ namespace Capstones.LuaWrap
             }
         }
 
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static void GetList<T>(this IntPtr l, int index, ref System.Span<T> list)
+        {
+            list.Clear();
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        var cnt = l.getn(-1);
+
+                        for (int i = 1; i <= cnt; ++i)
+                        {
+                            l.pushnumber(i);
+                            l.gettable(-2);
+                            var val = l.GetLua<T>(-1);
+                            list[i - 1] = val;
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetList<T>(this IntPtr l, int index, ref System.Span<T> list)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        var cnt = list.Length;
+                        for (int i = 0; i < cnt; ++i)
+                        {
+                            l.pushnumber(i + 1);
+                            l.PushLua(list[i]);
+                            l.settable(-3);
+                        }
+                        var lcnt = l.getn(-1);
+                        for (int i = cnt + 1; i <= lcnt; ++i)
+                        {
+                            l.pushnumber(i);
+                            l.pushnil();
+                            l.settable(-3);
+                        }
+                    }
+                }
+            }
+        }
+        public static void GetList<T>(this IntPtr l, int index, string fieldname, ref System.Span<T> list)
+        {
+            list.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetList<T>(l, index, ref list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        GetList<T>(l, -1, ref list);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void SetList<T>(this IntPtr l, int index, string fieldname, ref System.Span<T> list)
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetList<T>(l, index, ref list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        if (l.isnoneornil(-1))
+                        {
+                            l.pop(1);
+                            var rindex = l.NormalizeIndex(index);
+                            l.newtable();
+                            l.pushvalue(-1);
+                            l.SetField(rindex, fieldname);
+                        }
+                        SetList<T>(l, -1, ref list);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void GetListHierarchical<T>(this IntPtr l, int index, string fieldname, ref System.Span<T> list)
+        {
+            list.Clear();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetList<T>(l, index, ref list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            GetList<T>(l, -1, ref list);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetListHierarchical<T>(this IntPtr l, int index, string fieldname, ref System.Span<T> list)
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetList<T>(l, index, ref list);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            if (l.isnoneornil(-1))
+                            {
+                                l.pop(1);
+                                var rindex = l.NormalizeIndex(index);
+                                l.newtable();
+                                l.SetHierarchicalRaw(rindex, fieldname, -1);
+                            }
+                            SetList<T>(l, -1, ref list);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void GetGlobalList<T>(this IntPtr l, string name, ref System.Span<T> list)
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                GetList<T>(l, -1, ref list);
+                l.pop(1);
+            }
+            else
+            {
+                list.Clear();
+            }
+        }
+        public static void SetGlobalList<T>(this IntPtr l, string name, ref System.Span<T> list)
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                if (l.isnoneornil(-1))
+                {
+                    l.pop(1);
+                    l.newtable();
+                    l.pushvalue(-1);
+                    l.SetGlobal(name);
+                }
+                SetList<T>(l, -1, ref list);
+                l.pop(1);
+            }
+        }
+        public static void GetGlobalListHierarchical<T>(this IntPtr l, string name, ref System.Span<T> list)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    GetList<T>(l, -1, ref list);
+                    l.pop(1);
+                    return;
+                }
+            }
+            list.Clear();
+        }
+        public static void SetGlobalListHierarchical<T>(this IntPtr l, string name, ref System.Span<T> list)
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    if (l.isnoneornil(-1))
+                    {
+                        l.pop(1);
+                        l.newtable();
+                        l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
+                    }
+                    SetList<T>(l, -1, ref list);
+                    l.pop(1);
+                }
+            }
+        }
+#endif
+
         public static void Require(this IntPtr l, string lib)
         {
             l.GetGlobal("require");
