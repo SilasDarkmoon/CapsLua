@@ -721,7 +721,7 @@ namespace Capstones.LuaWrap
             list.Clear();
             if (string.IsNullOrEmpty(fieldname))
             {
-                GetList<T, L>(l, index, list);
+                GetList<T, L>(l, index, ref list);
             }
             else
             {
@@ -730,7 +730,7 @@ namespace Capstones.LuaWrap
                     if (l.istable(index) || l.IsUserData(index))
                     {
                         l.GetField(index, fieldname);
-                        GetList<T, L>(l, -1, list);
+                        GetList<T, L>(l, -1, ref list);
                         l.pop(1);
                     }
                 }
@@ -754,7 +754,7 @@ namespace Capstones.LuaWrap
         {
             if (string.IsNullOrEmpty(fieldname))
             {
-                SetList<T, L>(l, index, list);
+                SetList<T, L>(l, index, ref list);
             }
             else
             {
@@ -771,7 +771,7 @@ namespace Capstones.LuaWrap
                             l.pushvalue(-1);
                             l.SetField(rindex, fieldname);
                         }
-                        SetList<T, L>(l, -1, list);
+                        SetList<T, L>(l, -1, ref list);
                         l.pop(1);
                     }
                 }
@@ -807,7 +807,7 @@ namespace Capstones.LuaWrap
             list.Clear();
             if (string.IsNullOrEmpty(fieldname))
             {
-                GetList<T, L>(l, index, list);
+                GetList<T, L>(l, index, ref list);
             }
             else
             {
@@ -817,7 +817,7 @@ namespace Capstones.LuaWrap
                     {
                         if (l.GetHierarchicalRaw(index, fieldname))
                         {
-                            GetList<T, L>(l, -1, list);
+                            GetList<T, L>(l, -1, ref list);
                             l.pop(1);
                         }
                     }
@@ -842,7 +842,7 @@ namespace Capstones.LuaWrap
         {
             if (string.IsNullOrEmpty(fieldname))
             {
-                SetList<T, L>(l, index, list);
+                SetList<T, L>(l, index, ref list);
             }
             else
             {
@@ -859,7 +859,7 @@ namespace Capstones.LuaWrap
                                 l.newtable();
                                 l.SetHierarchicalRaw(rindex, fieldname, -1);
                             }
-                            SetList<T, L>(l, -1, list);
+                            SetList<T, L>(l, -1, ref list);
                             l.pop(1);
                         }
                     }
@@ -896,7 +896,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero)
             {
                 l.GetGlobal(name);
-                GetList<T, L>(l, -1, list);
+                GetList<T, L>(l, -1, ref list);
                 l.pop(1);
             }
             else
@@ -930,7 +930,7 @@ namespace Capstones.LuaWrap
                     l.pushvalue(-1);
                     l.SetGlobal(name);
                 }
-                SetList<T, L>(l, -1, list);
+                SetList<T, L>(l, -1, ref list);
                 l.pop(1);
             }
         }
@@ -965,7 +965,7 @@ namespace Capstones.LuaWrap
             {
                 if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
                 {
-                    GetList<T, L>(l, -1, list);
+                    GetList<T, L>(l, -1, ref list);
                     l.pop(1);
                     return;
                 }
@@ -998,7 +998,7 @@ namespace Capstones.LuaWrap
                         l.newtable();
                         l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
                     }
-                    SetList<T, L>(l, -1, list);
+                    SetList<T, L>(l, -1, ref list);
                     l.pop(1);
                 }
             }
