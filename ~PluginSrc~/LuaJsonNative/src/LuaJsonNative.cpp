@@ -23,7 +23,8 @@
 
 using namespace rapidjson;
 
-#define LRKEY_TYPE_TRANS ((void*)2303)
+#define LRKEY_TYPE_TRANS    ((void*)2303)
+#define LRKEY_TARGET        ((void*)2201)
 
 struct ToLuaHandler {
     explicit ToLuaHandler(lua_State* aL) : L(aL) { stack_.reserve(32); }
@@ -282,6 +283,13 @@ class Encoder {
         lua_gettable(L, index); // trans
         bool isobj = lua_islightuserdata(L, -1);
         lua_pop(L, 1);
+        if (isobj)
+        {
+            lua_pushlightuserdata(L, LRKEY_TARGET); // #tar
+            lua_rawget(L, index); // tar
+            isobj = !lua_isnoneornil(L, -1);
+            lua_pop(L, 1);
+        }
         return isobj;
     }
     static inline bool isinteger(lua_State* L, int idx, int64_t* out = NULL)
