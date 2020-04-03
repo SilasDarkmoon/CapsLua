@@ -10,7 +10,7 @@ using luae = Capstones.LuaLib.LuaLibEx;
 
 namespace Capstones.LuaWrap
 {
-    public static class LuaFuncExHelper
+    public static partial class LuaFuncExHelper
     {
         public static TOut PushArgsAndCall<TIn, TOut>(this IntPtr l, TIn args)
             where TIn : struct, ILuaPack
@@ -3091,5 +3091,100 @@ namespace Capstones.LuaWrap
             return new ValueTuple<T0, T1, T2, T3, T4, T5, T6, TRest>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.trest);
         }
 #endif
+    }
+}
+
+namespace Capstones.LuaWrap
+{
+    public static partial class LuaFuncExHelper
+    {
+        public static void PushArgsAndCall<TIn>(this IntPtr l, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack pack;
+            PushArgsAndCall(l, args, out pack);
+        }
+        public static void CallGlobal<TIn>(this IntPtr l, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack pack;
+            CallGlobal(l, name, args, out pack);
+        }
+        public static void CallGlobalHierarchical<TIn>(this IntPtr l, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+        }
+
+        public static void PushArgsAndCall<TIn, T0>(this IntPtr l, out T0 rv0, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0);
+        }
+        public static void CallGlobal<TIn, T0>(this IntPtr l, out T0 rv0, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0);
+        }
+        public static void CallGlobalHierarchical<TIn, T0>(this IntPtr l, out T0 rv0, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0);
+        }
+        public static void DoString<T0>(this IntPtr l, out T0 rv0, string chunk)
+        {
+            LuaPack<T0> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0);
+        }
+        public static void DoFile<T0>(this IntPtr l, out T0 rv0, string path)
+        {
+            LuaPack<T0> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0);
+        }
+        public static void GetTable<T0>(this IntPtr l, out T0 rv0, int index, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
+        public static void GetTable<T0>(this IntPtr l, out T0 rv0, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
+        public static void GetTableHierarchical<T0>(this IntPtr l, out T0 rv0, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
+        public static void GetGlobalTable<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
+        public static void GetGlobalTableHierarchical<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
+        public static void Require<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
+        {
+            LuaPack<T0> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0);
+        }
     }
 }
