@@ -401,7 +401,7 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
-                    sw.Write("        public static void GetTable<");
+                    sw.Write("        public static void GetSubTable<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
                     sw.Write(outpars);
