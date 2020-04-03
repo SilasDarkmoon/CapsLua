@@ -81,4 +81,28 @@ namespace Capstones.UnityEditorEx
             EditorGUILayout.EndScrollView();
         }
     }
+
+#if UNITY_INCLUDE_TESTS
+    #region TESTS
+    public static class LuaEditorTestCommands
+    {
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("Test/Lua/Test Lua", priority = 300010)]
+        public static void TestLua()
+        {
+            UnityEditor.AssetDatabase.OpenAsset(UnityEditor.AssetDatabase.LoadMainAssetAtPath(ResManager.__ASSET__), ResManager.__LINE__);
+
+            var l = GlobalLua.L.L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.pushnumber(250);
+                string str;
+                l.CallGlobal(out str, "dump", LuaPack.Pack(l.OnStack(-1)));
+                PlatDependant.LogError(str);
+            }
+        }
+#endif
+    }
+    #endregion
+#endif
 }
