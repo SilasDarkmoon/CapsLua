@@ -604,10 +604,11 @@ namespace Capstones.LuaLib
             {
                 isUserData = true;
                 rv = trans.GetLua(l, index);
-                if (rv != null && rv.GetType().IsClass)
-                {
-                    LuaObjCacheSlim.Record(rv, l.topointer(pos), pos);
-                }
+                //// Notice the LuaObjCacheSlim.Record should happen when access #tar from a table
+                //if (rv != null && rv.GetType().IsClass)
+                //{
+                //    LuaObjCacheSlim.Record(rv, l.topointer(pos), pos);
+                //}
                 return rv;
             }
             return null;
