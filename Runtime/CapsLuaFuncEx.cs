@@ -1434,7 +1434,7 @@ namespace Capstones.LuaWrap
             this[index].Setter(ref thiz, val);
         }
     }
-    public struct LuaPack : ILuaPack
+    public partial struct LuaPack : ILuaPack
     { // the dummy. it mean the func have no return values / no parameters.
         public int ElementCount { get { return 0; } }
         public void GetFromLua(IntPtr l)
@@ -3094,6 +3094,235 @@ namespace Capstones.LuaWrap
     }
 }
 
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+namespace Capstones.LuaWrap
+{
+    public partial struct LuaPack
+    {
+        public static LuaPack<T0> Pack<T0>(T0 p0)
+        {
+            return new LuaPack<T0>(p0);
+        }
+        public static LuaPack<T0> Pack<T0>(ValueTuple<T0> t)
+        {
+            return t;
+        }
+        public static T0 Unpack<T0>(LuaPack<T0> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1> Pack<T0, T1>(T0 p0, T1 p1)
+        {
+            return new LuaPack<T0, T1>(p0, p1);
+        }
+        public static LuaPack<T0, T1> Pack<T0, T1>((T0, T1) t)
+        {
+            return t;
+        }
+        public static (T0, T1) Unpack<T0, T1>(LuaPack<T0, T1> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2> Pack<T0, T1, T2>(T0 p0, T1 p1, T2 p2)
+        {
+            return new LuaPack<T0, T1, T2>(p0, p1, p2);
+        }
+        public static LuaPack<T0, T1, T2> Pack<T0, T1, T2>((T0, T1, T2) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2) Unpack<T0, T1, T2>(LuaPack<T0, T1, T2> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3> Pack<T0, T1, T2, T3>(T0 p0, T1 p1, T2 p2, T3 p3)
+        {
+            return new LuaPack<T0, T1, T2, T3>(p0, p1, p2, p3);
+        }
+        public static LuaPack<T0, T1, T2, T3> Pack<T0, T1, T2, T3>((T0, T1, T2, T3) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3) Unpack<T0, T1, T2, T3>(LuaPack<T0, T1, T2, T3> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4> Pack<T0, T1, T2, T3, T4>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4>(p0, p1, p2, p3, p4);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4> Pack<T0, T1, T2, T3, T4>((T0, T1, T2, T3, T4) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4) Unpack<T0, T1, T2, T3, T4>(LuaPack<T0, T1, T2, T3, T4> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5> Pack<T0, T1, T2, T3, T4, T5>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5>(p0, p1, p2, p3, p4, p5);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5> Pack<T0, T1, T2, T3, T4, T5>((T0, T1, T2, T3, T4, T5) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5) Unpack<T0, T1, T2, T3, T4, T5>(LuaPack<T0, T1, T2, T3, T4, T5> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6> Pack<T0, T1, T2, T3, T4, T5, T6>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6>(p0, p1, p2, p3, p4, p5, p6);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6> Pack<T0, T1, T2, T3, T4, T5, T6>((T0, T1, T2, T3, T4, T5, T6) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6) Unpack<T0, T1, T2, T3, T4, T5, T6>(LuaPack<T0, T1, T2, T3, T4, T5, T6> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> Pack<T0, T1, T2, T3, T4, T5, T6, T7>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7>(p0, p1, p2, p3, p4, p5, p6, p7);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> Pack<T0, T1, T2, T3, T4, T5, T6, T7>((T0, T1, T2, T3, T4, T5, T6, T7) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7) Unpack<T0, T1, T2, T3, T4, T5, T6, T7>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8>(p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8>((T0, T1, T2, T3, T4, T5, T6, T7, T8) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11, T12 p12)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11, T12 p12, T13 p13)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11, T12 p12, T13 p13, T14 p14)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11, T12 p12, T13 p13, T14 p14, T15 p15)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> p)
+        {
+            return p;
+        }
+
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T0 p0, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, T7 p7, T8 p8, T9 p9, T10 p10, T11 p11, T12 p12, T13 p13, T14 p14, T15 p15, T16 p16)
+        {
+            return new LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16);
+        }
+        public static LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> Pack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) t)
+        {
+            return t;
+        }
+        public static (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) Unpack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> p)
+        {
+            return p;
+        }
+    }
+}
+#endif
+
 namespace Capstones.LuaWrap
 {
     public static partial class LuaFuncExHelper
@@ -3182,9 +3411,1132 @@ namespace Capstones.LuaWrap
         }
         public static void Require<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
         {
+            string result;
+            l.CallGlobal(out result, "safsdfgdsh", LuaPack.Pack(1, 2));
+
             LuaPack<T0> pack;
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void CallGlobal<TIn, T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void DoString<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string chunk)
+        {
+            LuaPack<T0, T1> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void DoFile<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string path)
+        {
+            LuaPack<T0, T1> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void GetTable<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, int index, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void GetTable<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void GetTableHierarchical<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void GetGlobalTable<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string name, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string name, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void Require<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, string name, params string[] fields)
+        {
+            LuaPack<T0, T1> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void DoString<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string chunk)
+        {
+            LuaPack<T0, T1, T2> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void DoFile<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string path)
+        {
+            LuaPack<T0, T1, T2> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void GetTable<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void GetTable<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void GetTableHierarchical<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void GetGlobalTable<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+        public static void Require<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void DoString<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void DoFile<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string path)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void GetTable<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void GetTable<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void Require<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void DoString<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+        public static void Require<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
+
+        public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void CallGlobal<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            CallGlobal(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void CallGlobalHierarchical<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string name, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            CallGlobalHierarchical(l, name, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void DoString<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string chunk)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            DoString(l, chunk, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void DoFile<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string path)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            DoFile(l, path, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            GetTable(l, index, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void GetTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            GetTable(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, string fieldname, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            GetTableHierarchical(l, index, fieldname, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void GetGlobalTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            GetGlobalTable(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void GetGlobalTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            GetGlobalTableHierarchical(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void Require<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, string name, params string[] fields)
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
         }
     }
 }

@@ -259,6 +259,299 @@ namespace Capstones.UnityEditorEx
                 sw.WriteLine("#endif");
                 sw.WriteLine("    }");
                 sw.WriteLine("}");
+
+                if (paramCnt > 0)
+                {
+                    sb.Clear();
+                    for (int i = 0; i < paramCnt; ++i)
+                    {
+                        sb.Append(", ");
+                        sb.Append("out T");
+                        sb.Append(i);
+                        sb.Append(" rv");
+                        sb.Append(i);
+                    }
+                    var outpars = sb.ToString();
+
+                    sb.Clear();
+                    for (int i = 0; i < paramCnt; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+                        sb.Append("out rv");
+                        sb.Append(i);
+                    }
+                    var outset = sb.ToString();
+
+                    sw.WriteLine("namespace Capstones.LuaWrap");
+                    sw.WriteLine("{");
+                    sw.WriteLine("    public static partial class LuaFuncExHelper");
+                    sw.WriteLine("    {");
+
+                    sw.Write("        public static void PushArgsAndCall<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            PushArgsAndCall(l, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void CallGlobal<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            CallGlobal(l, name, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void CallGlobalHierarchical<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            CallGlobalHierarchical(l, name, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void DoString<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string chunk)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            DoString(l, chunk, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void DoFile<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string path)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            DoFile(l, path, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTable(l, index, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTable(l, index, fieldname, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTableHierarchical(l, index, fieldname, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetGlobalTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTable(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetGlobalTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTableHierarchical(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void Require<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            Require(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.WriteLine("    }");
+                    sw.WriteLine("}");
+                }
+
+                if (paramCnt > 1)
+                {
+                    sw.WriteLine("#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0");
+                    sw.WriteLine("namespace Capstones.LuaWrap");
+                    sw.WriteLine("{");
+                    sw.WriteLine("    public partial struct LuaPack");
+                    sw.WriteLine("    {");
+                    sw.Write("        public static LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> Pack<");
+                    sw.Write(gargs);
+                    sw.Write(">(");
+                    sw.Write(pargs);
+                    sw.Write(")");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            return new LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write(">(");
+                    for (int i = 0; i < paramCnt; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            sw.Write(", ");
+                        }
+                        sw.Write("p");
+                        sw.Write(i);
+                    }
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+                    sw.Write("        public static LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> Pack<");
+                    sw.Write(gargs);
+                    sw.Write(">((");
+                    sw.Write(gargs);
+                    sw.Write(") t)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.WriteLine("            return t;");
+                    sw.WriteLine("        }");
+                    sw.Write("        public static (");
+                    sw.Write(gargs);
+                    sw.Write(") Unpack<");
+                    sw.Write(gargs);
+                    sw.Write(">(LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> p)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.WriteLine("            return p;");
+                    sw.WriteLine("        }");
+                    sw.WriteLine("    }");
+                    sw.WriteLine("}");
+                    sw.WriteLine("#endif");
+                }
             }
             //AssetDatabase.Refresh();
 
