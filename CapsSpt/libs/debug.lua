@@ -172,6 +172,15 @@ function vardump(object, label)
         return string.format("['%s']", tostring(k))
     end
 
+    local function clrobj2str(obj)
+        local metatable = getmetatable(obj)
+        if not metatable or not metatable.__tostring then
+            return clr.System.String.Format("{0}", obj)
+        else
+            return tostring(obj)
+        end
+    end
+
     function _vardump(object, label, indent, nest, isArr)
         if (label == nil) then label = "var" end
         local postfix = ""
@@ -198,7 +207,7 @@ function vardump(object, label)
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
                 else
-                    result[line] = string.format("%s'%s, %s'", reallabel, tostring(clr.type(object)), tostring(object))
+                    result[line] = string.format("%s'%s, %s'", reallabel, tostring(clr.type(object)), clrobj2str(object))
                 end
             else
                 if getmetatable(object) and getmetatable(object).__isobject then

@@ -330,7 +330,7 @@ namespace Capstones.UnityEditorEx
 
         static LuaHotFixWriter()
         {
-#if !DISABLE_LUA_HOTFIX
+#if !DISABLE_LUA_HOTFIX && (!UNITY_EDITOR || DEBUG_LUA_HOTFIX_IN_EDITOR)
             UnityEditor.Compilation.CompilationPipeline.assemblyCompilationFinished += (file, messages) =>
             {
                 LuaHotFixCodeInjector.AssembliesDirectory = System.IO.Path.GetDirectoryName(file);

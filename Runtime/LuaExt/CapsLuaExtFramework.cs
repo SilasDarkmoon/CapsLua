@@ -74,6 +74,28 @@ namespace Capstones.LuaExt
                     L.pushcfunction(LuaHub.LuaFuncOnError); // func
                     L.SetGlobal("printe"); // (empty)
                 }
+
+                for (int i = 0; i < FurtherInitFuncs.Count; ++i)
+                {
+                    var init = FurtherInitFuncs[i];
+                    if (init != null)
+                    {
+                        init(L);
+                    }
+                }
+            }
+        }
+
+        public delegate void InitDelegate(IntPtr l);
+        public static readonly List<InitDelegate> FurtherInitFuncs = new List<InitDelegate>();
+        public class FurtherInit
+        {
+            public FurtherInit(InitDelegate init)
+            {
+                if (init != null)
+                {
+                    FurtherInitFuncs.Add(init);
+                }
             }
         }
 

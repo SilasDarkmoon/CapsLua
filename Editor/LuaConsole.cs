@@ -34,7 +34,7 @@ namespace Capstones.UnityEditorEx
                 var l = GlobalLua.L.L;
                 using (var lr = l.CreateStackRecover())
                 {
-                    l.dostring(Command);
+                    l.DoString(Command);
                     var ntop = l.gettop();
                     if (ntop <= lr.Top)
                     {
@@ -44,6 +44,7 @@ namespace Capstones.UnityEditorEx
                     {
                         var cnt = ntop - lr.Top;
                         System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                        l.pushcfunction(LuaHub.LuaFuncOnError);
                         for (int i = 0; i < cnt; ++i)
                         {
                             if (i > 0)
@@ -62,9 +63,10 @@ namespace Capstones.UnityEditorEx
                             {
                                 l.pushnumber(i + 1);
                             }
-                            l.pcall(2, 1, 0);
+                            
+                            l.pcall(2, 1, ntop + 1);
                             l.PushString(Environment.NewLine);
-                            l.pcall(2, 1, 0);
+                            l.pcall(2, 1, ntop + 1);
                             string tabstr;
                             l.GetLua(-1, out tabstr);
                             sb.Append(tabstr);

@@ -85,6 +85,59 @@ namespace Capstones.LuaWrap
             result = default(TOut);
         }
 
+        public static int DoString(this IntPtr l, string chunk)
+        {
+            int result = l.loadstring(chunk);
+            if (result != 0)
+                return result;
+
+            return l.PushArgsAndCallRaw();
+        }
+        public static void DoString<TOut>(this IntPtr l, string chunk, out TOut result)
+            where TOut : struct, ILuaPack
+        {
+            int code = l.loadstring(chunk);
+            if (code != 0)
+            {
+                result = default(TOut);
+                return;
+            }
+            l.PushArgsAndCall<LuaPack, TOut>(default(LuaPack), out result);
+        }
+        public static TOut DoString<TOut>(this IntPtr l, string chunk)
+            where TOut : struct, ILuaPack
+        {
+            TOut result;
+            DoString(l, chunk, out result);
+            return result;
+        }
+        public static int DoFile(this IntPtr l, string path)
+        {
+            int result = l.loadfile(path);
+            if (result != 0)
+                return result;
+
+            return l.PushArgsAndCallRaw();
+        }
+        public static void DoFile<TOut>(this IntPtr l, string path, out TOut result)
+            where TOut : struct, ILuaPack
+        {
+            int code = l.loadfile(path);
+            if (code != 0)
+            {
+                result = default(TOut);
+                return;
+            }
+            l.PushArgsAndCall<LuaPack, TOut>(default(LuaPack), out result);
+        }
+        public static TOut DoFile<TOut>(this IntPtr l, string path)
+            where TOut : struct, ILuaPack
+        {
+            TOut result;
+            DoFile(l, path, out result);
+            return result;
+        }
+
         public static TOut GetTable<TOut>(this IntPtr l, int index, params string[] fields)
                where TOut : struct, ILuaPack
         {
