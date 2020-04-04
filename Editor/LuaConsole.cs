@@ -13,7 +13,7 @@ namespace Capstones.UnityEditorEx
 {
     public class LuaConsole : EditorWindow
     {
-        [MenuItem("Lua/Lua Console", priority = 300020)]
+        [MenuItem("Lua/Lua Console", priority = 300030)]
         static void Init()
         {
             GetWindow(typeof(LuaConsole)).titleContent = new GUIContent("Lua Console");
