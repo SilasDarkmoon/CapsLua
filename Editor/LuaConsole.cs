@@ -4,6 +4,7 @@ using UnityEditor;
 using Capstones.UnityEngineEx;
 using Capstones.LuaLib;
 using Capstones.LuaWrap;
+using Capstones.LuaExt;
 
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
