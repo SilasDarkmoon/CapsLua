@@ -5715,6 +5715,7 @@ namespace Capstones.UnityEditorEx
                 var ex = context.GetMethodEx(method);
                 if (ex.LastArgIsParam)
                 {
+                    sb.AppendLine("{");
                     var lastIndex = ex.ArgTypes.Count - 1;
                     if (parsedTypeIndex1.Add(lastIndex))
                     {
@@ -5734,6 +5735,7 @@ namespace Capstones.UnityEditorEx
                     sb.Append("goto Label_");
                     sb.Append(ex.Label + 1);
                     sb.AppendLine(";");
+                    sb.AppendLine("}");
                     sb.AppendLine("}");
                 }
             }
