@@ -331,6 +331,15 @@ namespace Capstones.LuaLib
                     }
                     if (!a2b && !b2a)
                     {
+                        // TODO: 1、(string) (params string[]) - this can do with comparing HasElementType.
+                        // notice: this is for TODO1, but maybe we should move this to GroupMethodMeta? and we should check (string[]) and (params string[][])
+                        var hasea = tya.HasElementType;
+                        var haseb = tyb.HasElementType;
+                        if (hasea != haseb)
+                        {
+                            return hasea ? 1 : -1;
+                        }
+                        // TODO: 2、(short) (double) call with float - this is hard to judge, maybe we should check implicit operator?
                         return tya.GetHashCode() - tyb.GetHashCode();
                     }
                     else // (a2b && b2a)
@@ -1038,6 +1047,8 @@ namespace Capstones.LuaLib
                 if (curtype == null || !mtype.IsAssignableFrom(curtype))
                 { // this is numeric and the type do not match.
                     rv += 1 << i;
+                    // TODO: if (rv < 0) - already overflow, should return. - we should also check other metas, they have same problem.
+                    // TODO: make a common function CanCall
                 }
             }
             for (int i = _ParamTypes.Count; i < ptcnt; ++i)
