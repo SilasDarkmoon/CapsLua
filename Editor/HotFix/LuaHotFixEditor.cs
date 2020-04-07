@@ -621,17 +621,39 @@ namespace Capstones.UnityEditorEx
             return list;
         }
 
+        private class LuaHotFixBuildProcessor : UnityEditor.Build.IPreprocessBuildWithReport
+        {
+            public int callbackOrder { get { return 0; } }
+            public void OnPreprocessBuild(UnityEditor.Build.Reporting.BuildReport report)
+            {
+                IsBuildingPlayer = true;
+            }
+        }
+        private static bool IsBuildingPlayer = false;
         static LuaHotFixWriter()
         {
-#if !DISABLE_LUA_HOTFIX && (!UNITY_EDITOR || DEBUG_LUA_HOTFIX_IN_EDITOR)
+#if !DISABLE_LUA_HOTFIX
             UnityEditor.Compilation.CompilationPipeline.assemblyCompilationFinished += (file, messages) =>
             {
+                if (!IsBuildingPlayer)
+                {
+#if UNITY_EDITOR && !DEBUG_LUA_HOTFIX_IN_EDITOR
+                    return;
+#endif
+                }
                 LuaHotFixCodeInjector.AssembliesDirectory = System.IO.Path.GetDirectoryName(file);
                 LuaHotFixCodeInjector.TryLoadAssembly(file);
             };
 
             UnityEditor.Compilation.CompilationPipeline.compilationFinished += state =>
             {
+                if (!IsBuildingPlayer)
+                {
+#if UNITY_EDITOR && !DEBUG_LUA_HOTFIX_IN_EDITOR
+                    return;
+#endif
+                }
+                IsBuildingPlayer = false;
                 LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
                 LuaHotFixCodeInjector.UnloadAssemblies();
             };
