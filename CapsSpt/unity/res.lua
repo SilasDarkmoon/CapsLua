@@ -188,9 +188,9 @@ end
 
 function res.GetCurrentEventSystem()
     local eventSystemComp = EventSystem.current
-    if res.IsClrNull(eventSystemComp) then
+    if eventSystemComp == nil or eventSystemComp == clr.null then
         local esObj = GameObject.Find("UICameraAndEventSystem(Clone)/EventSystem")
-        if not res.IsClrNull(esObj) then
+        if esObj ~= nil and esObj ~= clr.null) then
             eventSystemComp = esObj:GetComponent(EventSystem)
         end
     end
