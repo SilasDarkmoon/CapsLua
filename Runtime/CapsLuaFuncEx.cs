@@ -1449,6 +1449,8 @@ namespace Capstones.LuaWrap
             set { throw new IndexOutOfRangeException(); }
         }
         public void Deconstruct() { }
+        public static LuaPack Default { get { return new LuaPack(); } }
+        public static LuaPack Pack() { return Default; }
     }
     public struct LuaPack<T0> : ILuaPack
     {
