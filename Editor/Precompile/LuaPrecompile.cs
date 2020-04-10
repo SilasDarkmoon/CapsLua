@@ -4818,6 +4818,104 @@ namespace Capstones.UnityEditorEx
                 }
             }
         }
+        internal static void WriteMethodBody_10_ByArgCnt_Single(this WriteMethodBodyContext context, ref bool shouldelse, int cnt, MethodBase method)
+        {
+            var sb = context.sb;
+            if (shouldelse)
+            {
+                sb.Append("else ");
+            }
+            else
+            {
+                shouldelse = true;
+                context.Write_gettop();
+            }
+            sb.Append("if (oldtop == ");
+            sb.Append(cnt);
+            sb.Append(")");
+            sb.AppendLine(); // if (oldtop == 8)
+
+            sb.AppendLine("{"); // {
+            sb.Append("goto Label_");
+            var pexinfo = context.GetMethodEx(method);
+            var label = pexinfo.Label;
+            if (pexinfo.LastArgIsParam)
+            {
+                if (pexinfo.ArgTypes.Count != cnt)
+                {
+                    label += 2;
+                }
+            }
+            sb.Append(label);
+            sb.AppendLine(";"); // goto Label_82;
+            sb.AppendLine("}"); // }
+        }
+        internal static void WriteMethodBody_10_ByArgCnt_Range(this WriteMethodBodyContext context, ref bool shouldelse, int from, int to, MethodBase method)
+        {
+            if (from == to)
+            {
+                WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, from, method);
+                return;
+            }
+
+            var sb = context.sb;
+            if (shouldelse)
+            {
+                sb.Append("else ");
+            }
+            else
+            {
+                shouldelse = true;
+                context.Write_gettop();
+            }
+            var pexinfo = context.GetMethodEx(method);
+            var label = pexinfo.Label;
+            if (pexinfo.ArgTypes.Count >= from && pexinfo.ArgTypes.Count <= to)
+            {
+                sb.Append("if (oldtop == ");
+                sb.Append(pexinfo.ArgTypes.Count);
+                sb.Append(")");
+                sb.AppendLine();
+                sb.AppendLine("{");
+                sb.Append("goto Label_");
+                sb.Append(label);
+                sb.AppendLine(";");
+                sb.AppendLine("}");
+                sb.Append("else ");
+                if (to - from == 1)
+                {
+                    sb.Append("if (oldtop == ");
+                    sb.Append(from == pexinfo.ArgTypes.Count ? to : from);
+                    sb.Append(")");
+                    sb.AppendLine();
+                    sb.AppendLine("{");
+                    sb.Append("goto Label_");
+                    sb.Append(label + 2);
+                    sb.AppendLine(";");
+                    sb.AppendLine("}");
+                    return;
+                }
+            }
+
+            sb.Append("if (oldtop >= ");
+            sb.Append(from);
+            if (to >= 0 && to < int.MaxValue)
+            {
+                sb.Append(" && oldtop <= ");
+                sb.Append(to);
+            }
+            sb.Append(")");
+            sb.AppendLine();
+            sb.AppendLine("{");
+            sb.Append("goto Label_");
+            if (pexinfo.LastArgIsParam)
+            {
+                label += 2;
+            }
+            sb.Append(label);
+            sb.AppendLine(";");
+            sb.AppendLine("}");
+        }
         internal static void WriteMethodBody_10_ByArgCnt(this WriteMethodBodyContext context)
         {
             var sb = context.sb;
@@ -4860,20 +4958,49 @@ namespace Capstones.UnityEditorEx
             var fixedmax = byfixed.Keys.Max();
             for (int i = 0; i <= fixedmax; ++i)
             {
-                bool isUniqueParams = false;
-                MethodBase pendingNext = null;
                 if (byfixed.ContainsKey(i))
                 {
-                    var list = byfixed[i];
-                    if (list.Count == 1)
+                    if (paramsStartedPos >= 0)
                     {
-                        var pcnt = (from kvp in unfixed
-                                    where kvp.Key <= i
-                                    select kvp.Value.Count).Sum();
-                        if (pcnt == 0)
+                        WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
+                    }
+                    paramsStartedPos = -1;
+                    pending = null;
+
+                    var list = byfixed[i];
+                    var fixedlist = from method in list
+                                    where !context.GetMethodEx(method).LastArgIsParam
+                                    select method;
+                    if (fixedlist.Count() == 1)
+                    {
+                        pending = fixedlist.First();
+                        if (list.All(checking =>
                         {
-                            isUniqueParams = true;
-                            pendingNext = list[0];
+                            if (checking != pending)
+                            {
+                                var checkingInfo = context.GetMethodEx(checking);
+                                var pendingInfo = context.GetMethodEx(pending);
+                                for (int j = 0; j <= i; ++j)
+                                {
+                                    if (checkingInfo.ArgTypes[j] != pendingInfo.ArgTypes[j])
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                            return true;
+                        }))
+                        {
+                            WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
+                        }
+                        pending = null;
+                    }
+                    else
+                    {
+                        if (list.Count == 1)
+                        {
+                            paramsStartedPos = i;
+                            pending = list[0];
                         }
                     }
                 }
@@ -4887,118 +5014,28 @@ namespace Capstones.UnityEditorEx
                         if (paramsStartedPos < 0)
                         {
                             paramsStartedPos = i;
-
                             pending = (from kvp in unfixed
                                        where kvp.Key <= i
                                        select kvp.Value).First().First();
                         }
-                        continue;
-                    }
-                }
-
-                if (paramsStartedPos >= 0)
-                {
-                    if (i == paramsStartedPos + 1)
-                    {
-                        if (shouldelse)
-                        {
-                            sb.Append("else ");
-                        }
-                        else
-                        {
-                            shouldelse = true;
-                            context.Write_gettop();
-                        }
-                        sb.Append("if (oldtop == ");
-                        sb.Append(paramsStartedPos);
-                        sb.Append(")");
-                        sb.AppendLine();
-                        sb.AppendLine("{");
-                        sb.Append("goto Label_");
-                        sb.Append(context.GetMethodEx(pending).Label);
-                        sb.AppendLine(";");
-                        if (!paramspos.ContainsKey(pending) || paramspos[pending] == paramsStartedPos + 1)
-                        {
-                            context.DoneMethods.Add(pending);
-                        }
-                        sb.AppendLine("}");
                     }
                     else
                     {
-                        if (shouldelse)
+                        if (paramsStartedPos >= 0)
                         {
-                            sb.Append("else ");
+                            WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
                         }
-                        else
-                        {
-                            shouldelse = true;
-                            context.Write_gettop();
-                        }
-                        sb.Append("if (oldtop >= ");
-                        sb.Append(paramsStartedPos);
-                        sb.Append(" && oldtop < ");
-                        sb.Append(i);
-                        sb.Append(")");
-                        sb.AppendLine();
-                        sb.AppendLine("{");
-                        sb.Append("goto Label_");
-                        var pexinfo = context.GetMethodEx(pending);
-                        var label = pexinfo.Label;
-                        if (pexinfo.LastArgIsParam)
-                        {
-                            label += 2;
-                        }
-                        sb.Append(label);
-                        sb.AppendLine(";");
-                        if (!paramspos.ContainsKey(pending) || paramspos[pending] == paramsStartedPos + 1)
-                        {
-                            context.DoneMethods.Add(pending);
-                        }
-                        sb.AppendLine("}");
+                        paramsStartedPos = -1;
+                        pending = null;
                     }
-                }
-                if (isUniqueParams)
-                {
-                    paramsStartedPos = i;
-                    pending = pendingNext;
-                }
-                else
-                {
-                    paramsStartedPos = -1;
-                    pending = null;
                 }
             }
 
             if (paramsStartedPos >= 0)
             {
-                if (shouldelse)
-                {
-                    sb.Append("else ");
-                }
-                else
-                {
-                    shouldelse = true;
-                    context.Write_gettop();
-                }
-                sb.Append("if (oldtop >= ");
-                sb.Append(paramsStartedPos);
-                sb.Append(")");
-                sb.AppendLine();
-                sb.AppendLine("{");
-                sb.Append("goto Label_");
-                var pexinfo = context.GetMethodEx(pending);
-                var label = pexinfo.Label;
-                if (pexinfo.LastArgIsParam)
-                {
-                    label += 2;
-                }
-                sb.Append(label);
-                sb.AppendLine(";");
-                if (!paramspos.ContainsKey(pending) || paramspos[pending] == paramsStartedPos + 1)
-                {
-                    context.DoneMethods.Add(pending);
-                }
-                sb.AppendLine("}");
+                WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, int.MaxValue, pending);
+                paramsStartedPos = -1;
+                pending = null;
             }
             else
             {
@@ -5010,35 +5047,8 @@ namespace Capstones.UnityEditorEx
                     pending = (from kvp in unfixed
                                where kvp.Key <= fixedmax + 1
                                select kvp.Value).First().First();
-
-                    if (shouldelse)
-                    {
-                        sb.Append("else ");
-                    }
-                    else
-                    {
-                        shouldelse = true;
-                        context.Write_gettop();
-                    }
-                    sb.Append("if (oldtop > ");
-                    sb.Append(fixedmax);
-                    sb.Append(")");
-                    sb.AppendLine();
-                    sb.AppendLine("{");
-                    sb.Append("goto Label_");
-                    var pexinfo = context.GetMethodEx(pending);
-                    var label = pexinfo.Label;
-                    if (pexinfo.LastArgIsParam)
-                    {
-                        label += 2;
-                    }
-                    sb.Append(label);
-                    sb.AppendLine(";");
-                    if (!paramspos.ContainsKey(pending) || paramspos[pending] == paramsStartedPos + 1)
-                    {
-                        context.DoneMethods.Add(pending);
-                    }
-                    sb.AppendLine("}");
+                    WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, fixedmax + 1, int.MaxValue, pending);
+                    pending = null;
                 }
             }
 
@@ -5066,7 +5076,7 @@ namespace Capstones.UnityEditorEx
             }
         }
         internal static void WriteMethodBody_15_ByArgCntAndParamType(this WriteMethodBodyContext context)
-        {
+        { // TODO: this is usually unused. may have bugs here. Remove this step or debug carefully.
             var sb = context.sb;
             var methods = context.GetUndoneMethods();
             SortedDictionary<int, IList<MethodBase>> byfixed = new SortedDictionary<int, IList<MethodBase>>();
