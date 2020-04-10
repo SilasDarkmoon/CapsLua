@@ -5449,15 +5449,25 @@ namespace Capstones.UnityEditorEx
                         }
                         else
                         {
-                            sb.Append("if (___ot");
-                            sb.Append(minindex);
-                            sb.Append(" == typeof(");
-                            sb.WriteType(mintype);
-                            sb.Append(") || typeof(");
-                            sb.WriteType(mintype);
-                            sb.Append(").IsAssignableFrom(___ot");
-                            sb.Append(minindex);
-                            sb.AppendLine("))");
+                            if (mintype == typeof(object))
+                            {
+                                sb.Append("if (___ot");
+                                sb.Append(minindex);
+                                sb.Append(" != null)");
+                                sb.AppendLine();
+                            }
+                            else
+                            {
+                                sb.Append("if (___ot");
+                                sb.Append(minindex);
+                                sb.Append(" == typeof(");
+                                sb.WriteType(mintype);
+                                sb.Append(") || typeof(");
+                                sb.WriteType(mintype);
+                                sb.Append(").IsAssignableFrom(___ot");
+                                sb.Append(minindex);
+                                sb.AppendLine("))");
+                            }
                         }
                         sb.AppendLine("{");
                         sb.Append("goto Label_");
@@ -5486,9 +5496,9 @@ namespace Capstones.UnityEditorEx
                     {
                         if (mincnt == submethods.Count && !firsrRun)
                         {
-                        // write this group
-                        //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
-                        var partmethodsSorted = partmethods.ToArray();
+                            // write this group
+                            //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
+                            var partmethodsSorted = partmethods.ToArray();
                             Array.Sort(partmethodsSorted, (m1, m2) =>
                             {
                                 var ex1 = context.GetMethodEx(m1);
@@ -5637,15 +5647,25 @@ namespace Capstones.UnityEditorEx
                             else
                             {
                                 iftypes.Add(mintype);
-                                sb.Append("if (___ot");
-                                sb.Append(minindex);
-                                sb.Append(" == typeof(");
-                                sb.WriteType(mintype);
-                                sb.Append(") || typeof(");
-                                sb.WriteType(mintype);
-                                sb.Append(").IsAssignableFrom(___ot");
-                                sb.Append(minindex);
-                                sb.AppendLine("))");
+                                if (mintype == typeof(object))
+                                {
+                                    sb.Append("if (___ot");
+                                    sb.Append(minindex);
+                                    sb.Append(" != null)");
+                                    sb.AppendLine();
+                                }
+                                else
+                                {
+                                    sb.Append("if (___ot");
+                                    sb.Append(minindex);
+                                    sb.Append(" == typeof(");
+                                    sb.WriteType(mintype);
+                                    sb.Append(") || typeof(");
+                                    sb.WriteType(mintype);
+                                    sb.Append(").IsAssignableFrom(___ot");
+                                    sb.Append(minindex);
+                                    sb.AppendLine("))");
+                                }
                             }
                             submethods.ExceptWith(partmethods);
                             sb.AppendLine("{");
@@ -5694,15 +5714,25 @@ namespace Capstones.UnityEditorEx
                                     }
                                     else
                                     {
-                                        sb.Append("if (___ot");
-                                        sb.Append(minindex);
-                                        sb.Append(" == typeof(");
-                                        sb.WriteType(type);
-                                        sb.Append(") || typeof(");
-                                        sb.WriteType(type);
-                                        sb.Append(").IsAssignableFrom(___ot");
-                                        sb.Append(minindex);
-                                        sb.AppendLine("))");
+                                        if (mintype == typeof(object))
+                                        {
+                                            sb.Append("if (___ot");
+                                            sb.Append(minindex);
+                                            sb.Append(" != null)");
+                                            sb.AppendLine();
+                                        }
+                                        else
+                                        {
+                                            sb.Append("if (___ot");
+                                            sb.Append(minindex);
+                                            sb.Append(" == typeof(");
+                                            sb.WriteType(type);
+                                            sb.Append(") || typeof(");
+                                            sb.WriteType(type);
+                                            sb.Append(").IsAssignableFrom(___ot");
+                                            sb.Append(minindex);
+                                            sb.AppendLine("))");
+                                        }
                                     }
                                     sb.AppendLine("{");
                                     WorkStep(new HashSet<MethodBase>(partMap[type]), new HashSet<int>(parsedTypeIndex));
