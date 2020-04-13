@@ -4070,6 +4070,46 @@ namespace Capstones.UnityEditorEx
             "op_Explicit",
             "op_Implicit",
         };
+        internal class MethodOverload
+        {
+            public MethodBase Method;
+            public int LabelOffset;
+            public Types ArgTypes;
+
+            public static implicit operator MethodBase(MethodOverload overload)
+            {
+                return overload != null ? overload.Method : null;
+            }
+
+            public override string ToString()
+            {
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < ArgTypes.Count; ++i)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append(ArgTypes[i].Name);
+                }
+                return sb.ToString();
+            }
+        }
+        internal static bool IsExplicitCall(Types thisArgs, Types checkingArgs)
+        {
+            if (thisArgs.Count < checkingArgs.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < checkingArgs.Count; ++i)
+            {
+                if (!checkingArgs[i].IsAssignableFrom(thisArgs[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
         internal class WriteMethodBodyContext
         {
             internal struct MethodBaseWithExtraInfo
@@ -4106,6 +4146,30 @@ namespace Capstones.UnityEditorEx
             private IList<MethodBase> _Methods;
             private HashSet<MethodBase> _DoneMethods = new HashSet<MethodBase>();
             private Dictionary<MethodBase, MethodBaseWithExtraInfo> _MethodEx = new Dictionary<MethodBase, MethodBaseWithExtraInfo>();
+            private IList<MethodOverload> _Overloads;
+            private List<Dictionary<Type, HashSet<MethodOverload>>> _ByObjType;
+            public IList<MethodOverload> Overloads
+            {
+                get
+                {
+                    if (_Overloads == null)
+                    {
+                        GenerateByObjType();
+                    }
+                    return _Overloads;
+                }
+            }
+            public List<Dictionary<Type, HashSet<MethodOverload>>> ByObjType
+            {
+                get
+                {
+                    if (_ByObjType == null)
+                    {
+                        GenerateByObjType();
+                    }
+                    return _ByObjType;
+                }
+            }
 
             public System.Text.StringBuilder sb { get { return _sb; } }
             public bool Write_gettop()
@@ -4215,6 +4279,124 @@ namespace Capstones.UnityEditorEx
                 MethodBaseWithExtraInfo info;
                 _MethodEx.TryGetValue(method, out info);
                 return info;
+            }
+            private List<MethodOverload> GetOverloads()
+            {
+                int maxargsCnt = (from method in _Methods
+                                  let pars = method.GetParameters()
+                                  select pars == null ? 0 : pars.Length).Max() + 1;
+                List<MethodOverload> overloads = new List<MethodOverload>();
+                _Overloads = overloads;
+                for (int i = 0; i < _Methods.Count; ++i)
+                {
+                    var method = _Methods[i];
+                    //if (_DoneMethods.Contains(method))
+                    //{
+                    //    continue;
+                    //}
+
+                    var ex = GetMethodEx(method);
+                    overloads.Add(new MethodOverload()
+                    {
+                        Method = method,
+                        ArgTypes = ex.ArgTypes,
+                        LabelOffset = ex.LastArgIsParam ? 1 : 0,
+                    });
+                    if (ex.LastArgIsParam)
+                    {
+                        Types overloadArgs = ex.ArgTypes.Clone();
+                        overloadArgs.RemoveAt(overloadArgs.Count - 1);
+                        overloads.Add(new MethodOverload()
+                        {
+                            Method = method,
+                            ArgTypes = overloadArgs.Clone(),
+                            LabelOffset = 2,
+                        });
+                        var eletype = ex.ArgTypes[overloadArgs.Count].GetElementType();
+                        for (int j = overloadArgs.Count + 1; j <= maxargsCnt; ++j)
+                        {
+                            overloadArgs.Add(eletype);
+                            overloads.Add(new MethodOverload()
+                            {
+                                Method = method,
+                                ArgTypes = overloadArgs.Clone(),
+                                LabelOffset = 2,
+                            });
+                        }
+                    }
+                }
+                return overloads;
+            }
+            private void AddByObjType(int index, Type type, MethodOverload method)
+            {
+                var map = _ByObjType[index];
+                HashSet<MethodOverload> list;
+                if (!map.TryGetValue(type, out list))
+                {
+                    list = new HashSet<MethodOverload>();
+                    map[type] = list;
+                }
+                list.Add(method);
+                foreach (var kvp in map)
+                {
+                    var ot = kvp.Key;
+                    if (ot == type)
+                        continue;
+
+                    if (nativeTypeMap.ContainsKey(ot) && nativeTypeMap.ContainsKey(type) && nativeTypeMap[ot] == nativeTypeMap[type])
+                    {
+                        kvp.Value.UnionWith(list);
+                        list.UnionWith(kvp.Value);
+                    }
+                    else
+                    {
+                        // comp                 behav
+                        if (ot.IsAssignableFrom(type))
+                        {
+                            foreach (var overload in kvp.Value)
+                            {
+                                if (!list.Any(exising => IsExplicitCall(exising.ArgTypes, overload.ArgTypes)))
+                                {
+                                    list.Add(overload);
+                                }
+                            }
+                            //list.UnionWith(kvp.Value);
+                        }
+                        if (type.IsAssignableFrom(ot))
+                        {
+                            foreach (var overload in list)
+                            {
+                                if (!kvp.Value.Any(exising => IsExplicitCall(exising.ArgTypes, overload.ArgTypes)))
+                                {
+                                    kvp.Value.Add(overload);
+                                }
+                            }
+                            //kvp.Value.UnionWith(list);
+                        }
+                    }
+                }
+            }
+            private void GenerateByObjType()
+            {
+                var methods = GetOverloads();
+                _ByObjType = new List<Dictionary<Type, HashSet<MethodOverload>>>();
+                int maxargsCnt = (from method in _Methods
+                                  let pars = method.GetParameters()
+                                  select pars == null ? 0 : pars.Length).Max() + 1;
+                for (int i = 0; i < maxargsCnt; ++i)
+                {
+                    var map = new Dictionary<Type, HashSet<MethodOverload>>();
+                    _ByObjType.Add(map);
+
+                    foreach (var method in methods)
+                    {
+                        if (i < method.ArgTypes.Count)
+                        {
+                            var pt = method.ArgTypes[i];
+                            AddByObjType(i, pt, method);
+                        }
+                    }
+                }
             }
         }
         internal enum WriteMethodBodyParamsTreatment
@@ -4849,6 +5031,13 @@ namespace Capstones.UnityEditorEx
             sb.Append(label);
             sb.AppendLine(";"); // goto Label_82;
             sb.AppendLine("}"); // }
+            if (pexinfo.ArgTypes.Count >= cnt)
+            {
+                if (pexinfo.ArgTypes[cnt - 1].IsValueType)
+                {
+                    context.DoneMethods.Add(method);
+                }
+            }
         }
         internal static void WriteMethodBody_10_ByArgCnt_Range(this WriteMethodBodyContext context, ref bool shouldelse, int from, int to, MethodBase method)
         {
@@ -4991,7 +5180,38 @@ namespace Capstones.UnityEditorEx
                             return true;
                         }))
                         {
-                            WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
+                            var unfixedcheching = (from kvp in unfixed
+                                                   where kvp.Key <= i
+                                                   from method in kvp.Value
+                                                   select method).ToArray();
+                            if (unfixedcheching.Length == 0 || unfixedcheching.All(checking =>
+                            {
+                                if (checking != pending)
+                                {
+                                    var checkingInfo = context.GetMethodEx(checking);
+                                    var pendingInfo = context.GetMethodEx(pending);
+                                    for (int j = 0; j <= i; ++j)
+                                    {
+                                        Type checkingType;
+                                        if (j >= checkingInfo.ArgTypes.Count - 1)
+                                        {
+                                            checkingType = checkingInfo.ArgTypes[checkingInfo.ArgTypes.Count - 1].GetElementType();
+                                        }
+                                        else
+                                        {
+                                            checkingType = checkingInfo.ArgTypes[j];
+                                        }
+                                        if (checkingType != pendingInfo.ArgTypes[j])
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                }
+                                return true;
+                            }))
+                            {
+                                WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
+                            }
                         }
                         pending = null;
                     }
@@ -5069,7 +5289,8 @@ namespace Capstones.UnityEditorEx
                     }
                     else
                     {
-                        WriteMethodBody_15_ByArgCntAndParamType(context);
+                        //WriteMethodBody_15_ByArgCntAndParamType(context);
+                        WriteMethodBody_30_ByObjType(context); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
                     }
                     sb.AppendLine("}");
                 }
@@ -5295,490 +5516,454 @@ namespace Capstones.UnityEditorEx
             WriteMethodBody_30_ByObjType(context);
             sb.AppendLine("}");
         }
-        internal static void WriteMethodBody_30_ByObjType(this WriteMethodBodyContext context)
+        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<Type>> processed, int index, Type type)
+        {
+            if (index >= processed.Count)
+            {
+                return true;
+            }
+            return processed[index].Contains(type);
+        }
+        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<Type>> processed, int index)
+        {
+            if (index >= processed.Count)
+            {
+                return true;
+            }
+            return processed[index].Count > 0;
+        }
+        internal static void WriteMethodBody_30_ByObjType_MarkProcessed(List<HashSet<Type>> processed, int index, Type type)
+        {
+            if (index < processed.Count)
+            {
+                processed[index].Add(type);
+            }
+        }
+        internal static List<HashSet<Type>> WriteMethodBody_30_ByObjType_CopyProcessed(List<HashSet<Type>> processed)
+        {
+            var newp = new List<HashSet<Type>>();
+            for (int i = 0; i < processed.Count; ++i)
+            {
+                newp.Add(new HashSet<Type>(processed[i]));
+            }
+            return newp;
+        }
+        internal static void WriteMethodBody_30_ByObjType_WriteIndexAndType(this WriteMethodBodyContext context, List<HashSet<Type>> processed, int index, Type type)
         {
             var sb = context.sb;
-            var methods = context.GetUndoneMethods();
-            methods.Sort((m1, m2) =>
+
+            if (!WriteMethodBody_30_ByObjType_HasProcessed(processed, index))
             {
-                var ex1 = context.GetMethodEx(m1);
-                var ex2 = context.GetMethodEx(m2);
-                if (ex1.LastArgIsParam == ex2.LastArgIsParam)
-                {
-                    return 0;
-                }
-                if (ex1.LastArgIsParam)
-                {
-                    return 1;
-                }
-                return -1;
-            });
-            List<Dictionary<Type, HashSet<MethodBase>>> ByObjType = new List<Dictionary<Type, HashSet<MethodBase>>>();
-            int maxargsCnt = methods.Max(method => (method.GetParameters() ?? new ParameterInfo[0]).Length + 1);
-            for (int i = 0; i < maxargsCnt; ++i)
+                sb.Append("var ___ot");
+                sb.Append(index);
+                sb.Append(" = l.GetType(");
+                sb.Append(index + 1);
+                sb.AppendLine(");");
+            }
+            if (type.IsValueType || type.IsEnum || type.IsSealed)
             {
-                var map = new Dictionary<Type, HashSet<MethodBase>>();
-                ByObjType.Add(map);
-
-                foreach (var method in methods)
+                sb.Append("if (___ot");
+                sb.Append(index);
+                sb.Append(" == typeof(");
+                if (nativeTypeMap.ContainsKey(type))
                 {
-                    var ex = context.GetMethodEx(method);
-                    if (ex.ArgTypes.Count <= i)
+                    var ltype = nativeRevMap[nativeTypeMap[type]];
+                    if (ltype != type)
+                    {
+                        sb.WriteType(ltype);
+                        sb.Append(") || ___ot");
+                        sb.Append(index);
+                        sb.Append(" == typeof(");
+                    }
+                }
+                sb.WriteType(type);
+                sb.AppendLine("))");
+            }
+            else
+            {
+                if (type == typeof(object))
+                {
+                    sb.Append("if (___ot");
+                    sb.Append(index);
+                    sb.Append(" != null)");
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.Append("if (___ot");
+                    sb.Append(index);
+                    sb.Append(" == typeof(");
+                    sb.WriteType(type);
+                    sb.Append(") || typeof(");
+                    sb.WriteType(type);
+                    sb.Append(").IsAssignableFrom(___ot");
+                    sb.Append(index);
+                    sb.AppendLine("))");
+                }
+            }
+        }
+        //internal static void WriteMethodBody_30_ByObjType_WriteIndexAndType(this WriteMethodBodyContext context, List<HashSet<Type>> processed, int index, Type type, IEnumerable<Type> convertTypes)
+        //{
+        //    var sb = context.sb;
+
+        //    if (!WriteMethodBody_30_ByObjType_HasProcessed(processed, index))
+        //    {
+        //        sb.Append("var ___ot");
+        //        sb.Append(index);
+        //        sb.Append(" = l.GetType(");
+        //        sb.Append(index + 1);
+        //        sb.AppendLine(");");
+        //    }
+        //    Type nativeType;
+        //    if (type.IsValueType || type.IsEnum || type.IsSealed)
+        //    {
+        //        sb.Append("if (___ot");
+        //        sb.Append(index);
+        //        sb.Append(" == typeof(");
+        //        if (nativeTypeMap.ContainsKey(type))
+        //        {
+        //            var ltype = nativeRevMap[nativeTypeMap[type]];
+        //            sb.WriteType(ltype);
+        //            nativeType = ltype;
+        //        }
+        //        else
+        //        {
+        //            sb.WriteType(type);
+        //            nativeType = type;
+        //        }
+        //        sb.Append(")");
+        //        var ctypes = from ctype in convertTypes
+        //                     where ctype != nativeType
+        //                     select ctype;
+        //        if (ctypes.Count() == 1)
+        //        {
+        //            var singleType = ctypes.First();
+        //            sb.Append(" || ___ot");
+        //            sb.Append(index);
+        //            sb.Append(" == typeof(");
+        //            sb.WriteType(singleType);
+        //            sb.Append(")");
+        //        }
+        //        sb.AppendLine(")");
+        //    }
+        //    else
+        //    {
+        //        if (type == typeof(object))
+        //        {
+        //            sb.Append("if (___ot");
+        //            sb.Append(index);
+        //            sb.Append(" != null)");
+        //            sb.AppendLine();
+        //        }
+        //        else
+        //        {
+        //            sb.Append("if (___ot");
+        //            sb.Append(index);
+        //            sb.Append(" == typeof(");
+        //            sb.WriteType(type);
+        //            sb.Append(") || typeof(");
+        //            sb.WriteType(type);
+        //            sb.Append(").IsAssignableFrom(___ot");
+        //            sb.Append(index);
+        //            sb.AppendLine("))");
+        //        }
+        //    }
+        //}
+        internal static int WriteMethodBody_30_ByObjType_CompareArgs(MethodOverload m1, MethodOverload m2)
+        {
+            Types t1 = m1.ArgTypes;
+            Types t2 = m2.ArgTypes;
+            var rv = Types.Compare(t1, t2);
+            if (rv != 0)
+            {
+                return rv;
+            }
+
+            var o1 = m1.LabelOffset;
+            var o2 = m2.LabelOffset;
+            return o2 - o1;
+        }
+        internal static int WriteMethodBody_30_ByObjType_CompareType(Type t1, Type t2)
+        {
+            return Types.Compare(new Types() { t1 }, new Types() { t2 });
+        }
+        internal static void WriteMethodBody_30_ByObjType_WorkStep(this WriteMethodBodyContext context, HashSet<MethodOverload> submethods, List<HashSet<Type>> processed)
+        {
+            var sb = context.sb;
+            if (submethods.Count <= 0)
+                return;
+            else if (submethods.Count == 1)
+            {
+                var rest = submethods.First();
+                sb.Append("goto Label_");
+                sb.Append(context.GetMethodEx(rest).Label + rest.LabelOffset);
+                sb.AppendLine(";");
+                return;
+            }
+
+            var subprocessed = WriteMethodBody_30_ByObjType_CopyProcessed(processed);
+            var ByObjType = context.ByObjType;
+            int ByObjTypeCnt = (from overload in submethods
+                                let overloadex = context.GetMethodEx(overload)
+                                select overloadex.ArgTypes.Count).Max() + 1;
+
+            int minindex = -1;
+            int mincnt = int.MaxValue;
+            //int maxtype = int.MaxValue;
+            Type mintype = null;
+            MethodOverload[] partmethods = null;
+            //HashSet<Type> minSelectableTypes = null;
+
+            int min_max_group_ele_cnt = int.MaxValue;
+            for (int i = 0; i < ByObjTypeCnt; ++i)
+            {
+                var map = ByObjType[i];
+                var rest = new HashSet<MethodOverload>(submethods);
+                foreach (var kvp in map)
+                {
+                    rest.ExceptWith(kvp.Value);
+                }
+                var groups = from kvp in map
+                             where !WriteMethodBody_30_ByObjType_HasProcessed(processed, i, kvp.Key)
+                             let subgroup = from overload in kvp.Value
+                                            where submethods.Contains(overload)
+                                            select overload
+                             where subgroup.Any(overload => overload.ArgTypes[i] == kvp.Key)
+                             let cnt = subgroup.Count()
+                             where cnt > 0
+                             select new { Type = kvp.Key, Group = subgroup };
+                if (groups.Count() <= 0)
+                {
+                    continue;
+                }
+
+                //var selectableTypes = new HashSet<Type>(from subgroup in groups
+                //                                        where !groups.Any(candi => candi.Type != subgroup.Type && subgroup.Type.IsAssignableFrom(candi.Type))
+                //                                        select subgroup.Type);
+
+                var max_group_ele_cnt = (from subgroup in groups
+                                         //where selectableTypes.Contains(subgroup.Type)
+                                         select subgroup.Group.Count()).Max();
+                max_group_ele_cnt = Math.Max(max_group_ele_cnt, rest.Count);
+
+                if (max_group_ele_cnt < min_max_group_ele_cnt)
+                {
+                    minindex = i;
+                    min_max_group_ele_cnt = max_group_ele_cnt;
+                    //minSelectableTypes = selectableTypes;
+                }
+            }
+            if (minindex >= 0)
+            {
+                var map = ByObjType[minindex].ToArray();
+                Array.Sort(map, (kvp1, kvp2) =>
+                {
+                    return -WriteMethodBody_30_ByObjType_CompareType(kvp1.Key, kvp2.Key);
+                });
+
+                foreach (var kvp in map)
+                {
+                    //if (!minSelectableTypes.Contains(kvp.Key))
+                    //{
+                    //    continue;
+                    //}
+                    if (mintype != null && kvp.Key.IsAssignableFrom(mintype))
+                    {
                         continue;
-
-                    bool isparams = false;
-                    var pt = ex.ArgTypes[i];
-                    if (ex.LastArgIsParam && ex.ArgTypes.Count == i + 1)
-                    {
-                        isparams = true;
-                        pt = pt.GetElementType();
                     }
 
-                    HashSet<MethodBase> list;
-                    if (!map.TryGetValue(pt, out list))
-                    {
-                        list = new HashSet<MethodBase>();
-                        map[pt] = list;
-                    }
-
-                    if (isparams && list.Count > 0)
+                    if (WriteMethodBody_30_ByObjType_HasProcessed(processed, minindex, kvp.Key))
                     {
                         continue;
                     }
-                    list.Add(method);
-                    foreach (var kvp in map)
-                    {
-                        var ot = kvp.Key;
-                        if (ot == pt)
-                            continue;
 
-                        if (nativeTypeMap.ContainsKey(ot) && nativeTypeMap.ContainsKey(pt) && nativeTypeMap[ot] == nativeTypeMap[pt])
+                    var restset = new HashSet<MethodOverload>(kvp.Value);
+                    restset.IntersectWith(submethods);
+                    if (!restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key))
+                    {
+                        continue;
+                    }
+                    if (restset.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    var rest = restset.ToArray();
+                    Array.Sort(rest, WriteMethodBody_30_ByObjType_CompareArgs);
+
+                    int comparecnt = rest.Length;
+                    if (rest.All(overload =>
+                    {
+                        var overloadex = context.GetMethodEx(overload);
+                        return overloadex.LastArgIsParam
+                            && minindex == overloadex.ArgTypes.Count - 1;
+                    }))
+                    {
+                        if (rest.Any(overload =>
                         {
-                            kvp.Value.UnionWith(list);
-                            list.UnionWith(kvp.Value);
-                        }
-                        else
+                            var overloadex = context.GetMethodEx(overload);
+                            return overloadex.ArgTypes[minindex] == kvp.Key;
+                        }))
                         {
-                            // comp                 behav
-                            if (ot.IsAssignableFrom(pt))
-                            {
-                                kvp.Value.UnionWith(list);
-                            }
-                            if (pt.IsAssignableFrom(ot))
-                            {
-                                list.UnionWith(kvp.Value);
-                            }
+                            comparecnt += submethods.Count;
                         }
+                    }
+
+                    bool found = false;
+                    if (comparecnt < mincnt)
+                    {
+                        found = true;
+                    }
+                    else if (comparecnt == mincnt)
+                    {
+                        var compresult = WriteMethodBody_30_ByObjType_CompareType(kvp.Key, mintype);
+                        if (compresult > 0)
+                        {
+                            found = true;
+                        }
+                        //else if (compresult == 0)
+                        //{
+                        //    if (maptotalcnt < maxtype)
+                        //    {
+                        //        found = true;
+                        //    }
+                        //}
+                    }
+                    if (found)
+                    {
+                        //maxtype = maptotalcnt;
+                        mincnt = comparecnt;
+                        mintype = kvp.Key;
+                        partmethods = rest;
+                        //minindex = i;
                     }
                 }
             }
+            mincnt = partmethods.Length;
 
-            bool firsrRun = true;
-            Action<HashSet<MethodBase>, HashSet<int>> WorkStep = null;
-            WorkStep = (submethods, parsedTypeIndex) =>
+            if (minindex >= 0)
             {
-                if (submethods.Count <= 0)
-                    return;
-                else if (submethods.Count == 1)
+                WriteMethodBody_30_ByObjType_MarkProcessed(subprocessed, minindex, mintype);
+                var subsub = new HashSet<MethodOverload>(submethods);
+                subsub.ExceptWith(partmethods);
+                foreach (var kvp in ByObjType[minindex])
                 {
-                    var rest = submethods.First();
+                    if (kvp.Key == mintype)
+                    {
+                        continue;
+                    }
+                    if (WriteMethodBody_30_ByObjType_HasProcessed(processed, minindex, kvp.Key))
+                    {
+                        continue;
+                    }
+
+                    var restset = new HashSet<MethodOverload>(kvp.Value);
+                    restset.IntersectWith(submethods);
+                    if (!restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key))
+                    {
+                        continue;
+                    }
+                    if (restset.Count <= 0)
+                    {
+                        continue;
+                    }
+                    subsub.UnionWith(restset);
+                }
+
+                if (mincnt == 1)
+                {
+                    var method = partmethods.First();
+                    var ex = context.GetMethodEx(method);
+                    WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
+                    sb.AppendLine("{");
                     sb.Append("goto Label_");
-                    sb.Append(context.GetMethodEx(rest).Label);
+                    sb.Append(ex.Label + method.LabelOffset);
                     sb.AppendLine(";");
-                    return;
+                    sb.AppendLine("}");
+
+                    WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
                 }
-
-                int mincnt = int.MaxValue;
-                int maxtype = int.MinValue;
-                Type mintype = null;
-                HashSet<MethodBase> partmethods = null;
-                int minindex = -1;
-
-                for (int i = 0; i < ByObjType.Count; ++i)
+                else
                 {
-                    var map = ByObjType[i];
-                    foreach (var kvp in map)
+                    if (mincnt == submethods.Count)
                     {
-                        var rest = new HashSet<MethodBase>(kvp.Value);
-                        rest.IntersectWith(submethods);
-                        if (rest.Count <= 0)
-                            continue;
-                        if (rest.Count < mincnt || rest.Count == mincnt && map.Count > maxtype)
+                        if ((from overload in partmethods
+                             group overload by overload.Method into g
+                             select g).Count() == 1)
                         {
-                            maxtype = map.Count;
-                            mincnt = rest.Count;
-                            mintype = kvp.Key;
-                            partmethods = rest;
-                            minindex = i;
-                        }
-                    }
-                }
+                            var labeloffsets = from overload in partmethods
+                                               group overload by overload.LabelOffset into g
+                                               select g.Key;
+                            int labeloffset = 0;
+                            if (labeloffsets.Count() == 1)
+                            {
+                                labeloffset = labeloffsets.First();
+                            }
 
-                if (minindex >= 0)
-                {
-                    if (mincnt == 1)
-                    {
-                        var method = partmethods.First();
-                        var ex = context.GetMethodEx(method);
-                        if (parsedTypeIndex.Add(minindex))
-                        {
-                            sb.Append("var ___ot");
-                            sb.Append(minindex);
-                            sb.Append(" = l.GetType(");
-                            sb.Append(minindex + 1);
-                            sb.AppendLine(");");
-                        }
-                        if (mintype.IsValueType || mintype.IsEnum || mintype.IsSealed)
-                        {
-                            sb.Append("if (___ot");
-                            sb.Append(minindex);
-                            sb.Append(" == typeof(");
-                            if (nativeTypeMap.ContainsKey(mintype))
-                            {
-                                var ltype = nativeRevMap[nativeTypeMap[mintype]];
-                                if (ltype != mintype)
-                                {
-                                    sb.WriteType(ltype);
-                                    sb.Append(") || ___ot");
-                                    sb.Append(minindex);
-                                    sb.Append(" == typeof(");
-                                }
-                            }
-                            sb.WriteType(mintype);
-                            sb.AppendLine("))");
-                        }
-                        else
-                        {
-                            if (mintype == typeof(object))
-                            {
-                                sb.Append("if (___ot");
-                                sb.Append(minindex);
-                                sb.Append(" != null)");
-                                sb.AppendLine();
-                            }
-                            else
-                            {
-                                sb.Append("if (___ot");
-                                sb.Append(minindex);
-                                sb.Append(" == typeof(");
-                                sb.WriteType(mintype);
-                                sb.Append(") || typeof(");
-                                sb.WriteType(mintype);
-                                sb.Append(").IsAssignableFrom(___ot");
-                                sb.Append(minindex);
-                                sb.AppendLine("))");
-                            }
-                        }
-                        sb.AppendLine("{");
-                        sb.Append("goto Label_");
-                        if (ex.LastArgIsParam)
-                        {
-                            if (ex.ArgTypes.Count - 1 == minindex)
-                            {
-                                sb.Append(ex.Label + 2);
-                            }
-                            else
-                            {
-                                sb.Append(ex.Label);
-                            }
-                        }
-                        else
-                        {
-                            sb.Append(ex.Label);
-                        }
-                        sb.AppendLine(";");
-                        sb.AppendLine("}");
-
-                        submethods.ExceptWith(partmethods);
-                        WorkStep(submethods, parsedTypeIndex);
-                    }
-                    else
-                    {
-                        if (mincnt == submethods.Count && !firsrRun)
-                        {
-                            // write this group
-                            //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
-                            var partmethodsSorted = partmethods.ToArray();
-                            Array.Sort(partmethodsSorted, (m1, m2) =>
-                            {
-                                var ex1 = context.GetMethodEx(m1);
-                                var ex2 = context.GetMethodEx(m2);
-                                Types t1 = new Types();
-                                Types t2 = new Types();
-                                int isp1 = 0, isp2 = 0;
-                                if (ex1.ArgTypes.Count > minindex)
-                                {
-                                    var type = ex1.ArgTypes[minindex];
-                                    if (ex1.LastArgIsParam && ex1.ArgTypes.Count == minindex + 1)
-                                    {
-                                        isp1 = 1;
-                                        type = type.GetElementType();
-                                    }
-                                    t1.Add(type);
-                                }
-                                if (ex2.ArgTypes.Count > minindex)
-                                {
-                                    var type = ex2.ArgTypes[minindex];
-                                    if (ex2.LastArgIsParam && ex2.ArgTypes.Count == minindex + 1)
-                                    {
-                                        isp2 = 1;
-                                        type = type.GetElementType();
-                                    }
-                                    t2.Add(type);
-                                }
-                                var rv = Types.Compare(t1, t2);
-                                if (rv == 0)
-                                {
-                                    return isp2 - isp1;
-                                }
-                                else
-                                {
-                                    return rv;
-                                }
-                            });
-                            MethodBase selected = null;
-                            if (nativeTypeMap.ContainsKey(mintype))
-                            {
-                                var ltype = nativeRevMap[nativeTypeMap[mintype]];
-                                try
-                                {
-                                    selected = partmethodsSorted.Last(method =>
-                                    {
-                                        var ex1 = context.GetMethodEx(method);
-                                        if (ex1.ArgTypes.Count > minindex)
-                                        {
-                                            var type = ex1.ArgTypes[minindex];
-                                            if (ex1.LastArgIsParam && ex1.ArgTypes.Count == minindex + 1)
-                                            {
-                                                type = type.GetElementType();
-                                            }
-                                            return type == ltype;
-                                        }
-                                        return false;
-                                    });
-                                }
-                                catch { }
-                            }
-                            if (selected == null)
-                            {
-                                selected = partmethodsSorted.Last();
-                            }
+                            // all the same method
                             sb.Append("goto Label_");
-                            var ex = context.GetMethodEx(selected);
-                            if (ex.LastArgIsParam)
-                            {
-                                if (ex.ArgTypes.Count - 1 == minindex)
-                                {
-                                    sb.Append(ex.Label + 2);
-                                }
-                                else
-                                {
-                                    sb.Append(ex.Label);
-                                }
-                            }
-                            else
-                            {
-                                sb.Append(ex.Label);
-                            }
+                            var ex = context.GetMethodEx(partmethods.First());
+                            sb.Append(ex.Label + labeloffset);
                             sb.AppendLine(";");
                         }
                         else
                         {
-                            firsrRun = false;
-                            HashSet<Type> iftypes = new HashSet<Type>();
-                            if (parsedTypeIndex.Add(minindex))
-                            {
-                                sb.Append("var ___ot");
-                                sb.Append(minindex);
-                                sb.Append(" = l.GetType(");
-                                sb.Append(minindex + 1);
-                                sb.AppendLine(");");
-                            }
-                            if (mintype.IsValueType || mintype.IsEnum || mintype.IsSealed)
-                            {
-                                sb.Append("if (___ot");
-                                sb.Append(minindex);
-                                sb.Append(" == typeof(");
-                                if (nativeTypeMap.ContainsKey(mintype))
-                                {
-                                    var ltype = nativeRevMap[nativeTypeMap[mintype]];
-                                    sb.WriteType(ltype);
-                                    iftypes.Add(ltype);
-                                }
-                                else
-                                {
-                                    sb.WriteType(mintype);
-                                    iftypes.Add(mintype);
-                                }
-                                sb.Append(")");
-                                HashSet<Type> realTypes = new HashSet<Type>();
-                                int cntType = 0;
-                                foreach (var partmethod in partmethods)
-                                {
-                                    var ex1 = context.GetMethodEx(partmethod);
-                                    if (ex1.ArgTypes.Count > minindex)
-                                    {
-                                        var type = ex1.ArgTypes[minindex];
-                                        if (ex1.LastArgIsParam && ex1.ArgTypes.Count == minindex + 1)
-                                        {
-                                            type = type.GetElementType();
-                                        }
-                                        if (!iftypes.Contains(type))
-                                        {
-                                            if (realTypes.Add(type))
-                                            {
-                                                ++cntType;
-                                            }
-                                        }
-                                    }
-                                }
-                                if (cntType == 1)
-                                {
-                                    var singleType = realTypes.First();
-                                    sb.Append(" || ___ot");
-                                    sb.Append(minindex);
-                                    sb.Append(" == typeof(");
-                                    sb.WriteType(singleType);
-                                    iftypes.Add(singleType);
-                                    sb.Append(")");
-                                }
-                                sb.AppendLine(")");
-                            }
-                            else
-                            {
-                                iftypes.Add(mintype);
-                                if (mintype == typeof(object))
-                                {
-                                    sb.Append("if (___ot");
-                                    sb.Append(minindex);
-                                    sb.Append(" != null)");
-                                    sb.AppendLine();
-                                }
-                                else
-                                {
-                                    sb.Append("if (___ot");
-                                    sb.Append(minindex);
-                                    sb.Append(" == typeof(");
-                                    sb.WriteType(mintype);
-                                    sb.Append(") || typeof(");
-                                    sb.WriteType(mintype);
-                                    sb.Append(").IsAssignableFrom(___ot");
-                                    sb.Append(minindex);
-                                    sb.AppendLine("))");
-                                }
-                            }
-                            submethods.ExceptWith(partmethods);
-                            sb.AppendLine("{");
-                            WorkStep(new HashSet<MethodBase>(partmethods), new HashSet<int>(parsedTypeIndex));
-                            sb.AppendLine("}");
-                            Dictionary<Type, List<MethodBase>> partMap = new Dictionary<Type, List<MethodBase>>();
-                            foreach (var method in partmethods)
-                            {
-                                var ex1 = context.GetMethodEx(method);
-                                if (ex1.ArgTypes.Count > minindex)
-                                {
-                                    var type = ex1.ArgTypes[minindex];
-                                    if (ex1.LastArgIsParam && ex1.ArgTypes.Count == minindex + 1)
-                                    {
-                                        type = type.GetElementType();
-                                    }
-                                    if (!iftypes.Contains(type))
-                                    {
-                                        List<MethodBase> list;
-                                        if (!partMap.TryGetValue(type, out list))
-                                        {
-                                            list = new List<MethodBase>();
-                                            partMap[type] = list;
-                                        }
-                                        list.Add(method);
-                                    }
-                                }
-                            }
-                            if (partMap.Count > 0)
-                            {
-                                var sortedTypes = partMap.Keys.ToArray();
-                                Array.Sort(sortedTypes, (t1, t2) =>
-                                {
-                                    return Types.Compare(new Types() { t1 }, new Types { t2 });
-                                });
-                                for (int i = sortedTypes.Length - 1; i >= 0; --i)
-                                {
-                                    var type = sortedTypes[i];
-                                    if (type.IsValueType || type.IsEnum || type.IsSealed)
-                                    {
-                                        sb.Append("if (___ot");
-                                        sb.Append(minindex);
-                                        sb.Append(" == typeof(");
-                                        sb.WriteType(type);
-                                        sb.AppendLine("))");
-                                    }
-                                    else
-                                    {
-                                        if (mintype == typeof(object))
-                                        {
-                                            sb.Append("if (___ot");
-                                            sb.Append(minindex);
-                                            sb.Append(" != null)");
-                                            sb.AppendLine();
-                                        }
-                                        else
-                                        {
-                                            sb.Append("if (___ot");
-                                            sb.Append(minindex);
-                                            sb.Append(" == typeof(");
-                                            sb.WriteType(type);
-                                            sb.Append(") || typeof(");
-                                            sb.WriteType(type);
-                                            sb.Append(").IsAssignableFrom(___ot");
-                                            sb.Append(minindex);
-                                            sb.AppendLine("))");
-                                        }
-                                    }
-                                    sb.AppendLine("{");
-                                    WorkStep(new HashSet<MethodBase>(partMap[type]), new HashSet<int>(parsedTypeIndex));
-                                    sb.AppendLine("}");
-                                }
-                            }
-                            sb.AppendLine("{");
-                            WorkStep(submethods, new HashSet<int>(parsedTypeIndex));
-                            sb.AppendLine("}");
+                            // we can not split any further. we just sort and write the most common one.
+                            //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
+                            var selected = partmethods.Last();
+                            sb.Append("goto Label_");
+                            var ex = context.GetMethodEx(selected);
+                            sb.Append(ex.Label);
+                            sb.AppendLine(";");
                         }
                     }
-                }
-            };
-            var parsedTypeIndex1 = new HashSet<int>();
-            WorkStep(new HashSet<MethodBase>(methods), parsedTypeIndex1);
-
-            // write the params
-            foreach (var method in methods)
-            {
-                var ex = context.GetMethodEx(method);
-                if (ex.LastArgIsParam)
-                {
-                    sb.AppendLine("{");
-                    var lastIndex = ex.ArgTypes.Count - 1;
-                    if (parsedTypeIndex1.Add(lastIndex))
+                    else
                     {
-                        sb.Append("var ___ot");
-                        sb.Append(lastIndex);
-                        sb.Append(" = l.GetType(");
-                        sb.Append(lastIndex + 1);
-                        sb.AppendLine(");");
-                    }
+                        //var realtypes = from overload in partmethods
+                        //                where overload.ArgTypes.Count > minindex
+                        //                let type = overload.ArgTypes[minindex]
+                        //                group type by type into g
+                        //                select g.Key;
+                        //WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype, realtypes);
 
-                    sb.Append("if (___ot");
-                    sb.Append(lastIndex);
-                    sb.Append(" == typeof(");
-                    sb.WriteType(ex.ArgTypes[lastIndex]);
-                    sb.AppendLine("))");
-                    sb.AppendLine("{");
-                    sb.Append("goto Label_");
-                    sb.Append(ex.Label + 1);
-                    sb.AppendLine(";");
-                    sb.AppendLine("}");
-                    sb.AppendLine("}");
+                        WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
+                        sb.AppendLine("{");
+                        WriteMethodBody_30_ByObjType_WorkStep(context, new HashSet<MethodOverload>(partmethods), subprocessed);
+                        sb.AppendLine("}");
+                        sb.AppendLine("{");
+                        WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
+                        sb.AppendLine("}");
+                    }
                 }
             }
+            else
+            {
+                // we can not split any further. we just sort and write the most common one.
+                //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
+                partmethods = submethods.ToArray();
+                Array.Sort(partmethods, WriteMethodBody_30_ByObjType_CompareArgs);
+                var selected = partmethods.Last();
+                sb.Append("goto Label_");
+                var ex = context.GetMethodEx(selected);
+                sb.Append(ex.Label);
+                sb.AppendLine(";");
+            }
+        }
+        internal static void WriteMethodBody_30_ByObjType(this WriteMethodBodyContext context)
+        {
+            var sb = context.sb;
+            var methods = context.Overloads;
+            var byObjType = context.ByObjType;
+
+            List<HashSet<Type>> processed = new List<HashSet<Type>>();
+            for (int i = 0; i < byObjType.Count; ++i)
+            {
+                processed.Add(new HashSet<Type>());
+            }
+            var submethods = new HashSet<MethodOverload>(from overload in methods
+                                                         where !context.DoneMethods.Contains(overload)
+                                                         select overload);
+            WriteMethodBody_30_ByObjType_WorkStep(context, submethods, processed);
         }
         //internal static void WriteMethodBody_35_ByObjTypeExplicit(this WriteMethodBodyContext context, HashSet<MethodBase> methods, HashSet<int> parsedTypeIndex)
         //{

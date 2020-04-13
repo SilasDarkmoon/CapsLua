@@ -369,6 +369,16 @@ namespace Capstones.LuaLib
             }
             return code;
         }
+
+        public Types Clone()
+        {
+            var newtypes = new Types();
+            for (int i = 0; i < _cnt; ++i)
+            {
+                newtypes.Add(this[i]);
+            }
+            return newtypes;
+        }
     }
 
     public abstract class BaseMethodMeta : SelfHandled, ILuaMetaCall, ILuaTrans//, ILuaPush
