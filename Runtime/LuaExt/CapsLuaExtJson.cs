@@ -174,8 +174,11 @@ namespace Capstones.LuaExt
                                 L.pushvalue(-2);
                                 string key = L.tostring(-1);
                                 L.pop(1);
-                                JSONObject childjo = Encode(L, L.gettop());
-                                dict[key] = childjo;
+                                if (key != null)
+                                {
+                                    JSONObject childjo = Encode(L, L.gettop());
+                                    dict[key] = childjo;
+                                }
                                 L.pop(1);
                             }
                             jobj = new JSONObject(dict);
