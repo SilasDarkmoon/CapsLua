@@ -1550,14 +1550,14 @@ namespace Capstones.UnityEditorEx
             foreach (var member in allmembers)
             {
                 var mstr = ReflectAnalyzer.GetIDString(member);
-                if (member is PropertyInfo && memberName == "get_" + member.Name || memberName == "set_" + member.Name)
-                {
-                    return;
-                }
-                if (member is EventInfo && memberName == "add_" + member.Name || memberName == "remove_" + member.Name)
-                {
-                    return;
-                }
+                //if (member is PropertyInfo && memberName == "get_" + member.Name || memberName == "set_" + member.Name)
+                //{
+                //    return;
+                //}
+                //if (member is EventInfo && memberName == "add_" + member.Name || memberName == "remove_" + member.Name)
+                //{
+                //    return;
+                //}
                 var precompileAttribute = member.GetCustomAttribute<LuaLib.LuaPrecompileAttribute>();
                 if (precompileAttribute != null && precompileAttribute.Ignore)
                 {
@@ -4700,45 +4700,75 @@ namespace Capstones.UnityEditorEx
                 }
                 if (real.ReturnType == typeof(void))
                 {
-                    sb.WriteType(method.DeclaringType);
-                    sb.Append(".");
-                    sb.Append(method.Name);
-                    sb.Append("(");
-                    for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
+                    if (real.IsSpecialName)
                     {
-                        if (i > 0)
+                        if (method.Name.StartsWith("set_"))
                         {
-                            sb.Append(", ");
+                            sb.WriteType(method.DeclaringType);
+                            sb.Append(".");
+                            sb.Append(method.Name.Substring("set_".Length));
+                            sb.Append(" = p0;");
+                            sb.AppendLine();
                         }
-                        var reforout = exinfo.GetArgRefOrOut(i);
-                        if (!string.IsNullOrEmpty(reforout))
+                        else if (method.Name.StartsWith("add_"))
                         {
-                            sb.Append(reforout);
-                            sb.Append(" ");
+                            sb.WriteType(method.DeclaringType);
+                            sb.Append(".");
+                            sb.Append(method.Name.Substring("add_".Length));
+                            sb.Append(" += p0;");
+                            sb.AppendLine();
                         }
-                        sb.Append("p");
-                        sb.Append(i);
+                        else if (method.Name.StartsWith("remove_"))
+                        {
+                            sb.WriteType(method.DeclaringType);
+                            sb.Append(".");
+                            sb.Append(method.Name.Substring("remove_".Length));
+                            sb.Append(" -= p0;");
+                            sb.AppendLine();
+                        }
                     }
-                    sb.AppendLine(");");
-                    int rvcnt = 0;
-                    for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
+                    else
                     {
-                        if (exinfo.IsArgRefOrOut(i))
+                        sb.WriteType(method.DeclaringType);
+                        sb.Append(".");
+                        sb.Append(method.Name);
+                        sb.Append("(");
+                        for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
                         {
-                            if (rvcnt == 0)
+                            if (i > 0)
                             {
-                                sb.AppendLine("l.pushnil();");
+                                sb.Append(", ");
+                            }
+                            var reforout = exinfo.GetArgRefOrOut(i);
+                            if (!string.IsNullOrEmpty(reforout))
+                            {
+                                sb.Append(reforout);
+                                sb.Append(" ");
+                            }
+                            sb.Append("p");
+                            sb.Append(i);
+                        }
+                        sb.AppendLine(");");
+                        int rvcnt = 0;
+                        for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
+                        {
+                            if (exinfo.IsArgRefOrOut(i))
+                            {
+                                if (rvcnt == 0)
+                                {
+                                    sb.AppendLine("l.pushnil();");
+                                    ++rvcnt;
+                                }
+                                sb.Append("l.PushLua(p");
+                                sb.Append(i);
+                                sb.AppendLine(");");
                                 ++rvcnt;
                             }
-                            sb.Append("l.PushLua(p");
-                            sb.Append(i);
-                            sb.AppendLine(");");
-                            ++rvcnt;
                         }
+                        sb.Append("return ");
+                        sb.Append(rvcnt);
+                        sb.AppendLine(";");
                     }
-                    sb.Append("return ");
-                    sb.Append(rvcnt);
-                    sb.AppendLine(";");
                 }
                 else
                 {
@@ -4761,6 +4791,18 @@ namespace Capstones.UnityEditorEx
                         sb.Append("var rv = (");
                         sb.WriteType(((System.Reflection.MethodInfo)method).ReturnType);
                         sb.AppendLine(")p0;");
+                    }
+                    else if (real.IsSpecialName)
+                    {
+                        if (method.Name.StartsWith("get_"))
+                        {
+                            sb.Append("var rv = ");
+                            sb.WriteType(method.DeclaringType);
+                            sb.Append(".");
+                            sb.Append(method.Name.Substring("get_".Length));
+                            sb.Append(";");
+                            sb.AppendLine();
+                        }
                     }
                     else
                     {
@@ -4911,6 +4953,54 @@ namespace Capstones.UnityEditorEx
                         sb.AppendLine("SetDataRaw(l, 1, p0);");
                     }
                     sb.AppendLine("return 0;");
+                }
+                else if (real.IsSpecialName)
+                {
+                    if (method.Name.StartsWith("set_"))
+                    {
+                        sb.Append("p0.");
+                        sb.Append(method.Name.Substring("set_".Length));
+                        sb.Append(" = p1;");
+                        sb.AppendLine();
+                        if (method.ReflectedType.IsValueType)
+                        {
+                            sb.AppendLine("SetDataRaw(l, 1, p0);");
+                        }
+                        sb.AppendLine("return 0;");
+                    }
+                    if (method.Name.StartsWith("get_"))
+                    {
+                        sb.Append("var rv = p0.");
+                        sb.Append(method.Name.Substring("get_".Length));
+                        sb.Append(";");
+                        sb.AppendLine();
+                        sb.AppendLine("l.PushLua(rv);");
+                        sb.AppendLine("return 1;");
+                    }
+                    else if (method.Name.StartsWith("add_"))
+                    {
+                        sb.Append("p0.");
+                        sb.Append(method.Name.Substring("add_".Length));
+                        sb.Append(" += p1;");
+                        sb.AppendLine();
+                        if (method.ReflectedType.IsValueType)
+                        {
+                            sb.AppendLine("SetDataRaw(l, 1, p0);");
+                        }
+                        sb.AppendLine("return 0;");
+                    }
+                    else if (method.Name.StartsWith("remove_"))
+                    {
+                        sb.Append("p0.");
+                        sb.Append(method.Name.Substring("remove_".Length));
+                        sb.Append(" -= p1;");
+                        sb.AppendLine();
+                        if (method.ReflectedType.IsValueType)
+                        {
+                            sb.AppendLine("SetDataRaw(l, 1, p0);");
+                        }
+                        sb.AppendLine("return 0;");
+                    }
                 }
                 else if (real.ReturnType == typeof(void))
                 {
