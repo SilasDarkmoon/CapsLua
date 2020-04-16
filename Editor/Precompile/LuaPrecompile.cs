@@ -6275,7 +6275,9 @@ namespace Capstones.UnityEditorEx
 
             //PlatDependant.DeleteFile("EditorOutput/LuaPrecompile/CachedCommands.txt"); // maybe we donot need to delete this, in order to regenerate precompile files.
             //PlatDependant.DeleteFile("Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt"); // maybe we donot need to delete this, in order to regenerate precompile files.
-            
+
+            BuildDelegateWrapperAOT.BuildDelegateWrapperForAOT();
+
             AssetDatabase.Refresh();
         }
 

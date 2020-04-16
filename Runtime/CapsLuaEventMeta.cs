@@ -9,6 +9,8 @@ using luae = Capstones.LuaLib.LuaLibEx;
 
 namespace Capstones.LuaLib
 {
+    // TODO: in method remove_XXX, we need better to Dispose the LuaFunc.
+    // TODO: topointer(func) to get the IntPtr of the lua func and use this to AddRef / Release between multiple LuaFuncs
 #if UNITY_INCLUDE_TESTS
     #region TESTS
     public static class CapsLuaEventMetaTest
