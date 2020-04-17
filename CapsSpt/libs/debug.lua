@@ -99,6 +99,14 @@ function dumpe(object, label)
     printe(msg)
 end
 
+function dumpraw(object, label)
+    if LogEnabled == false or LogInfoEnabled == false then return end
+    local result = vardump(object, label, true)
+    local str = table.concat(result, "\n")
+    echo(str)
+    return str
+end
+
 --[[--
 
 Outputs or returns a parsable string representation of a variable.
@@ -108,7 +116,7 @@ Outputs or returns a parsable string representation of a variable.
 @return table each line
 
 ]]
-function vardump(object, label)
+function vardump(object, label, israw)
     local lookupTable = {}
     local indexed = {}
     local result = {}
@@ -203,7 +211,7 @@ function vardump(object, label)
             local line = #result + 1
             lookupTable[object] = line
 
-            if clr.isobj(object) then
+            if not israw and clr.isobj(object) then
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
                 else
