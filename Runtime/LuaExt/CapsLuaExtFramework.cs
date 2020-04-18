@@ -226,8 +226,12 @@ namespace Capstones.LuaExt
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncPanic(IntPtr l)
         {
-            LuaHub.LogError(l, l.GetLua(-1));
-            return 0;
+            var top = l.gettop();
+            var error = l.GetLua(-1);
+            string message = error == null ? "" : error.ToString();
+            message = "Lua error at " + top + ": " + message;
+            LuaHub.LogError(l, message);
+            throw new LuaAtPanicException(message);
         }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
@@ -506,6 +510,14 @@ namespace Capstones.LuaExt
                 LanguageConverter.UpdateDict(updatedMap);
             }
             return 0;
+        }
+    }
+
+    public class LuaAtPanicException : Exception
+    {
+        public LuaAtPanicException(string message)
+            : base(message)
+        {
         }
     }
 }
