@@ -284,88 +284,66 @@ namespace Capstones.LuaWrap
         }
         public R Call<R>()
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r);
             return r;
         }
         public R Call<R, P0>(P0 p0)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0);
             return r;
         }
         public R Call<R, P0, P1>(P0 p0, P1 p1)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1);
             return r;
         }
         public R Call<R, P0, P1, P2>(P0 p0, P1 p1, P2 p2)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2);
             return r;
         }
         public R Call<R, P0, P1, P2, P3>(P0 p0, P1 p1, P2 p2, P3 p3)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4, P5>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4, P5, P6>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4, P5, P6, P7>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8);
             return r;
         }
         public R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
         {
-            var l = L;
-            l.getref(Refid);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
             return r;
@@ -567,88 +545,66 @@ namespace Capstones.LuaWrap
         }
         public new R Call<R>()
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r);
             return r;
         }
         public new R Call<R, P0>(P0 p0)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0);
             return r;
         }
         public new R Call<R, P0, P1>(P0 p0, P1 p1)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1);
             return r;
         }
         public new R Call<R, P0, P1, P2>(P0 p0, P1 p1, P2 p2)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3>(P0 p0, P1 p1, P2 p2, P3 p3)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4, P5>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4, P5, P6>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8);
             return r;
         }
         public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
         {
-            var l = L;
-            l.pushvalue(StackPos);
             R r;
             Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
             return r;
