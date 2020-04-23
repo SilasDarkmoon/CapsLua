@@ -85,6 +85,13 @@ namespace Capstones.UnityEditorEx
             {
                 return;
             }
+            var preActionWrapper = typeof(Capstones.LuaLib.CapsLuaDelegateGenerator.ActionLuaWrapper).FullName;
+            var preFuncWrapper = typeof(Capstones.LuaLib.CapsLuaDelegateGenerator.FuncLuaWrapper<>).FullName;
+            preFuncWrapper = preFuncWrapper.Substring(0, preFuncWrapper.IndexOf('`'));
+            if (searchType.FullName == preActionWrapper || searchType.FullName.StartsWith(preActionWrapper + "`") || searchType.FullName == preFuncWrapper || searchType.FullName.StartsWith(preFuncWrapper + "`"))
+            {
+                return;
+            }
 
             if (typeSearched == null || typeSearched.Add(searchType))
             {
