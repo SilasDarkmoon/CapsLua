@@ -1328,6 +1328,27 @@ namespace Capstones.LuaWrap
                 l.pop(1);
             }
         }
+        public static void ForEach<TKey, TVal>(this IntPtr l, int index, Action<TKey, TVal> action)
+        {
+            if (l != IntPtr.Zero && action != null)
+            {
+                l.pushvalue(index);
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        TKey key;
+                        TVal val;
+                        l.GetLua(-2, out key);
+                        l.GetLua(-1, out val);
+                        action(key, val);
+                        l.pop(1);
+                    }
+                }
+                l.pop(1);
+            }
+        }
         public static void ForEachIndex(this IntPtr l, int index, Action action)
         {
             if (l != IntPtr.Zero && action != null)
@@ -1380,6 +1401,27 @@ namespace Capstones.LuaWrap
                         l.pushnumber(i);
                         l.gettable(-2);
                         action(l, i);
+                        l.pop(1);
+                    }
+                }
+                l.pop(1);
+            }
+        }
+        public static void ForEachIndex<TVal>(this IntPtr l, int index, Action<int, TVal> action)
+        {
+            if (l != IntPtr.Zero && action != null)
+            {
+                l.pushvalue(index);
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var cnt = l.getn(-1);
+                    for (int i = 1; i <= cnt; ++i)
+                    {
+                        l.pushnumber(i);
+                        l.gettable(-2);
+                        TVal val;
+                        l.GetLua(-1, out val);
+                        action(i, val);
                         l.pop(1);
                     }
                 }
