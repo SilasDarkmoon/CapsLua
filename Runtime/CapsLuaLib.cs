@@ -21,6 +21,25 @@ namespace Capstones.LuaLib
         public const int LUA_TTHREAD = 8;
         #endregion
 
+        private static readonly string[] _TypeNames = new[]
+        {
+            "nil", "boolean", "userdata", "number", "string", "table", "function", "userdata", "thread",
+        };
+        private static readonly string _TypeName_None = "no value";
+        private static readonly string _TypeName_Undefined = null;
+        public static string typename(int typecode)
+        {
+            if (typecode == -1)
+            {
+                return _TypeName_None;
+            }
+            else if (typecode >= 0 && typecode < _TypeNames.Length)
+            {
+                return _TypeNames[typecode];
+            }
+            return _TypeName_Undefined;
+        }
+
         #region LuaGCOptions
         public const int LUA_GCSTOP = 0;
         public const int LUA_GCRESTART = 1;
@@ -257,7 +276,7 @@ namespace Capstones.LuaLib
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_type")]
         public static extern int type(this IntPtr luaState, int index);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_typename")]
-        public static extern string typename(this IntPtr luaState, int type);
+        public static extern IntPtr typename(IntPtr luaState, int type);
         // lua_upvalueindex -> below
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_xmove")]
         public static extern void xmove(this IntPtr from, IntPtr to, int n);
@@ -578,7 +597,7 @@ namespace Capstones.LuaLib
 
         public delegate string del_lua_typename(IntPtr luaState, int type);
         public static del_lua_typename lua_typename;
-        public static string typename(this IntPtr luaState, int type) { return lua_typename(luaState, type); }
+        public static IntPtr typename(IntPtr luaState, int type) { return lua_typename(luaState, type); }
 
         // lua_upvalueindex -> below
 
@@ -900,7 +919,7 @@ namespace Capstones.LuaLib
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern string lua_typename(IntPtr luaState, int type);
-        public static string typename(this IntPtr luaState, int type) { return lua_typename(luaState, type); }
+        public static IntPtr typename(IntPtr luaState, int type) { return lua_typename(luaState, type); }
 
         // lua_upvalueindex -> below
 
@@ -1081,7 +1100,7 @@ namespace Capstones.LuaLib
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_type")]
         public static extern int type(this IntPtr luaState, int index);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_typename")]
-        public static extern string typename(this IntPtr luaState, int type);
+        public static extern IntPtr typename(IntPtr luaState, int type);
         // lua_upvalueindex -> below
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_xmove")]
         public static extern void xmove(this IntPtr from, IntPtr to, int n);
@@ -1592,9 +1611,18 @@ namespace Capstones.LuaLib
         // luaL_ref -> above
 
         // luaL_register
-        public static string typename(this IntPtr luaState, int stackPos, int reserved) // luaL_typename
+        public static string typename(this IntPtr luaState, int stackPos) // luaL_typename
         {
-            return LuaCoreLib.typename(luaState, LuaCoreLib.type(luaState, stackPos));
+            //var pstr = LuaCoreLib.typename(luaState, LuaCoreLib.type(luaState, stackPos));
+            //if (pstr == IntPtr.Zero)
+            //{
+            //    return null;
+            //}
+            //else
+            //{
+            //    return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(pstr);
+            //}
+            return LuaCoreLib.typename(LuaCoreLib.type(luaState, stackPos));
         }
         // luaL_typerror
 
