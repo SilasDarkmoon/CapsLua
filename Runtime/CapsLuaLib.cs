@@ -595,7 +595,7 @@ namespace Capstones.LuaLib
         public static del_lua_type lua_type;
         public static int type(this IntPtr luaState, int index) { return lua_type(luaState, index); }
 
-        public delegate string del_lua_typename(IntPtr luaState, int type);
+        public delegate IntPtr del_lua_typename(IntPtr luaState, int type);
         public static del_lua_typename lua_typename;
         public static IntPtr typename(IntPtr luaState, int type) { return lua_typename(luaState, type); }
 
@@ -918,7 +918,7 @@ namespace Capstones.LuaLib
         public static int type(this IntPtr luaState, int index) { return lua_type(luaState, index); }
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern string lua_typename(IntPtr luaState, int type);
+        public static extern IntPtr lua_typename(IntPtr luaState, int type);
         public static IntPtr typename(IntPtr luaState, int type) { return lua_typename(luaState, type); }
 
         // lua_upvalueindex -> below
