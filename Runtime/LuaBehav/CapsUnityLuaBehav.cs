@@ -161,6 +161,20 @@ public class CapsUnityLuaBehav : MonoBehaviour
             }
         }
     }
+    public static void ExpandExFieldsToSelf(IntPtr l, CapsUnityLuaBehav behav, int index)
+    {
+        using (var lr = new LuaStateRecover(l))
+        {
+            l.pushvalue(index); // behav
+            if (behav.ExFields != null)
+            {
+                foreach (var kvp in behav.ExFields)
+                {
+                    l.SetHierarchical(-1, kvp.Key, kvp.Value);
+                }
+            }
+        }
+    }
 
     public static BaseLua BindBehav(IntPtr l, CapsUnityLuaBehav behav, int index)
     {
@@ -232,6 +246,17 @@ public class CapsUnityLuaBehav : MonoBehaviour
             }
             if (luaFileDone)
             {
+                l.GetField(oldtop + 2, "___bind_ex_to_self");
+                if (!l.isnoneornil(-1))
+                {
+                    bool bindex;
+                    l.GetLua(-1, out bindex);
+                    if (bindex)
+                    {
+                        ExpandExFieldsToSelf(l, behav, oldtop);
+                    }
+                }
+                l.pop(1);
 
                 l.GetField(oldtop + 2, "attach");
                 if (l.isfunction(-1))
