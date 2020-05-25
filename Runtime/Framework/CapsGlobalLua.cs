@@ -134,7 +134,7 @@ namespace Capstones.UnityEngineEx
                 if (work is IDisposable)
                 {
                     var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
-                    return behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
+                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
                 }
                 else
                 {
@@ -172,7 +172,7 @@ namespace Capstones.UnityEngineEx
                 if (work is IDisposable)
                 {
                     var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
-                    return behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
+                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
                 }
                 else
                 {
