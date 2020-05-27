@@ -3389,6 +3389,20 @@ namespace Capstones.LuaWrap
             LuaPack pack;
             CallGlobalHierarchical(l, name, args, out pack);
         }
+        public static void Call<TIn>(this IntPtr l, int index, string func, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+        }
 
         public static void PushArgsAndCall<TIn, T0>(this IntPtr l, out T0 rv0, TIn args)
             where TIn : struct, ILuaPack
@@ -3462,6 +3476,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0);
         }
+        public static void Call<TIn, T0>(this IntPtr l, int index, string func, out T0 rv0, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, TIn args)
             where TIn : struct, ILuaPack
@@ -3530,6 +3559,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1);
+        }
+        public static void Call<TIn, T0, T1>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1);
         }
 
@@ -3602,6 +3646,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2);
         }
+        public static void Call<TIn, T0, T1, T2>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, TIn args)
             where TIn : struct, ILuaPack
@@ -3670,6 +3729,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
+        }
+        public static void Call<TIn, T0, T1, T2, T3>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
         }
 
@@ -3742,6 +3816,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, TIn args)
             where TIn : struct, ILuaPack
@@ -3810,6 +3899,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
         }
 
@@ -3882,6 +3986,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, TIn args)
             where TIn : struct, ILuaPack
@@ -3950,6 +4069,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
         }
 
@@ -4022,6 +4156,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, TIn args)
             where TIn : struct, ILuaPack
@@ -4090,6 +4239,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
         }
 
@@ -4162,6 +4326,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, TIn args)
             where TIn : struct, ILuaPack
@@ -4230,6 +4409,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
         }
 
@@ -4302,6 +4496,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, TIn args)
             where TIn : struct, ILuaPack
@@ -4370,6 +4579,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
         }
 
@@ -4442,6 +4666,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, TIn args)
             where TIn : struct, ILuaPack
@@ -4512,6 +4751,21 @@ namespace Capstones.LuaWrap
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
         }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
+        }
 
         public static void PushArgsAndCall<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, TIn args)
             where TIn : struct, ILuaPack
@@ -4580,6 +4834,21 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
             Require(l, name, out pack, fields);
+            pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
+        }
+        public static void Call<TIn, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, int index, string func, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
+            if (func == null)
+            {
+                l.pushvalue(index);
+            }
+            else
+            {
+                l.GetField(index, func);
+            }
+            PushArgsAndCall(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
         }
     }

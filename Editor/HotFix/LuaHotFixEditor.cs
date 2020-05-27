@@ -491,6 +491,33 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void Call<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l, int index, string func");
+                    sw.Write(outpars);
+                    sw.Write(", TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            if (func == null)");
+                    sw.WriteLine("            {");
+                    sw.WriteLine("                l.pushvalue(index);");
+                    sw.WriteLine("            }");
+                    sw.WriteLine("            else");
+                    sw.WriteLine("            {");
+                    sw.WriteLine("                l.GetField(index, func);");
+                    sw.WriteLine("            }");
+                    sw.WriteLine("            PushArgsAndCall(l, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.WriteLine("    }");
                     sw.WriteLine("}");
                 }

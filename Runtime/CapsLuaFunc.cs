@@ -320,6 +320,61 @@ namespace Capstones.LuaWrap
             l.PushLua(p9);
             return CallInternalSingleReturn(l, oldtop);
         }
+        public static int CallRawSingleReturn(this IntPtr l, int index, string func)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn();
+        }
+        public static int CallRawSingleReturn<P0>(this IntPtr l, int index, string func, P0 p0)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0);
+        }
+        public static int CallRawSingleReturn<P0, P1>(this IntPtr l, int index, string func, P0 p0, P1 p1)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4, P5>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4, p5);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4, p5, p6);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4, p5, p6, p7);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7, P8>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        }
+        public static int CallRawSingleReturn<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
+        {
+            l.GetField(index, func);
+            return l.PushArgsAndCallRawSingleReturn(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+        }
         public static int PushArgsAndCallRaw(this IntPtr l)
         {
             var oldtop = l.gettop();
@@ -429,6 +484,182 @@ namespace Capstones.LuaWrap
             l.PushLua(p8);
             l.PushLua(p9);
             return CallInternal(l, oldtop);
+        }
+        public static int CallRaw(this IntPtr l, int index, string func)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0>(this IntPtr l, int index, string func, P0 p0)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1>(this IntPtr l, int index, string func, P0 p0, P1 p1)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4, P5>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4, P5, P6>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4, P5, P6, P7>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4, P5, P6, P7, P8>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallRaw<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(this IntPtr l, int index, string func, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            l.PushLua(p0);
+            l.PushLua(p1);
+            l.PushLua(p2);
+            l.PushLua(p3);
+            l.PushLua(p4);
+            l.PushLua(p5);
+            l.PushLua(p6);
+            l.PushLua(p7);
+            l.PushLua(p8);
+            l.PushLua(p9);
+            var code = CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
         }
         public static void PushArgsAndCall(this IntPtr l)
         {
