@@ -19,7 +19,7 @@ namespace Capstones.LuaExt
     {
         public static readonly Action<IntPtr> InitFunc;
 
-#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+#if UNITY_EDITOR || UNITY_STANDALONE || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
 #if UNITY_EDITOR_OSX
         public const string LIB_PATH = "LuaJsonNative";
 #else
