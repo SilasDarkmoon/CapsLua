@@ -1089,8 +1089,9 @@ namespace Capstones.UnityEditorEx
                 logger.Log("(Phase) Delete old scripts in Streaming Assets.");
                 if (System.IO.Directory.Exists("Assets/StreamingAssets/spt/"))
                 {
-                    System.IO.Directory.Delete("Assets/StreamingAssets/spt/", true);
-                    System.IO.Directory.CreateDirectory("Assets/StreamingAssets/spt/");
+                    System.IO.Directory.Move("Assets/StreamingAssets/spt", "Assets/StreamingAssets/spt_temp");
+                    System.IO.Directory.Delete("Assets/StreamingAssets/spt_temp/", true);
+                    PlatDependant.CreateFolder("Assets/StreamingAssets/spt/");
                 }
 
                 logger.Log("(Phase) Wait For Build.");
