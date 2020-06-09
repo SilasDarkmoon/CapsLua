@@ -494,53 +494,77 @@ namespace Capstones.LuaLib
                 }
                 // merge - no mod
                 CapsResManifest.MergeManifestNode(rmani.Root, tmpNode, true);
-                // merge - arch
+                // merge - no mod on arch
                 if (archNode != null)
                 {
-                    CapsResManifest.MergeManifestNode(rmani.Root, archNode, true);
+                    tmpNode = new CapsResManifestNode(rawmani);
+                    if (archNode.Children != null)
+                    {
+                        tmpNode.Children = new SortedList<string, CapsResManifestNode>();
+                        for (int i = 0; i < archNode.Children.Count; ++i)
+                        {
+                            var child = archNode.Children.Values[i];
+                            if (child.PPath == "mod")
+                            {
+                                continue;
+                            }
+                            tmpNode.Children[child.PPath] = child;
+                        }
+                    }
+                    CapsResManifest.MergeManifestNode(rmani.Root, tmpNode, true);
                 }
                 // merge - mod
-                var flags = ResManager.GetValidDistributeFlags();
-                if (root.Children != null)
+                MergeRuntimeManifestInMod(rmani, root);
+                // merge - mod on arch
+                if (archNode != null)
                 {
-                    CapsResManifestNode modNode;
-                    if (root.Children.TryGetValue("mod", out modNode))
+                    MergeRuntimeManifestInMod(rmani, archNode);
+                }
+                // Collapse
+                var flags = ResManager.GetValidDistributeFlags();
+                rmani.CollapseManifest(flags);
+                rmani.TrimExcess();
+            }
+            return rmani;
+        }
+        private static void MergeRuntimeManifestInMod(CapsResManifest target, CapsResManifestNode root)
+        {
+            var flags = ResManager.GetValidDistributeFlags();
+            if (root.Children != null)
+            {
+                CapsResManifestNode modNode;
+                if (root.Children.TryGetValue("mod", out modNode))
+                {
+                    if (modNode != null && modNode.Children != null)
                     {
-                        if (modNode != null && modNode.Children != null)
+                        var modChildren = modNode.Children;
+                        // merge - critical mod
+                        for (int i = 0; i < modChildren.Count; ++i)
                         {
-                            var modChildren = modNode.Children;
-                            // merge - critical mod
-                            for (int i = 0; i < modChildren.Count; ++i)
+                            var modChild = modChildren.Values[i];
+                            var mod = modChild.PPath;
+                            var moddesc = ResManager.GetDistributeDesc(mod);
+                            if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
                             {
-                                var modChild = modChildren.Values[i];
-                                var mod = modChild.PPath;
-                                var moddesc = ResManager.GetDistributeDesc(mod);
-                                if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
-                                {
-                                    CapsResManifest.MergeManifestNode(rmani.Root, modChild, true);
-                                }
+                                CapsResManifest.MergeManifestNode(target.Root, modChild, true);
                             }
-                            // merge - opt mod
-                            for (int i = 0; i < flags.Length; ++i)
+                        }
+                        // merge - opt mod
+                        for (int i = 0; i < flags.Length; ++i)
+                        {
+                            var flag = flags[i];
+                            CapsResManifestNode modChild;
+                            if (modChildren.TryGetValue(flag, out modChild))
                             {
-                                var flag = flags[i];
-                                CapsResManifestNode modChild;
-                                if (modChildren.TryGetValue(flag, out modChild))
+                                if (modChild != null)
                                 {
-                                    if (modChild != null)
-                                    {
-                                        CapsResManifest.MergeManifestNode(rmani.Root, modChild, true);
-                                    }
+                                    CapsResManifest.MergeManifestNode(target.Root, modChild, true);
                                 }
                             }
                         }
                     }
                 }
-                // Collapse
-                rmani.CollapseManifest(flags);
-                rmani.TrimExcess();
             }
-            return rmani;
         }
         public static void StartLoadRuntimeManifest()
         {
@@ -579,24 +603,36 @@ namespace Capstones.LuaLib
                 var root = _RuntimeRawManifest.Root;
                 if (root != null && root.Children != null)
                 {
-                    CapsResManifestNode modnode;
-                    if (root.Children.TryGetValue("mod", out modnode))
+                    var archnodepath = Environment.Is64BitProcess ? "@64" : "@32";
+                    CapsResManifestNode archnode;
+                    if (root.Children.TryGetValue(archnodepath, out archnode))
                     {
-                        var modChildren = modnode.Children;
-                        if (modChildren != null)
+                        List<string> cmods = new List<string>();
+                        GetCriticalLuaMods(archnode, cmods);
+                        GetCriticalLuaMods(root, cmods);
+                        return cmods.ToArray();
+                    }
+                    else
+                    {
+                        CapsResManifestNode modnode;
+                        if (root.Children.TryGetValue("mod", out modnode))
                         {
-                            List<string> cmods = new List<string>(modnode.Children.Count);
-                            for (int i = 0; i < modChildren.Count; ++i)
+                            var modChildren = modnode.Children;
+                            if (modChildren != null)
                             {
-                                var modChild = modChildren.Values[i];
-                                var mod = modChild.PPath;
-                                var moddesc = ResManager.GetDistributeDesc(mod);
-                                if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                                List<string> cmods = new List<string>(modnode.Children.Count);
+                                for (int i = 0; i < modChildren.Count; ++i)
                                 {
-                                    cmods.Add(mod);
+                                    var modChild = modChildren.Values[i];
+                                    var mod = modChild.PPath;
+                                    var moddesc = ResManager.GetDistributeDesc(mod);
+                                    if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                                    {
+                                        cmods.Add(mod);
+                                    }
                                 }
+                                return cmods.ToArray();
                             }
-                            return cmods.ToArray();
                         }
                     }
                 }
@@ -605,6 +641,27 @@ namespace Capstones.LuaLib
 #else
             return ResManager.GetValidDistributeFlags();
 #endif
+        }
+        private static void GetCriticalLuaMods(CapsResManifestNode root, List<string> cmods)
+        {
+            CapsResManifestNode modnode;
+            if (root.Children.TryGetValue("mod", out modnode))
+            {
+                var modChildren = modnode.Children;
+                if (modChildren != null)
+                {
+                    for (int i = 0; i < modChildren.Count; ++i)
+                    {
+                        var modChild = modChildren.Values[i];
+                        var mod = modChild.PPath;
+                        var moddesc = ResManager.GetDistributeDesc(mod);
+                        if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                        {
+                            cmods.Add(mod);
+                        }
+                    }
+                }
+            }
         }
 
         private static readonly char[] _LuaRequireSeperateChars = new[] { '.', '/', '\\' };
@@ -865,6 +922,10 @@ namespace Capstones.LuaLib
                                 if (node != null && node.Item != null)
                                 {
                                     var item = node.Item;
+                                    while (item.Ref != null)
+                                    {
+                                        item = item.Ref;
+                                    }
                                     return GetLuaStream(item, out location);
                                 }
                             }
@@ -883,7 +944,6 @@ namespace Capstones.LuaLib
                             {
                                 item = item.Ref;
                             }
-
                             return GetLuaStream(item, out location);
                         }
                     }

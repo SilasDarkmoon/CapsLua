@@ -1248,7 +1248,7 @@ namespace Capstones.LuaLib
 
         public static void PrepareLib()
         {
-#if !(UNITY_IOS && !UNITY_EDITOR)
+#if !(UNITY_IOS && !UNITY_EDITOR) && !ENABLE_IL2CPP
             try
             {
                 Marshal.PrelinkAll(typeof(LuaCoreLib));

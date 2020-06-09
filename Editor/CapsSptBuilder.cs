@@ -1307,6 +1307,7 @@ namespace Capstones.UnityEditorEx
             {
                 CapsResManifest sptmani = new CapsResManifest();
                 HashSet<string> keys = new HashSet<string>();
+                HashSet<int> archs = new HashSet<int>();
                 using (var sw = PlatDependant.OpenWriteText("Assets/StreamingAssets/spt/index.txt"))
                 {
                     var files = PlatDependant.GetAllFiles("Assets/StreamingAssets/spt/");
@@ -1324,6 +1325,7 @@ namespace Capstones.UnityEditorEx
                             {
                                 continue;
                             }
+                            sptmani.AddOrGetItem(part);
                             if (part.StartsWith("@"))
                             {
                                 var index = part.IndexOfAny(new[] { '/', '\\' });
@@ -1333,11 +1335,11 @@ namespace Capstones.UnityEditorEx
                                     int arch;
                                     if (int.TryParse(dir0, out arch))
                                     {
+                                        archs.Add(arch);
                                         part = part.Substring(index + 1);
                                     }
                                 }
                             }
-                            sptmani.AddOrGetItem(part);
                             string mod = "";
                             string dist = "";
                             if (part.StartsWith("mod/"))
@@ -1373,6 +1375,13 @@ namespace Capstones.UnityEditorEx
                                 sw.WriteLine(key);
                             }
                         }
+                    }
+                }
+                if (archs.Count > 0)
+                {
+                    foreach (var arch in archs)
+                    {
+                        sptmani.AddOrGetItem("@arch/@" + arch);
                     }
                 }
                 CapsLuaFileManager.SaveManifest(sptmani, "Assets/StreamingAssets/spt/manifest.m.txt");
