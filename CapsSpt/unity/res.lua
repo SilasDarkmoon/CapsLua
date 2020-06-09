@@ -4,6 +4,7 @@ local Object = UnityEngine.Object
 local GameObject = UnityEngine.GameObject
 local CapsUnityLuaBehav = clr.CapsUnityLuaBehav
 local EventSystem = UnityEngine.EventSystems.EventSystem
+local Mask = UnityEngine.UI.Mask
 
 res = {}
 
@@ -206,6 +207,26 @@ function res.SetEventSystemEnabled(eventSystemComp, enabled)
     if eventSystemComp then
         eventSystemComp.enabled = enabled
     end
+end
+
+-- 判断物体是否在mask中，
+-- 主要用于自己写的shader在mask和非mask下的模板缓冲id的设置
+-- tf:transform
+function res.IsInMask(tf)
+    if tf then
+        local parent = tf.parent
+        if parent == nil or res.IsClrNull(parent) then
+            return false
+        else
+            local mask = parent:GetComponent(Mask)
+            if mask == nil or res.IsClrNull(mask) then
+                return res.IsInMask(parent)
+            else
+                return true
+            end
+        end
+    end
+    return false
 end
 
 return res
