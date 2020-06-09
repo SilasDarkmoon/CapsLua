@@ -642,6 +642,8 @@ namespace Capstones.LuaLib
             return ResManager.GetValidDistributeFlags();
 #endif
         }
+
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         private static void GetCriticalLuaMods(CapsResManifestNode root, List<string> cmods)
         {
             CapsResManifestNode modnode;
@@ -663,6 +665,7 @@ namespace Capstones.LuaLib
                 }
             }
         }
+#endif
 
         private static readonly char[] _LuaRequireSeperateChars = new[] { '.', '/', '\\' };
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
