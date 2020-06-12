@@ -5,6 +5,7 @@ local GameObject = UnityEngine.GameObject
 local CapsUnityLuaBehav = clr.CapsUnityLuaBehav
 local EventSystem = UnityEngine.EventSystems.EventSystem
 local Mask = UnityEngine.UI.Mask
+local Canvas = UnityEngine.Canvas
 
 res = {}
 
@@ -227,6 +228,25 @@ function res.IsInMask(tf)
         end
     end
     return false
+end
+
+function res.FindCanvasLayerNameAndOrder(tf)
+    local lName, order
+    if tf then
+        local parent = tf.parent
+        if parent == nil or res.IsClrNull(parent) then
+            lName = tf.gameObject.layer
+            local canvas = tf:GetComponent(Canvas)
+            if canvas ~= nil and not res.IsClrNull(canvas) then
+                order = canvas.sortingOrder
+            end
+            return lName, order
+        else
+            return res.FindCanvasLayerNameAndOrder(parent)
+        end
+    end
+
+    return lName, order
 end
 
 return res
