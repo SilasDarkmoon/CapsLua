@@ -72,7 +72,7 @@ namespace Capstones.LuaLib
         #endregion
 
         #region Lua Core Func
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
 #if UNITY_EDITOR_OSX
         public const string LUADLL = "lua";
 #else
@@ -83,7 +83,7 @@ namespace Capstones.LuaLib
 #else
         public const string LUADLL = "lua";
 #endif
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_atpanic")]
         public static extern CFunction atpanic(this IntPtr luaState, CFunction panicf);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_call")]
@@ -1271,7 +1271,7 @@ namespace Capstones.LuaLib
 
     public static class LuaAuxLib
     {
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
         [DllImport(LuaCoreLib.LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "luaL_callmeta")]
         public static extern bool callmeta(this IntPtr luaState, int stackPos, byte[] name);
         public static bool callmeta(this IntPtr luaState, int stackPos, string name)
