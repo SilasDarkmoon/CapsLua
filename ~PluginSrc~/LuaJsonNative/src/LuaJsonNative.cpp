@@ -577,10 +577,17 @@ static int json_encode(lua_State* L)
 #define EXPORT_API
 #endif
 
+#if _WIN32
+#include <clocale>
+#endif
+
 extern "C"
 {
     EXPORT_API void InitLuaJsonPlugin(void* l)
     {
+#if _WIN32
+        std::setlocale(LC_ALL, "en_US.UTF-8");
+#endif
         lua_newtable(l);
         lua_pushvalue(l, -1);
         lua_setglobal(l, "json");
