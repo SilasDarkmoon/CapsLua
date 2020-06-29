@@ -231,22 +231,22 @@ function res.IsInMask(tf)
 end
 
 function res.FindCanvasLayerNameAndOrder(tf)
-    local lLayerId, order
+    local lLayerName, order
     if tf then
         local parent = tf.parent
         if parent == nil or res.IsClrNull(parent) then
-            lLayerId = tf.gameObject.layer
             local canvas = tf:GetComponent(Canvas)
             if canvas ~= nil and not res.IsClrNull(canvas) then
                 order = canvas.sortingOrder
+                lLayerName = canvas.sortingLayerName
             end
-            return lLayerId, order
+            return lLayerName, order
         else
             return res.FindCanvasLayerNameAndOrder(parent)
         end
     end
 
-    return lLayerId, order
+    return lLayerName, order
 end
 
 return res
