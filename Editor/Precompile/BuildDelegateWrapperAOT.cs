@@ -81,7 +81,7 @@ namespace Capstones.UnityEditorEx
         }
         private static void GetDelTypes(HashSet<Types> list, Type searchType, HashSet<Type> typeSearched)
         {
-            if (searchType == null || list == null)
+            if (searchType == null || list == null || searchType.FullName == null)
             {
                 return;
             }
