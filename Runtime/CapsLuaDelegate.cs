@@ -23,7 +23,35 @@ namespace Capstones.LuaLib
 #if NETFX_CORE
             private Dictionary<Type, Delegate> _Cache = new Dictionary<Type, Delegate>();
 #endif
-            public BaseLua Target { get; set; }
+            protected BaseLua _Target;
+            internal LuaThreadRefMan _TargetMan;
+
+            public BaseLua Target
+            {
+                get
+                {
+                    if (!ReferenceEquals(_Target, null))
+                    {
+                        if (_TargetMan != null && !_TargetMan.IsClosed)
+                        {
+                            return _Target;
+                        }
+                    }
+                    return null;
+                }
+                set
+                {
+                    _Target = value;
+                    if (ReferenceEquals(value, null))
+                    {
+                        _TargetMan = null;
+                    }
+                    else
+                    {
+                        _TargetMan = value.Ref.man;
+                    }
+                }
+            }
             public Delegate MakeDelegate(Type deltype)
             {
 #if NETFX_CORE
