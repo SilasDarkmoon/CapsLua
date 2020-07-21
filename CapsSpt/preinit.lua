@@ -1,4 +1,6 @@
-﻿if jit and jit.os == "OSX" and (jit.arch == "arm" or jit.arch == "arm64") then
+﻿if jit then jit.off(true, true) end
+
+if jit and jit.os == "OSX" and (jit.arch == "arm" or jit.arch == "arm64") then
     jit = nil
 end
 
