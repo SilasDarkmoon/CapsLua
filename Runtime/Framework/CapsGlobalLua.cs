@@ -65,6 +65,10 @@ namespace Capstones.UnityEngineEx
 
         public static void Init()
         {
+#if UNITY_EDITOR
+            try
+            { 
+#endif
             if (object.ReferenceEquals(L, null))
             {
                 L = new LuaState();
@@ -84,6 +88,14 @@ namespace Capstones.UnityEngineEx
                     }
                 }
             }
+#if UNITY_EDITOR
+            }
+            catch (DllNotFoundException e)
+            {
+                Debug.LogException(e);
+                LuaDllPostprocessor.LuaDllMissing = true;
+            }
+#endif
         }
         public static void Reinit()
         {
@@ -274,6 +286,67 @@ namespace Capstones.UnityEngineEx
                 L.L.gc(2, 0);
             }
         }
+
+#if UNITY_EDITOR
+        private class LuaDllPostprocessor : UnityEditor.AssetPostprocessor
+        {
+            public static bool LuaDllMissing = false;
+
+            private static bool IsLuaDll(string path)
+            {
+                if (path != null)
+                {
+                    if (UnityEditor.AssetImporter.GetAtPath(path) is UnityEditor.PluginImporter)
+                    {
+                        var file = System.IO.Path.GetFileNameWithoutExtension(path);
+                        if (file == "lua" || file == "liblua")
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            private static bool CheckLuaDll(string path)
+            {
+                if (IsLuaDll(path))
+                {
+                    if (LuaDllMissing)
+                    {
+                        UnityEditor.AssetDatabase.ImportAsset(ResManager.__ASSET__, UnityEditor.ImportAssetOptions.ForceUpdate);
+                    }
+                    return true;
+                }
+                return false;
+            }
+            private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+            {
+                if (LuaDllMissing)
+                {
+                    if (importedAssets != null)
+                    {
+                        for (int i = 0; i < importedAssets.Length; ++i)
+                        {
+                            if (CheckLuaDll(importedAssets[i]))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                    if (movedAssets != null)
+                    {
+                        for (int i = 0; i < movedAssets.Length; ++i)
+                        {
+                            if (CheckLuaDll(importedAssets[i]))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+#endif
     }
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
