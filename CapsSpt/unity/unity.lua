@@ -174,14 +174,25 @@ function unity.restart()
     Time.timeScale = 1
 end
 
-function unity.changeServerTo(url)
+function unity.dirtyRestart()
+    Application.LoadLevel(0)
+    Time.timeScale = 1
+end
+
+function unity.changeServerTo(url, onModifyConfig)
     res.Cleanup()
     for k,v in pairs(package.loaded) do
         package.loaded[k] = nil
     end
 
+    pcall(require, "config")
     ___CONFIG__ACCOUNT_URL = url
     ___CONFIG__BASE_URL = ___CONFIG__ACCOUNT_URL
+    ___CONFIG__TCP_URL = nil
+    ___CONFIG__PVP_URL = nil
+    if type(onModifyConfig) == "function" then
+        onModifyConfig()
+    end
 
     Application.LoadLevel(0)
     Time.timeScale = 1
