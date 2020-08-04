@@ -53,6 +53,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "capid");
                         L.pushcfunction(ClrDelSplitStr);
                         L.SetField(-2, "splitstr");
+                        L.pushcfunction(ClrDelCurrentLua);
+                        L.SetField(-2, "thislua");
                         L.PushString(ThreadSafeValues.UpdatePath);
                         L.SetField(-2, "updatepath");
                         L.pushcfunction(ClrDelGetLangValueOfUserDataType);
@@ -185,6 +187,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
         public static readonly lua.CFunction ClrDelGetCapID = new lua.CFunction(ClrFuncGetCapID);
         public static readonly lua.CFunction ClrDelSplitStr = new lua.CFunction(ClrFuncSplitStr);
+        public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
         public static readonly lua.CFunction ClrDelUpdateLanguageConverter = new lua.CFunction(UpdateLanguageConverter);
@@ -407,6 +410,12 @@ namespace Capstones.LuaExt
                     SplitStr(l, (System.Text.StringBuilder)inputStr);
                 }
             }
+            return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncCurrentLua(IntPtr l)
+        {
+            l.pushlightuserdata(l);
             return 1;
         }
 
