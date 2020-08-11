@@ -5804,6 +5804,11 @@ namespace Capstones.UnityEditorEx
             MethodOverload[] partmethods = null;
             //HashSet<Type> minSelectableTypes = null;
 
+            if (ByObjTypeCnt > ByObjType.Count)
+            { // instance methods.
+                ByObjTypeCnt = ByObjType.Count;
+            }
+
             int min_max_group_ele_cnt = int.MaxValue;
             for (int i = 0; i < ByObjTypeCnt; ++i)
             {
