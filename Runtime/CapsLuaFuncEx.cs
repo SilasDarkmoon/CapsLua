@@ -657,7 +657,30 @@ namespace Capstones.LuaWrap
 
         public static T[] GetArray<T>(this IntPtr l, int index)
         {
-            return GetList<T>(l, index).ToArray();
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.pushvalue(index);
+                        var cnt = l.getn(-1);
+                        var array = new T[cnt];
+
+                        for (int i = 1; i <= cnt; ++i)
+                        {
+                            l.pushnumber(i);
+                            l.gettable(-2);
+                            var val = l.GetLua<T>(-1);
+                            array[i - 1] = val;
+                            l.pop(1);
+                        }
+
+                        return array;
+                    }
+                }
+            }
+            return null;
         }
         public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index)
         {
@@ -747,7 +770,24 @@ namespace Capstones.LuaWrap
 
         public static T[] GetArray<T>(this IntPtr l, int index, string fieldname)
         {
-            return GetList<T>(l, index, fieldname).ToArray();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                return GetArray<T>(l, index);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        var rv = GetArray<T>(l, -1);
+                        l.pop(1);
+                        return rv;
+                    }
+                }
+            }
+            return null;
         }
         public static Capstones.UnityEngineEx.ValueList<T> GetList<T>(this IntPtr l, int index, string fieldname)
         {
@@ -833,7 +873,26 @@ namespace Capstones.LuaWrap
 
         public static T[] GetArrayHierarchical<T>(this IntPtr l, int index, string fieldname)
         {
-            return GetListHierarchical<T>(l, index, fieldname).ToArray();
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                return GetArray<T>(l, index);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            var rv = GetArray<T>(l, -1);
+                            l.pop(1);
+                            return rv;
+                        }
+                    }
+                }
+            }
+            return null;
         }
         public static Capstones.UnityEngineEx.ValueList<T> GetListHierarchical<T>(this IntPtr l, int index, string fieldname)
         {
@@ -922,7 +981,17 @@ namespace Capstones.LuaWrap
 
         public static T[] GetGlobalArray<T>(this IntPtr l, string name)
         {
-            return GetGlobalList<T>(l, name).ToArray();
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                var rv = GetArray<T>(l, -1);
+                l.pop(1);
+                return rv;
+            }
+            else
+            {
+                return null;
+            }
         }
         public static Capstones.UnityEngineEx.ValueList<T> GetGlobalList<T>(this IntPtr l, string name)
         {
@@ -990,7 +1059,16 @@ namespace Capstones.LuaWrap
 
         public static T[] GetGlobalArrayHierarchical<T>(this IntPtr l, string name)
         {
-            return GetGlobalListHierarchical<T>(l, name).ToArray();
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    var rv = GetArray<T>(l, -1);
+                    l.pop(1);
+                    return rv;
+                }
+            }
+            return null;
         }
         public static Capstones.UnityEngineEx.ValueList<T> GetGlobalListHierarchical<T>(this IntPtr l, string name)
         {
