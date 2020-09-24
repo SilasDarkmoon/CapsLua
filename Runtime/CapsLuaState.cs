@@ -599,6 +599,8 @@ namespace Capstones.LuaWrap
         {
             man.DoImmediateRecycle(this);
         }
+
+        public bool IsClosed { get { return man == null || man.IsClosed; } }
     }
 
     internal static class LuaThreadRefHelper

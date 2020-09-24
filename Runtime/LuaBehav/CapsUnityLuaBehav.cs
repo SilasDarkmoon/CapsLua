@@ -313,7 +313,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
 
     public void CallLuaFunc(string name)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -324,7 +324,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0>(string name, P0 p0)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -336,7 +336,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0, P1>(string name, P0 p0, P1 p1)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -349,7 +349,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0, P1, P2>(string name, P0 p0, P1 p1, P2 p2)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -363,7 +363,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0, P1, P2, P3>(string name, P0 p0, P1 p1, P2 p2, P3 p3)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -378,7 +378,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0, P1, P2, P3, P4>(string name, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -394,7 +394,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public void CallLuaFunc<P0, P1, P2, P3, P4, P5>(string name, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -411,7 +411,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R>(string name, out R r)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -431,7 +431,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0>(string name, out R r, P0 p0)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -452,7 +452,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0, P1>(string name, out R r, P0 p0, P1 p1)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -474,7 +474,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0, P1, P2>(string name, out R r, P0 p0, P1 p1, P2 p2)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -497,7 +497,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0, P1, P2, P3>(string name, out R r, P0 p0, P1 p1, P2 p2, P3 p3)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -521,7 +521,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0, P1, P2, P3, P4>(string name, out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -546,7 +546,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public bool CallLuaFunc<R, P0, P1, P2, P3, P4, P5>(string name, out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))
@@ -614,7 +614,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
     }
     public object[] CallLuaFunc(string name, params object[] args)
     {
-        if (!ReferenceEquals(_Self, null))
+        if (!ReferenceEquals(_Self, null) && !_Self.IsClosed)
         {
             var l = _Self._L;
             using (var lr = new LuaStateRecover(l))

@@ -96,6 +96,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
+        public bool IsClosed { get { return object.ReferenceEquals(Ref, null) || Ref.IsClosed; } }
 
         public override string ToString()
         {
