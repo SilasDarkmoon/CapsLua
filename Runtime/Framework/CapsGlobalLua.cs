@@ -217,10 +217,12 @@ namespace Capstones.UnityEngineEx
                 {
                     while (true)
                     {
+#if UNITY_EDITOR
                         if (lthd.IsClosed)
                         {
                             yield break;
                         }
+#endif
                         lthd.DoResume();
                         var l = lthd.L;
                         var rvc = l.gettop();
