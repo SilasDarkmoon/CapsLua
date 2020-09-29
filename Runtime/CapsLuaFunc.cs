@@ -184,7 +184,7 @@ namespace Capstones.LuaWrap
             return null;
         }
 
-        private static int CallInternal(IntPtr l, int oldtop)
+        internal static int CallInternal(IntPtr l, int oldtop)
         {
             int pcnt = l.gettop() - oldtop; // func, args(*pcnt)
             l.pushcfunction(LuaHub.LuaFuncOnError); // func, args(*pcnt), err
@@ -197,7 +197,7 @@ namespace Capstones.LuaWrap
             }
             return code;
         }
-        private static int CallInternalSingleReturn(IntPtr l, int oldtop)
+        internal static int CallInternalSingleReturn(IntPtr l, int oldtop)
         {
             int pcnt = l.gettop() - oldtop; // func, args(*pcnt)
             l.pushcfunction(LuaHub.LuaFuncOnError); // func, args(*pcnt), err

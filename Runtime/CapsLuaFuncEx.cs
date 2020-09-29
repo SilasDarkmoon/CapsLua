@@ -12,6 +12,60 @@ namespace Capstones.LuaWrap
 {
     public static partial class LuaFuncExHelper
     {
+        public static int PushPackedArgsAndCallRaw<TIn>(this IntPtr l, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            var oldtop = l.gettop();
+            args.PushToLua(l);
+            return LuaFuncHelper.CallInternal(l, oldtop);
+        }
+        public static int PushPackedArgsAndCallRawSingleReturn<TIn>(this IntPtr l, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            var oldtop = l.gettop();
+            args.PushToLua(l);
+            return LuaFuncHelper.CallInternalSingleReturn(l, oldtop);
+        }
+        public static int CallPackedArgsRaw<TIn>(this IntPtr l, int index, string func, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            var oldtop = l.gettop();
+            l.GetField(index, func);
+            args.PushToLua(l);
+            var code = LuaFuncHelper.CallInternal(l, oldtop + 1);
+            if (code != 0)
+            {
+                l.pop(1);
+            }
+            return l.gettop() - oldtop;
+        }
+        public static int CallPackedArgsRawSingleReturn<TIn>(this IntPtr l, int index, string func, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            l.GetField(index, func);
+            return l.PushPackedArgsAndCallRawSingleReturn(args);
+        }
+
+        public static bool NewTable<TIn>(this IntPtr l, string luafile, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            l.Require(luafile); // class
+            if (!l.istable(-1))
+            {
+                l.pop(1); // X
+                l.pushnil(); // nil
+                return false;
+            }
+            if (l.CallPackedArgsRawSingleReturn(-1, "new", args) != 0) // class obj
+            {
+                l.pop(2); // X
+                l.pushnil(); // nil
+                return false;
+            }
+            l.remove(-2); // obj
+            return true;
+        }
+
         public static TOut PushArgsAndCall<TIn, TOut>(this IntPtr l, TIn args)
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack
