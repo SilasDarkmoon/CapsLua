@@ -23,6 +23,12 @@ namespace Capstones.LuaLib
             get { return _Pos; }
             internal set { _Pos = value; }
         }
+
+        public static implicit operator int(LuaStackPos stackpos)
+        {
+            return stackpos.Pos;
+        }
+        public static readonly LuaStackPos Top = new LuaStackPos { Pos = -1 };
     }
 
     public static partial class LuaHub
@@ -30,6 +36,10 @@ namespace Capstones.LuaLib
         public static LuaStackPos OnStack(this IntPtr l, int pos)
         {
             return new LuaStackPos() { Pos = l.NormalizeIndex(pos) };
+        }
+        public static LuaStackPos OnStackTop(this IntPtr l)
+        {
+            return l.OnStack(-1);
         }
 
         public static void PushLua(this IntPtr l, LuaStackPos val)
