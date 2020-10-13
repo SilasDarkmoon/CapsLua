@@ -77,7 +77,7 @@ namespace Capstones.UnityEditorEx
                     TargetType = infos[1],
                     OwnerType = infos[2],
                     //ReturnType = infos[3],
-                    BodyStr = infos[3],
+                    BodyStr = infos.Length > 3 ? infos[3] : "",
 
                     Comments = comments,
                     CommentSet = commentSet,
