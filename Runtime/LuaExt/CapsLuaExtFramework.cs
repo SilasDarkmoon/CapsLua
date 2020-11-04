@@ -601,7 +601,7 @@ namespace Capstones.LuaExt
                 uint x1 = (uint)((unite & (0xFFFFL << 16)) >> 16);
                 Marshal.WriteInt32(ps, 4, (int)x1);
                 uint x2 = (uint)((unite & (0xFFFFL << 32)) >> 32);
-                Marshal.WriteInt32(ps, 4, (int)x2);
+                Marshal.WriteInt32(ps, 8, (int)x2);
                 return 0;
             }
             else
