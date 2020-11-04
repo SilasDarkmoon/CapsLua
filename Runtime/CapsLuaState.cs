@@ -177,7 +177,7 @@ namespace Capstones.LuaWrap
         }
 
         // TODO: more func of lualib import here.
-        public int DoFile(string filepath)
+        public int DoFileRaw(string filepath)
         {
             var l = L;
             var oldtop = l.gettop();
@@ -185,6 +185,34 @@ namespace Capstones.LuaWrap
             var code = l.dofile(filepath, oldtop + 1);
             l.remove(oldtop + 1);
             return code;
+        }
+        public void DoFile(string filepath)
+        {
+            using (var lr = CreateStackRecover())
+            {
+                DoFileRaw(filepath);
+            }
+        }
+        public int DoStringRaw(string chunk)
+        {
+            var l = L;
+            var oldtop = l.gettop();
+            l.pushcfunction(LuaHub.LuaFuncOnError);
+            var code = l.loadstring(chunk);
+            if (code != 0)
+            {
+                return code;
+            }
+            code = l.pcall(0, lua.LUA_MULTRET, oldtop + 1);
+            l.remove(oldtop + 1);
+            return code;
+        }
+        public void DoString(string chunk)
+        {
+            using (var lr = CreateStackRecover())
+            {
+                DoStringRaw(chunk);
+            }
         }
     }
 

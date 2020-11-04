@@ -186,7 +186,15 @@ namespace Capstones.LuaLib
             {
                 if (val is LuaWrap.LuaState)
                 {
-                    ((LuaWrap.LuaState)val).L.pushthread();
+                    var state = (LuaWrap.LuaState)val;
+                    if (state.L.Indicator() == l.Indicator())
+                    {
+                        state.L.pushthread();
+                    }
+                    else
+                    {
+                        l.PushLuaObject(state);
+                    }
                 }
                 else if (val is LuaWrap.BaseLuaOnStack)
                 {

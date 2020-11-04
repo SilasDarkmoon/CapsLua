@@ -154,6 +154,7 @@ namespace Capstones.LuaWrap
             if (code != 0)
             {
                 result = default(TOut);
+                l.pop(1);
                 return;
             }
             l.PushArgsAndCall<LuaPack, TOut>(default(LuaPack), out result);
@@ -180,6 +181,7 @@ namespace Capstones.LuaWrap
             if (code != 0)
             {
                 result = default(TOut);
+                l.pop(1);
                 return;
             }
             l.PushArgsAndCall<LuaPack, TOut>(default(LuaPack), out result);

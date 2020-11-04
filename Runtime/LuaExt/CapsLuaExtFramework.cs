@@ -55,6 +55,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "splitstr");
                         L.pushcfunction(ClrDelCurrentLua);
                         L.SetField(-2, "thislua");
+                        L.pushcfunction(ClrDelToPointer);
+                        L.SetField(-2, "topointer");
                         L.pushcfunction(ClrDelRandomState);
                         L.SetField(-2, "randomstate");
                         L.PushString(ThreadSafeValues.UpdatePath);
@@ -190,6 +192,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelGetCapID = new lua.CFunction(ClrFuncGetCapID);
         public static readonly lua.CFunction ClrDelSplitStr = new lua.CFunction(ClrFuncSplitStr);
         public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
+        public static readonly lua.CFunction ClrDelToPointer = new lua.CFunction(ClrFuncToPointer);
         public static readonly lua.CFunction ClrDelRandomState = new lua.CFunction(ClrFuncRandomState);
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
@@ -420,6 +423,21 @@ namespace Capstones.LuaExt
         {
             l.pushlightuserdata(l);
             return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncToPointer(IntPtr l)
+        {
+            if (l.gettop() == 0)
+            {
+                l.pushlightuserdata(l);
+                return 1;
+            }
+            else
+            {
+                var p = l.topointer(1);
+                l.pushlightuserdata(p);
+                return 1;
+            }
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncRandomState(IntPtr l)
