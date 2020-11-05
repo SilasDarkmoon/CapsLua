@@ -434,9 +434,18 @@ namespace Capstones.LuaExt
             }
             else
             {
-                var p = l.topointer(1);
-                l.pushlightuserdata(p);
-                return 1;
+                if (l.isnumber(1))
+                {
+                    var p = new IntPtr((long)l.tonumber(1));
+                    l.pushlightuserdata(p);
+                    return 1;
+                }
+                else
+                {
+                    var p = l.topointer(1);
+                    l.pushlightuserdata(p);
+                    return 1;
+                }
             }
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
