@@ -182,6 +182,15 @@ Create an class.
 ]]
 function class(super, classname)
     local superType = type(super)
+    if superType == "string" then
+        local classnametype = type(classname)
+        if classname == nil or classnametype == "table" or classnametype == "function" then
+            local realsuper = classname
+            classname = super
+            super = realsuper
+            superType = classnametype
+        end
+    end
     local cls
 
     if superType ~= "function" and superType ~= "table" then
