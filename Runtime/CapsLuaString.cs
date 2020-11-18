@@ -794,6 +794,56 @@ namespace Capstones.LuaLib
             l.settable(index);
         }
 
+        public static void RawGet(this IntPtr l, int index, string key)
+        {
+            var top = l.gettop();
+            if (index < 0 && -index <= top)
+            {
+                index = top + 1 + index;
+            }
+
+            l.PushString(key);
+            l.rawget(index);
+        }
+
+        public static void RawGet(this IntPtr l, int index, LuaString key)
+        {
+            var top = l.gettop();
+            if (index < 0 && -index <= top)
+            {
+                index = top + 1 + index;
+            }
+
+            key.PushString(l);
+            l.rawget(index);
+        }
+
+        public static void RawSet(this IntPtr l, int index, string key)
+        {
+            var top = l.gettop();
+            if (index < 0 && -index <= top)
+            {
+                index = top + 1 + index;
+            }
+
+            l.PushString(key);
+            l.insert(-2);
+            l.rawset(index);
+        }
+
+        public static void RawSet(this IntPtr l, int index, LuaString key)
+        {
+            var top = l.gettop();
+            if (index < 0 && -index <= top)
+            {
+                index = top + 1 + index;
+            }
+
+            key.PushString(l);
+            l.insert(-2);
+            l.rawset(index);
+        }
+
         public static void GetGlobal(this IntPtr l, string key)
         {
             GetField(l, lua.LUA_GLOBALSINDEX, key);
