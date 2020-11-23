@@ -11,7 +11,7 @@ using Capstones.LuaWrap;
 
 namespace Capstones.LuaWrap
 {
-    public class LuaOnStackTable : BaseLuaOnStack
+    public sealed class LuaOnStackTable : BaseLuaOnStack
     {
         internal class LuaTableFieldsProvider : BaseFieldsProvider
         {
@@ -279,7 +279,7 @@ namespace Capstones.LuaWrap
         }
     }
 
-    public class LuaOnStackRawTable : BaseLuaOnStack
+    public sealed class LuaOnStackRawTable : BaseLuaOnStack
     {
         internal LuaOnStackTable.LuaTableFieldsProvider _FieldsProvider = null;
         public IFieldsProvider FieldsProvider

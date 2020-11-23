@@ -11,7 +11,7 @@ using Capstones.LuaWrap;
 
 namespace Capstones.LuaWrap
 {
-    public class LuaOnStackFunc : BaseLuaOnStack
+    public sealed class LuaOnStackFunc : BaseLuaOnStack
     {
         public LuaOnStackFunc(IntPtr l, int index)
         {
