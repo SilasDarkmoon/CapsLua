@@ -391,6 +391,12 @@ function table.imerge(dest, src)
     end
 end
 
+function table.clear(tab)
+    for k, v in pairs(tab) do
+        tab[k] = nil
+    end
+end
+
 --[[--
 
 Return formatted string with a comma (",") between every group of thousands.
