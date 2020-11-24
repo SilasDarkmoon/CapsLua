@@ -818,11 +818,11 @@ namespace Capstones.UnityEditorEx
             var l = GlobalLua.L.L;
             using (var lr = l.CreateStackRecover())
             {
-                var testclass = l.Require("test");
-                l.Call(testclass, "new", out LuaStackPos testobj, Pack());
-                l.Call(testobj, "getinfo", out LuaStackPos info, Pack(testobj));
-                l.GetTable(out string name, info, "name");
-                Debug.LogError(name);
+                var testclass = l.Require("test"); // local testclass = require("test")
+                l.Call(testclass, "new", out LuaStackPos testobj, Pack()); // local testobj = testclass.new()
+                l.Call(testobj, "getinfo", out LuaStackPos info, Pack(testobj)); // local info = testobj:getinfo()
+                l.GetTable(out string name, info, "name"); // local name = info.name
+                Debug.LogError(name); // printe(name)
             }
         }
         #endregion
