@@ -15,6 +15,7 @@ using Capstones.LuaWrap;
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
+using static Capstones.LuaWrap.LuaPack;
 
 using Object = UnityEngine.Object;
 using Types = Capstones.LuaLib.Types;
@@ -817,9 +818,10 @@ namespace Capstones.UnityEditorEx
             var l = GlobalLua.L.L;
             using (var lr = l.CreateStackRecover())
             {
-                l.Require(out LuaStackPos func, "test", "test");
-                l.Call(func, null, out LuaStackPos tab, LuaPack.Pack());
-                l.GetTable(out string name, tab, "name");
+                var testclass = l.Require("test");
+                l.Call(testclass, "new", out LuaStackPos testobj, Pack());
+                l.Call(testobj, "getinfo", out LuaStackPos info, Pack(testobj));
+                l.GetTable(out string name, info, "name");
                 Debug.LogError(name);
             }
         }

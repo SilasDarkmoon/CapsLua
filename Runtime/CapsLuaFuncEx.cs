@@ -1459,10 +1459,11 @@ namespace Capstones.LuaWrap
         }
 #endif
 
-        public static void Require(this IntPtr l, string lib)
+        public static LuaStackPos Require(this IntPtr l, string lib)
         {
             l.GetGlobal("require");
             l.PushArgsAndCallRawSingleReturn(lib);
+            return l.OnStackTop();
         }
         public static TOut Require<TOut>(this IntPtr l, string name, params string[] fields)
             where TOut : struct, ILuaPack
