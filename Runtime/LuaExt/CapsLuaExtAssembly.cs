@@ -497,43 +497,70 @@ namespace Capstones.LuaExt
             var list = l.GetLua<IList>(1);
             if (list != null)
             {
-                var key = l.GetLua(2);
-                object oindex = null;
-                if (key != null)
+                int key = -1;
+                if (l.isnumber(2))
                 {
-                    oindex = LuaHub.ConvertTypeRaw(key, typeof(int));
+                    l.GetLua(2, out key);
                 }
-                if (key == null || oindex != null)
+                ++key;
+                if (key >= 0 && key < list.Count)
                 {
-                    int index = 0;
-                    if (oindex != null)
-                    {
-                        index = (int)oindex + 1;
-                    }
-                    if (index >= 0 && index < list.Count)
-                    {
-                        l.pushnumber(index);
-                        l.PushLua(list[index]);
-                        return 2;
-                    }
-                }
-                return 0;
-            }
-            var detor = l.GetLua<IDictionaryEnumerator>(1);
-            if (detor != null)
-            {
-                var key = l.GetLua(2);
-                if(key == null)
-                {
-                    detor.Reset();
-                }
-                if (detor.MoveNext())
-                {
-                    l.PushLua(detor.Entry.Key);
-                    l.PushLua(detor.Entry.Value);
+                    l.pushnumber(key);
+                    l.PushLua(list[key]);
                     return 2;
                 }
-                return 0;
+                else
+                {
+                    return 0;
+                }
+            }
+            var dict = l.GetLua<IDictionary>(1);
+            if (dict != null)
+            {
+                var etor = l.GetLua<IDictionaryEnumerator>(lua.upvalueindex(1));
+                if (etor == null || l.isnoneornil(2))
+                {
+                    etor = dict.GetEnumerator();
+                    l.PushLua(etor);
+                    l.replace(lua.upvalueindex(1));
+                }
+                if (etor.MoveNext())
+                {
+                    l.PushLua(etor.Key);
+                    l.PushLua(etor.Value);
+                    return 2;
+                }
+                else
+                {
+                    return 0;
+                }    
+            }
+            var col = l.GetLua<IEnumerable>(1);
+            if (col != null)
+            {
+                int key = -1;
+                if (l.isnumber(2))
+                {
+                    l.GetLua(2, out key);
+                }
+                ++key;
+                var etor = l.GetLua<IEnumerator>(lua.upvalueindex(1));
+                if (etor == null || l.isnoneornil(2))
+                {
+                    etor = col.GetEnumerator();
+                    l.PushLua(etor);
+                    l.replace(lua.upvalueindex(1));
+                }
+                if (etor.MoveNext())
+                {
+                    l.pushnumber(key);
+                    l.PushLua(etor.Current);
+                    return 2;
+                }
+                else
+                {
+                    return 0;
+                }
             }
             return 0;
         }
@@ -552,8 +579,18 @@ namespace Capstones.LuaExt
             var dict = l.GetLua<IDictionary>(1);
             if (dict != null)
             {
-                l.pushcfunction(ClrDelNext);
-                l.PushLua(dict.GetEnumerator());
+                l.pushnil();
+                l.pushcclosure(ClrDelNext, 1);
+                l.pushvalue(1);
+                l.pushnil();
+                return 3;
+            }
+            var col = l.GetLua<IEnumerable>(1);
+            if (col != null)
+            {
+                l.pushnil();
+                l.pushcclosure(ClrDelNext, 1);
+                l.pushvalue(1);
                 l.pushnil();
                 return 3;
             }
