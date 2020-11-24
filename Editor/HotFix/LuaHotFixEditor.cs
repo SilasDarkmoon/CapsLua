@@ -120,12 +120,46 @@ namespace Capstones.UnityEditorEx
                 sw.WriteLine("; } }");
                 sw.WriteLine("        public void GetFromLua(IntPtr l)");
                 sw.WriteLine("        {");
+                sw.WriteLine("            int onstackcnt = 0;");
+                sw.WriteLine("            int pos;");
                 for (int i = 0; i < paramCnt; ++i)
                 {
-                    sw.Write("            l.GetLua(-");
-                    sw.Write(i + 1);
-                    sw.Write(", out t");
-                    sw.Write(paramCnt - i - 1);
+                    sw.WriteLine();
+                    sw.Write("            pos = -");
+                    sw.Write(paramCnt);
+                    sw.Write(" + ");
+                    sw.Write(i);
+                    sw.Write(";");
+                    sw.WriteLine();
+                    sw.Write("            if (ElementTypes[");
+                    sw.Write(i);
+                    sw.Write("].IsOnStack())");
+                    sw.WriteLine();
+                    sw.WriteLine("            {");
+                    if (i > 0)
+                    {
+                        sw.Write("                if (onstackcnt < ");
+                        sw.Write(i);
+                        sw.Write(")");
+                        sw.WriteLine();
+                        sw.WriteLine("                {");
+                        sw.Write("                    var newpos = -");
+                        sw.Write(paramCnt);
+                        sw.Write(" + onstackcnt;");
+                        sw.WriteLine();
+                        sw.WriteLine("                    l.pushvalue(pos);");
+                        sw.WriteLine("                    l.replace(newpos - 1);");
+                        sw.WriteLine("                    pos = newpos;");
+                        sw.WriteLine("                }");
+                    }
+                    if (i < paramCnt - 1)
+                    {
+                        sw.WriteLine("                ++onstackcnt;");
+                    }
+                    sw.WriteLine("            }");
+
+                    sw.Write("            l.GetLua(pos, out t");
+                    sw.Write(i);
                     sw.WriteLine(");");
                 }
                 sw.WriteLine("        }");
@@ -187,6 +221,15 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine(";");
                 }
                 sw.WriteLine("        }");
+                sw.Write("        private static Type[] ElementTypes = new Type[] { ");
+                for (int i = 0; i < paramCnt; ++i)
+                {
+                    sw.Write("typeof(T");
+                    sw.Write(i);
+                    sw.Write("), ");
+                }
+                sw.WriteLine("};");
+                sw.WriteLine("        public Type GetType(int index) { return ElementTypes[index]; }");
                 sw.WriteLine();
                 sw.WriteLine("#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0");
                 sw.Write("        public static implicit operator LuaPack<");
@@ -763,13 +806,22 @@ namespace Capstones.UnityEditorEx
         [MenuItem("Lua/HotFix/Test LuaPack", priority = 290020)]
         public static void TestLuaPack()
         {
-            Type[] genargs = new Type[18];
-            for (int i = 0; i < genargs.Length; ++i)
+            //Type[] genargs = new Type[18];
+            //for (int i = 0; i < genargs.Length; ++i)
+            //{
+            //    genargs[i] = typeof(int);
+            //}
+            //var packtype = typeof(LuaPack).Assembly.GetTypes().Where(type => type.Name == "LuaPack`18").FirstOrDefault().MakeGenericType(genargs);
+            //typeof(LuaHotFixEditor).GetMethod("TestPack").MakeGenericMethod(packtype).Invoke(null, new object[0]);
+
+            var l = GlobalLua.L.L;
+            using (var lr = l.CreateStackRecover())
             {
-                genargs[i] = typeof(int);
+                l.Require(out LuaStackPos func, "test", "test");
+                l.Call(func, null, out LuaStackPos tab, LuaPack.Pack());
+                l.GetTable(out string name, tab, "name");
+                Debug.LogError(name);
             }
-            var packtype = typeof(LuaPack).Assembly.GetTypes().Where(type => type.Name == "LuaPack`18").FirstOrDefault().MakeGenericType(genargs);
-            typeof(LuaHotFixEditor).GetMethod("TestPack").MakeGenericMethod(packtype).Invoke(null, new object[0]);
         }
         #endregion
 #endif

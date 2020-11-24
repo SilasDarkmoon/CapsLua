@@ -89,9 +89,27 @@ namespace Capstones.LuaWrap
                 var code = l.pcall(argc, result.ElementCount, oldtop); // error results
                 if (code == 0)
                 {
-                    result.GetFromLua(l);
+                    int onstackcnt = result.OnStackCount();
+                    if (onstackcnt > 0)
+                    {
+                        l.remove(oldtop); // results
+                        result.GetFromLua(l);
+                        int popcnt = result.ElementCount - onstackcnt;
+                        if (popcnt > 0)
+                        {
+                            l.pop(popcnt);
+                        }
+                    }
+                    else
+                    {
+                        result.GetFromLua(l);
+                        l.settop(oldtop - 1); // X
+                    }
                 }
-                l.settop(oldtop - 1); // X
+                else
+                {
+                    l.settop(oldtop - 1); // X
+                }
             }
         }
         public static TOut CallGlobal<TIn, TOut>(this IntPtr l, string name, TIn args)
@@ -210,36 +228,80 @@ namespace Capstones.LuaWrap
                 if (l.istable(index) || l.IsUserData(index))
                 {
                     var rindex = l.NormalizeIndex(index);
-                    using (var lr = l.CreateStackRecover())
+                    var oldtop = l.gettop();
+                    l.checkstack(result.ElementCount + 1);
+                    if (fields == null || fields.Length == 0)
                     {
-                        l.checkstack(result.ElementCount);
-                        if (fields == null || fields.Length == 0)
+                        // array.
+                        for (int i = 0; i < result.ElementCount; ++i)
                         {
-                            // array.
-                            for (int i = 0; i < result.ElementCount; ++i)
+                            l.pushnumber(i + 1);
+                            l.gettable(rindex);
+                        }
+                        result.GetFromLua(l);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < result.ElementCount; ++i)
+                        {
+                            if (fields.Length > i)
                             {
-                                l.pushnumber(i + 1);
+                                l.PushLua(fields[i]);
                                 l.gettable(rindex);
                             }
-                            result.GetFromLua(l);
-                        }
-                        else
-                        {
-                            for (int i = 0; i < result.ElementCount; ++i)
+                            else
                             {
-                                if (fields.Length > i)
-                                {
-                                    l.PushLua(fields[i]);
-                                    l.gettable(rindex);
-                                }
-                                else
-                                {
-                                    l.pushnil();
-                                }
+                                l.pushnil();
                             }
-                            result.GetFromLua(l);
+                        }
+                        result.GetFromLua(l);
+                    }
+                    l.settop(oldtop + result.OnStackCount());
+                }
+            }
+        }
+        public static void GetTableAndRemove<TOut>(this IntPtr l, int index, out TOut result, params string[] fields)
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    var oldtop = l.gettop();
+                    l.checkstack(result.ElementCount + 1);
+                    if (fields == null || fields.Length == 0)
+                    {
+                        // array.
+                        for (int i = 0; i < result.ElementCount; ++i)
+                        {
+                            l.pushnumber(i + 1);
+                            l.gettable(rindex);
                         }
                     }
+                    else
+                    {
+                        for (int i = 0; i < result.ElementCount; ++i)
+                        {
+                            if (fields.Length > i)
+                            {
+                                l.PushLua(fields[i]);
+                                l.gettable(rindex);
+                            }
+                            else
+                            {
+                                l.pushnil();
+                            }
+                        }
+                    }
+                    l.remove(rindex);
+                    result.GetFromLua(l);
+                    l.settop(oldtop + result.OnStackCount() - 1);
+                }
+                else
+                {
+                    l.remove(index);
                 }
             }
         }
@@ -307,8 +369,7 @@ namespace Capstones.LuaWrap
                     if (l.istable(index) || l.IsUserData(index))
                     {
                         l.GetField(index, fieldname);
-                        GetTable(l, -1, out result, fields);
-                        l.pop(1);
+                        GetTableAndRemove(l, -1, out result, fields);
                     }
                 }
             }
@@ -364,8 +425,7 @@ namespace Capstones.LuaWrap
                     {
                         if (l.GetHierarchicalRaw(index, fieldname))
                         {
-                            GetTable(l, -1, out result, fields);
-                            l.pop(1);
+                            GetTableAndRemove(l, -1, out result, fields);
                         }
                     }
                 }
@@ -413,8 +473,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero)
             {
                 l.GetGlobal(name);
-                GetTable(l, -1, out result, fields);
-                l.pop(1);
+                GetTableAndRemove(l, -1, out result, fields);
             }
             else
             {
@@ -452,8 +511,7 @@ namespace Capstones.LuaWrap
             {
                 if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
                 {
-                    GetTable(l, -1, out result, fields);
-                    l.pop(1);
+                    GetTableAndRemove(l, -1, out result, fields);
                     return;
                 }
             }
@@ -1419,8 +1477,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero)
             {
                 l.Require(name);
-                GetTable(l, -1, out result, fields);
-                l.pop(1);
+                GetTableAndRemove(l, -1, out result, fields);
             }
             else
             {
@@ -1573,10 +1630,11 @@ namespace Capstones.LuaWrap
         void PushToLua(IntPtr l);
         void GetFromLua(IntPtr l);
         object this[int index] { get; set; }
+        Type GetType(int index);
     }
     public static class LuaPackExtensions
     {
-        public static object[] ToArray<TLuaPack>(this TLuaPack pack) where TLuaPack : struct, ILuaPack
+        public static object[] ToArray<TLuaPack>(this ref TLuaPack pack) where TLuaPack : struct, ILuaPack
         {
             var cnt = pack.ElementCount;
             var arr = new object[cnt];
@@ -1585,6 +1643,35 @@ namespace Capstones.LuaWrap
                 arr[i] = pack[i];
             }
             return arr;
+        }
+        public static bool IsOnStack(this Type type)
+        {
+            return type == typeof(LuaStackPos) || type.IsSubclassOf(typeof(BaseLuaOnStack));
+        }
+        public static bool HasOnStack<TLuaPack>(this ref TLuaPack pack) where TLuaPack : struct, ILuaPack
+        {
+            for (int i = 0; i < pack.ElementCount; ++i)
+            {
+                var type = pack.GetType(i);
+                if (type.IsOnStack())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public static int OnStackCount<TLuaPack>(this ref TLuaPack pack) where TLuaPack : struct, ILuaPack
+        {
+            int cnt = 0;
+            for (int i = 0; i < pack.ElementCount; ++i)
+            {
+                var type = pack.GetType(i);
+                if (type.IsOnStack())
+                {
+                    ++cnt;
+                }
+            }
+            return cnt;
         }
     }
     public struct LuaPackIndexAccessor<TLuaPack> where TLuaPack : struct, ILuaPack
@@ -1627,6 +1714,7 @@ namespace Capstones.LuaWrap
         public void Deconstruct() { }
         public static LuaPack Default { get { return new LuaPack(); } }
         public static LuaPack Pack() { return Default; }
+        public Type GetType(int index) { throw new IndexOutOfRangeException(); }
     }
     public struct LuaPack<T0> : ILuaPack
     {
@@ -1666,6 +1754,8 @@ namespace Capstones.LuaWrap
         {
             o0 = t0;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0>(ValueTuple<T0> t)
@@ -1691,8 +1781,28 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 2; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t1);
-            l.GetLua(-2, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -2 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -2 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -2 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t1);
         }
         public void PushToLua(IntPtr l)
         {
@@ -1714,6 +1824,8 @@ namespace Capstones.LuaWrap
             o0 = t0;
             o1 = t1;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1>(ValueTuple<T0, T1> t)
@@ -1741,9 +1853,42 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 3; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t2);
-            l.GetLua(-2, out t1);
-            l.GetLua(-3, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -3 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -3 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -3 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -3 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -3 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t2);
         }
         public void PushToLua(IntPtr l)
         {
@@ -1768,6 +1913,8 @@ namespace Capstones.LuaWrap
             o1 = t1;
             o2 = t2;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2>(ValueTuple<T0, T1, T2> t)
@@ -1797,10 +1944,56 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 4; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t3);
-            l.GetLua(-2, out t2);
-            l.GetLua(-3, out t1);
-            l.GetLua(-4, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -4 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -4 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -4 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -4 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -4 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -4 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -4 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t3);
         }
         public void PushToLua(IntPtr l)
         {
@@ -1828,6 +2021,8 @@ namespace Capstones.LuaWrap
             o2 = t2;
             o3 = t3;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3>(ValueTuple<T0, T1, T2, T3> t)
@@ -1859,11 +2054,70 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 5; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t4);
-            l.GetLua(-2, out t3);
-            l.GetLua(-3, out t2);
-            l.GetLua(-4, out t1);
-            l.GetLua(-5, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -5 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -5 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -5 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -5 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -5 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -5 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -5 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -5 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -5 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t4);
         }
         public void PushToLua(IntPtr l)
         {
@@ -1894,6 +2148,8 @@ namespace Capstones.LuaWrap
             o3 = t3;
             o4 = t4;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4>(ValueTuple<T0, T1, T2, T3, T4> t)
@@ -1927,12 +2183,84 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 6; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t5);
-            l.GetLua(-2, out t4);
-            l.GetLua(-3, out t3);
-            l.GetLua(-4, out t2);
-            l.GetLua(-5, out t1);
-            l.GetLua(-6, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -6 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -6 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -6 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -6 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -6 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -6 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -6 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -6 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -6 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -6 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -6 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t5);
         }
         public void PushToLua(IntPtr l)
         {
@@ -1966,6 +2294,8 @@ namespace Capstones.LuaWrap
             o4 = t4;
             o5 = t5;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5>(ValueTuple<T0, T1, T2, T3, T4, T5> t)
@@ -2001,13 +2331,98 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 7; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t6);
-            l.GetLua(-2, out t5);
-            l.GetLua(-3, out t4);
-            l.GetLua(-4, out t3);
-            l.GetLua(-5, out t2);
-            l.GetLua(-6, out t1);
-            l.GetLua(-7, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -7 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -7 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -7 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -7 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -7 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -7 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -7 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -7 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t6);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2044,6 +2459,8 @@ namespace Capstones.LuaWrap
             o5 = t5;
             o6 = t6;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6>(ValueTuple<T0, T1, T2, T3, T4, T5, T6> t)
@@ -2081,14 +2498,112 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 8; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t7);
-            l.GetLua(-2, out t6);
-            l.GetLua(-3, out t5);
-            l.GetLua(-4, out t4);
-            l.GetLua(-5, out t3);
-            l.GetLua(-6, out t2);
-            l.GetLua(-7, out t1);
-            l.GetLua(-8, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -8 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -8 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -8 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -8 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -8 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -8 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -8 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -8 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -8 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t7);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2128,6 +2643,8 @@ namespace Capstones.LuaWrap
             o6 = t6;
             o7 = t7;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7>((T0, T1, T2, T3, T4, T5, T6, T7) t)
@@ -2167,15 +2684,126 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 9; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t8);
-            l.GetLua(-2, out t7);
-            l.GetLua(-3, out t6);
-            l.GetLua(-4, out t5);
-            l.GetLua(-5, out t4);
-            l.GetLua(-6, out t3);
-            l.GetLua(-7, out t2);
-            l.GetLua(-8, out t1);
-            l.GetLua(-9, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -9 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -9 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -9 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -9 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -9 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -9 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -9 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -9 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -9 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -9 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t8);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2218,6 +2846,8 @@ namespace Capstones.LuaWrap
             o7 = t7;
             o8 = t8;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8>((T0, T1, T2, T3, T4, T5, T6, T7, T8) t)
@@ -2259,16 +2889,140 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 10; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t9);
-            l.GetLua(-2, out t8);
-            l.GetLua(-3, out t7);
-            l.GetLua(-4, out t6);
-            l.GetLua(-5, out t5);
-            l.GetLua(-6, out t4);
-            l.GetLua(-7, out t3);
-            l.GetLua(-8, out t2);
-            l.GetLua(-9, out t1);
-            l.GetLua(-10, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -10 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -10 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -10 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -10 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -10 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -10 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -10 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -10 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -10 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -10 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -10 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t9);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2314,6 +3068,8 @@ namespace Capstones.LuaWrap
             o8 = t8;
             o9 = t9;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) t)
@@ -2357,17 +3113,154 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 11; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t10);
-            l.GetLua(-2, out t9);
-            l.GetLua(-3, out t8);
-            l.GetLua(-4, out t7);
-            l.GetLua(-5, out t6);
-            l.GetLua(-6, out t5);
-            l.GetLua(-7, out t4);
-            l.GetLua(-8, out t3);
-            l.GetLua(-9, out t2);
-            l.GetLua(-10, out t1);
-            l.GetLua(-11, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -11 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -11 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -11 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -11 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -11 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -11 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -11 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -11 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -11 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -11 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -11 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -11 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t10);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2416,6 +3309,8 @@ namespace Capstones.LuaWrap
             o9 = t9;
             o10 = t10;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) t)
@@ -2461,18 +3356,168 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 12; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t11);
-            l.GetLua(-2, out t10);
-            l.GetLua(-3, out t9);
-            l.GetLua(-4, out t8);
-            l.GetLua(-5, out t7);
-            l.GetLua(-6, out t6);
-            l.GetLua(-7, out t5);
-            l.GetLua(-8, out t4);
-            l.GetLua(-9, out t3);
-            l.GetLua(-10, out t2);
-            l.GetLua(-11, out t1);
-            l.GetLua(-12, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -12 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -12 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -12 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -12 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -12 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -12 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -12 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -12 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -12 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -12 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -12 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -12 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -12 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t11);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2524,6 +3569,8 @@ namespace Capstones.LuaWrap
             o10 = t10;
             o11 = t11;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) t)
@@ -2571,19 +3618,182 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 13; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t12);
-            l.GetLua(-2, out t11);
-            l.GetLua(-3, out t10);
-            l.GetLua(-4, out t9);
-            l.GetLua(-5, out t8);
-            l.GetLua(-6, out t7);
-            l.GetLua(-7, out t6);
-            l.GetLua(-8, out t5);
-            l.GetLua(-9, out t4);
-            l.GetLua(-10, out t3);
-            l.GetLua(-11, out t2);
-            l.GetLua(-12, out t1);
-            l.GetLua(-13, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -13 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -13 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -13 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -13 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -13 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -13 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -13 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -13 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -13 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -13 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -13 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -13 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t11);
+
+            pos = -13 + 12;
+            if (ElementTypes[12].IsOnStack())
+            {
+                if (onstackcnt < 12)
+                {
+                    var newpos = -13 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t12);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2638,6 +3848,8 @@ namespace Capstones.LuaWrap
             o11 = t11;
             o12 = t12;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) t)
@@ -2687,20 +3899,196 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 14; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t13);
-            l.GetLua(-2, out t12);
-            l.GetLua(-3, out t11);
-            l.GetLua(-4, out t10);
-            l.GetLua(-5, out t9);
-            l.GetLua(-6, out t8);
-            l.GetLua(-7, out t7);
-            l.GetLua(-8, out t6);
-            l.GetLua(-9, out t5);
-            l.GetLua(-10, out t4);
-            l.GetLua(-11, out t3);
-            l.GetLua(-12, out t2);
-            l.GetLua(-13, out t1);
-            l.GetLua(-14, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -14 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -14 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -14 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -14 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -14 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -14 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -14 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -14 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -14 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -14 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -14 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -14 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t11);
+
+            pos = -14 + 12;
+            if (ElementTypes[12].IsOnStack())
+            {
+                if (onstackcnt < 12)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t12);
+
+            pos = -14 + 13;
+            if (ElementTypes[13].IsOnStack())
+            {
+                if (onstackcnt < 13)
+                {
+                    var newpos = -14 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t13);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2758,6 +4146,8 @@ namespace Capstones.LuaWrap
             o12 = t12;
             o13 = t13;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) t)
@@ -2809,21 +4199,210 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 15; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t14);
-            l.GetLua(-2, out t13);
-            l.GetLua(-3, out t12);
-            l.GetLua(-4, out t11);
-            l.GetLua(-5, out t10);
-            l.GetLua(-6, out t9);
-            l.GetLua(-7, out t8);
-            l.GetLua(-8, out t7);
-            l.GetLua(-9, out t6);
-            l.GetLua(-10, out t5);
-            l.GetLua(-11, out t4);
-            l.GetLua(-12, out t3);
-            l.GetLua(-13, out t2);
-            l.GetLua(-14, out t1);
-            l.GetLua(-15, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -15 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -15 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -15 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -15 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -15 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -15 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -15 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -15 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -15 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -15 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -15 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -15 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t11);
+
+            pos = -15 + 12;
+            if (ElementTypes[12].IsOnStack())
+            {
+                if (onstackcnt < 12)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t12);
+
+            pos = -15 + 13;
+            if (ElementTypes[13].IsOnStack())
+            {
+                if (onstackcnt < 13)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t13);
+
+            pos = -15 + 14;
+            if (ElementTypes[14].IsOnStack())
+            {
+                if (onstackcnt < 14)
+                {
+                    var newpos = -15 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t14);
         }
         public void PushToLua(IntPtr l)
         {
@@ -2884,6 +4463,8 @@ namespace Capstones.LuaWrap
             o13 = t13;
             o14 = t14;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) t)
@@ -2937,22 +4518,224 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 16; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t15);
-            l.GetLua(-2, out t14);
-            l.GetLua(-3, out t13);
-            l.GetLua(-4, out t12);
-            l.GetLua(-5, out t11);
-            l.GetLua(-6, out t10);
-            l.GetLua(-7, out t9);
-            l.GetLua(-8, out t8);
-            l.GetLua(-9, out t7);
-            l.GetLua(-10, out t6);
-            l.GetLua(-11, out t5);
-            l.GetLua(-12, out t4);
-            l.GetLua(-13, out t3);
-            l.GetLua(-14, out t2);
-            l.GetLua(-15, out t1);
-            l.GetLua(-16, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -16 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -16 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -16 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -16 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -16 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -16 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -16 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -16 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -16 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -16 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -16 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -16 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t11);
+
+            pos = -16 + 12;
+            if (ElementTypes[12].IsOnStack())
+            {
+                if (onstackcnt < 12)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t12);
+
+            pos = -16 + 13;
+            if (ElementTypes[13].IsOnStack())
+            {
+                if (onstackcnt < 13)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t13);
+
+            pos = -16 + 14;
+            if (ElementTypes[14].IsOnStack())
+            {
+                if (onstackcnt < 14)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t14);
+
+            pos = -16 + 15;
+            if (ElementTypes[15].IsOnStack())
+            {
+                if (onstackcnt < 15)
+                {
+                    var newpos = -16 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t15);
         }
         public void PushToLua(IntPtr l)
         {
@@ -3016,6 +4799,8 @@ namespace Capstones.LuaWrap
             o14 = t14;
             o15 = t15;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) t)
@@ -3071,23 +4856,238 @@ namespace Capstones.LuaWrap
         public int ElementCount { get { return 17; } }
         public void GetFromLua(IntPtr l)
         {
-            l.GetLua(-1, out t16);
-            l.GetLua(-2, out t15);
-            l.GetLua(-3, out t14);
-            l.GetLua(-4, out t13);
-            l.GetLua(-5, out t12);
-            l.GetLua(-6, out t11);
-            l.GetLua(-7, out t10);
-            l.GetLua(-8, out t9);
-            l.GetLua(-9, out t8);
-            l.GetLua(-10, out t7);
-            l.GetLua(-11, out t6);
-            l.GetLua(-12, out t5);
-            l.GetLua(-13, out t4);
-            l.GetLua(-14, out t3);
-            l.GetLua(-15, out t2);
-            l.GetLua(-16, out t1);
-            l.GetLua(-17, out t0);
+            int onstackcnt = 0;
+            int pos;
+
+            pos = -17 + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = -17 + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = -17 + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = -17 + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = -17 + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = -17 + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = -17 + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+
+            pos = -17 + 7;
+            if (ElementTypes[7].IsOnStack())
+            {
+                if (onstackcnt < 7)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t7);
+
+            pos = -17 + 8;
+            if (ElementTypes[8].IsOnStack())
+            {
+                if (onstackcnt < 8)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t8);
+
+            pos = -17 + 9;
+            if (ElementTypes[9].IsOnStack())
+            {
+                if (onstackcnt < 9)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t9);
+
+            pos = -17 + 10;
+            if (ElementTypes[10].IsOnStack())
+            {
+                if (onstackcnt < 10)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t10);
+
+            pos = -17 + 11;
+            if (ElementTypes[11].IsOnStack())
+            {
+                if (onstackcnt < 11)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t11);
+
+            pos = -17 + 12;
+            if (ElementTypes[12].IsOnStack())
+            {
+                if (onstackcnt < 12)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t12);
+
+            pos = -17 + 13;
+            if (ElementTypes[13].IsOnStack())
+            {
+                if (onstackcnt < 13)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t13);
+
+            pos = -17 + 14;
+            if (ElementTypes[14].IsOnStack())
+            {
+                if (onstackcnt < 14)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t14);
+
+            pos = -17 + 15;
+            if (ElementTypes[15].IsOnStack())
+            {
+                if (onstackcnt < 15)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t15);
+
+            pos = -17 + 16;
+            if (ElementTypes[16].IsOnStack())
+            {
+                if (onstackcnt < 16)
+                {
+                    var newpos = -17 + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+            }
+            l.GetLua(pos, out t16);
         }
         public void PushToLua(IntPtr l)
         {
@@ -3154,6 +5154,8 @@ namespace Capstones.LuaWrap
             o15 = t15;
             o16 = t16;
         }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15), typeof(T16) };
+        public Type GetType(int index) { return ElementTypes[index]; }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
         public static implicit operator LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>((T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) t)
@@ -3192,14 +5194,122 @@ namespace Capstones.LuaWrap
         public void GetFromLua(IntPtr l)
         {
             var cnt = ElementCount;
+            var top = l.gettop();
+            var bottom = top - cnt + 1;
+
+            int onstackcnt = 0;
+            int pos;
+
+            pos = bottom + 0;
+            if (ElementTypes[0].IsOnStack())
+            {
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t0);
+
+            pos = bottom + 1;
+            if (ElementTypes[1].IsOnStack())
+            {
+                if (onstackcnt < 1)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t1);
+
+            pos = bottom + 2;
+            if (ElementTypes[2].IsOnStack())
+            {
+                if (onstackcnt < 2)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t2);
+
+            pos = bottom + 3;
+            if (ElementTypes[3].IsOnStack())
+            {
+                if (onstackcnt < 3)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t3);
+
+            pos = bottom + 4;
+            if (ElementTypes[4].IsOnStack())
+            {
+                if (onstackcnt < 4)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t4);
+
+            pos = bottom + 5;
+            if (ElementTypes[5].IsOnStack())
+            {
+                if (onstackcnt < 5)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t5);
+
+            pos = bottom + 6;
+            if (ElementTypes[6].IsOnStack())
+            {
+                if (onstackcnt < 6)
+                {
+                    var newpos = bottom + onstackcnt;
+                    l.pushvalue(pos);
+                    l.replace(newpos - 1);
+                    pos = newpos;
+                }
+                ++onstackcnt;
+            }
+            l.GetLua(pos, out t6);
+            
+            if (onstackcnt > 0)
+            {
+                // first, we remove those who are not on-stack
+                for (int i = onstackcnt; i < 7; ++i)
+                {
+                    l.remove(bottom + onstackcnt);
+                }
+            }
             trest.GetFromLua(l);
-            l.GetLua(6 - cnt, out t6);
-            l.GetLua(5 - cnt, out t5);
-            l.GetLua(4 - cnt, out t4);
-            l.GetLua(3 - cnt, out t3);
-            l.GetLua(2 - cnt, out t2);
-            l.GetLua(1 - cnt, out t1);
-            l.GetLua(-cnt, out t0);
+            if (onstackcnt > 0)
+            {
+                // and then we add the non-on-stack value back in order to keep the stack in corrent count.
+                var restonstackcnt = trest.OnStackCount();
+                for (int i = onstackcnt; i < 7; ++i)
+                {
+                    l.pushnil(); // TODO: push real value...
+                    l.insert(bottom + onstackcnt + restonstackcnt);
+                }
+            }
         }
         public void PushToLua(IntPtr l)
         {
@@ -3257,6 +5367,18 @@ namespace Capstones.LuaWrap
             o5 = t5;
             o6 = t6;
             orest = trest;
+        }
+        private static Type[] ElementTypes = new Type[] { typeof(T0), typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) };
+        public Type GetType(int index)
+        {
+            if (index < 7)
+            {
+                return ElementTypes[index];
+            }
+            else
+            {
+                return trest.GetType(index - 7);
+            }
         }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
@@ -3603,9 +5725,6 @@ namespace Capstones.LuaWrap
         }
         public static void Require<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
         {
-            string result;
-            l.CallGlobal(out result, "safsdfgdsh", LuaPack.Pack(1, 2));
-
             LuaPack<T0> pack;
             Require(l, name, out pack, fields);
             pack.Deconstruct(out rv0);
