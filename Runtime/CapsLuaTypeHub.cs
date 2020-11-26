@@ -420,7 +420,7 @@ namespace Capstones.LuaLib
                 get { return false; }
             }
 
-            public Type t { get; private set; }
+            public Type t { get; protected set; }
 
             public virtual IntPtr PushLua(IntPtr l, object val)
             {
@@ -1347,6 +1347,10 @@ namespace Capstones.LuaLib
         public class TypeHubCommon : TypeHubBase
         {
             public TypeHubCommon(Type type) : base(type) { }
+            protected void PutIntoCache()
+            {
+                LuaTypeHub.PutIntoCache(this);
+            }
 
             // TODO: System.Object members should be here.
         }
@@ -1370,7 +1374,7 @@ namespace Capstones.LuaLib
         {
             public TypeHubCommonPrecompiled(Type type) : base(type)
             {
-                PutIntoCache(this);
+                PutIntoCache();
                 RegPrecompiledStatic();
             }
 
@@ -1385,7 +1389,7 @@ namespace Capstones.LuaLib
         {
             public TypeHubValueTypePrecompiled() : base(typeof(T))
             {
-                PutIntoCache(this);
+                PutIntoCache();
                 RegPrecompiledStatic();
             }
 

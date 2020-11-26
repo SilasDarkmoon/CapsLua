@@ -253,23 +253,25 @@ namespace Capstones.LuaLib
         }
         private static void PushLuaNonNative(this IntPtr l, object val)
         {
-            if (val is LuaWrap.BaseLua)
-            {
-                l.getref(((LuaWrap.BaseLua)val).Refid);
-            }
-            else if (val is LuaWrap.BaseLuaOnStack)
-            {
-                l.pushvalue(((LuaWrap.BaseLuaOnStack)val).StackPos);
-            }
-            else if (val is LuaWrap.LuaState)
-            {
-                ((LuaWrap.LuaState)val).L.pushthread();
-            }
-            //else if (raw is lua.CFunction)
+            // These should be handled in LuaPushNative
+            //if (val is LuaWrap.BaseLua)
             //{
-
+            //    l.getref(((LuaWrap.BaseLua)val).Refid);
             //}
-            else if (val is ILuaTypeHub)
+            //else if (val is LuaWrap.BaseLuaOnStack)
+            //{
+            //    l.pushvalue(((LuaWrap.BaseLuaOnStack)val).StackPos);
+            //}
+            //else if (val is LuaWrap.LuaState)
+            //{
+            //    ((LuaWrap.LuaState)val).L.pushthread();
+            //}
+            ////else if (raw is lua.CFunction)
+            ////{
+
+            ////}
+            //else
+            if (val is ILuaTypeHub)
             {
                 l.PushLuaType(val as ILuaTypeHub);
             }
@@ -326,15 +328,15 @@ namespace Capstones.LuaLib
                 return;
             }
             object func;
-            if (isvalue || typeof(T).IsSealed)
+            LuaPushNative._NativePushLuaFuncs.TryGetValue(typeof(T), out func);
+            ILuaPush<T> gfunc = func as ILuaPush<T>;
+            if (gfunc != null)
             {
-                LuaPushNative._NativePushLuaFuncs.TryGetValue(typeof(T), out func);
-                ILuaPush<T> gfunc = func as ILuaPush<T>;
-                if (gfunc != null)
-                {
-                    gfunc.PushLua(l, val);
-                    return;
-                }
+                gfunc.PushLua(l, val);
+                return;
+            }
+            else if (isvalue || typeof(T).IsSealed)
+            {
                 PushLuaExplicit<T>(l, val);
             }
             else
@@ -795,7 +797,9 @@ namespace Capstones.LuaLib
         }
         public static void GetLua<T>(this IntPtr l, int index, out T val)
         {
-            if (l.istable(index))
+            // 1. trans stored in table
+            bool istable = l.istable(index);
+            if (istable)
             {
                 l.checkstack(2);
                 l.pushvalue(index); // ud
@@ -834,47 +838,73 @@ namespace Capstones.LuaLib
                     return;
                 }
             }
+            // 2. check lua-native hub
             {
                 object func;
-                if (typeof(T).IsValueType || typeof(T).IsSealed)
                 {
-                    if (typeof(T).IsEnum())
+                    LuaPushNative._NativePushLuaFuncs.TryGetValue(typeof(T), out func);
+                    ILuaTrans<T> gfunc = func as ILuaTrans<T>;
+                    if (gfunc != null)
                     {
-                        var ltype = l.type(index);
-                        if (ltype == lua.LUA_TNUMBER || ltype == lua.LUA_TSTRING)
-                        {
-                            var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubEnumPrecompiled<T>;
-                            if (hub != null)
-                            {
-                                val = hub.GetLuaChecked(l, index);
-                                return;
-                            }
-                            if (ltype == lua.LUA_TNUMBER)
-                            {
-                                var num = l.tonumber(index);
-                                val = (T)Enum.ToObject(typeof(T), (ulong)num);
-                                return;
-                            }
-                            else
-                            {
-                                var str = l.GetString(index);
-                                val = (T)Enum.Parse(typeof(T), str);
-                                return;
-                            }
-                        }
+                        val = gfunc.GetLua(l, index);
+                        return;
                     }
-                    else
+                }
+                if (typeof(T).IsEnum())
+                {
+                    var ltype = l.type(index);
+                    if (ltype == lua.LUA_TNUMBER || ltype == lua.LUA_TSTRING)
                     {
-                        LuaPushNative._NativePushLuaFuncs.TryGetValue(typeof(T), out func);
-                        ILuaTrans<T> gfunc = func as ILuaTrans<T>;
-                        if (gfunc != null)
+                        var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubEnumPrecompiled<T>;
+                        if (hub != null)
                         {
-                            val = gfunc.GetLua(l, index);
+                            val = hub.GetLuaChecked(l, index);
+                            return;
+                        }
+                        if (ltype == lua.LUA_TNUMBER)
+                        {
+                            var num = l.tonumber(index);
+                            val = (T)Enum.ToObject(typeof(T), (ulong)num);
+                            return;
+                        }
+                        else
+                        {
+                            var str = l.GetString(index);
+                            val = (T)Enum.Parse(typeof(T), str);
                             return;
                         }
                     }
                 }
-
+            }
+            // 3. for sealed CLR type and lua-table. we can get LuaTypeHub from CLR-type. this is commonly for Protocols.
+            if (istable && typeof(T).IsSealed)
+            {
+                var trans = LuaTypeHub.GetTypeHub(typeof(T));
+                var ttrans = trans as ILuaTrans<T>;
+                if (ttrans != null)
+                {
+                    val = ttrans.GetLua(l, index);
+                    return;
+                }
+                var mtrans = trans as ILuaTransMulti;
+                if (mtrans != null)
+                {
+                    val = mtrans.GetLua<T>(l, index);
+                    return;
+                }
+                var raw = trans.GetLua(l, index);
+                if (raw is T)
+                {
+                    val = (T)raw;
+                }
+                else
+                {
+                    val = default(T);
+                }
+                return;
+            }
+            // 4. use non-generic GetLua
+            { 
                 var raw = GetLua(l, index);
                 if (raw == null)
                 {

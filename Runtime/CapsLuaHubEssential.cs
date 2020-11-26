@@ -43,7 +43,7 @@ namespace Capstones.LuaLib
     {
         IntPtr PushLua(IntPtr l, T val);
     }
-    public interface ILuaTypeHub : ILuaTypeRef, ILuaTrans, ILuaPush
+    public interface ILuaTypeHub : ILuaHandle, ILuaTypeRef, ILuaTrans, ILuaPush
     {
         void PushLuaTypeRaw(IntPtr l);
     }
@@ -74,7 +74,7 @@ namespace Capstones.LuaLib
         LuaConvertFunc GetConverter(Type totype);
     }
 
-    public abstract class SelfHandled
+    public abstract class SelfHandled : ILuaHandle
     {
         protected IntPtr _r;
         public IntPtr r

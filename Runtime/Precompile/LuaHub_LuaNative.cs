@@ -16,11 +16,11 @@ namespace Capstones.LuaLib
 
     public static partial class LuaHub
     {
-        private abstract class LuaPushNative
+        public abstract class LuaPushNative
         {
-            public static Dictionary<Type, object> _NativePushLuaFuncs = new Dictionary<Type, object>();
+            protected internal static Dictionary<Type, object> _NativePushLuaFuncs = new Dictionary<Type, object>();
         }
-        private abstract class LuaPushNativeBase<T> : LuaPushNative, ILuaPush<T>, ILuaTrans<T>
+        public abstract class LuaPushNativeBase<T> : LuaPushNative, ILuaPush<T>, ILuaTrans<T>
         {
             public LuaPushNativeBase()
             {

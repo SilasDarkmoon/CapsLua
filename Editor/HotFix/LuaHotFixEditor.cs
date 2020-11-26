@@ -562,6 +562,52 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void Call<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this BaseLua lua, string func");
+                    sw.Write(outpars);
+                    sw.Write(", TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            var l = lua.L;");
+                    sw.WriteLine("            l.refer(lua.Refid);");
+                    sw.WriteLine("            l.GetField(-1, func);");
+                    sw.WriteLine("            l.remove(-2);");
+                    sw.WriteLine("            PushArgsAndCall(l, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void CallSelf<TIn, ");
+                    sw.Write(gargs);
+                    sw.Write(">(this BaseLua lua, string func");
+                    sw.Write(outpars);
+                    sw.Write(", TIn args)");
+                    sw.WriteLine();
+                    sw.WriteLine("            where TIn : struct, ILuaPack");
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            var l = lua.L;");
+                    sw.WriteLine("            l.refer(lua.Refid);");
+                    sw.WriteLine("            l.GetField(-1, func);");
+                    sw.WriteLine("            l.remove(-2);");
+                    sw.WriteLine("            PushArgsAndCallSelf(l, lua, args, out pack);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.WriteLine("    }");
                     sw.WriteLine("}");
                 }
