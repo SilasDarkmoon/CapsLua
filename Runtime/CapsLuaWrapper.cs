@@ -716,13 +716,22 @@ namespace Capstones.LuaWrap
                     l.pop(1);
                     return false;
                 }
-                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud #trans
-                l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud #trans trans
-                l.rawset(-3); // ud
+                if (!l.getmetatable(-1)) // ud meta
+                { // ud
+                    l.newtable(); // ud meta
+                    l.pushvalue(-1); // ud meta meta
+                    l.SetField(-2, "__index"); // ud meta
+                    l.pushvalue(-1); // ud meta meta
+                    l.setmetatable(-3); // ud meta
+                }
+                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta #trans
+                l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud meta #trans trans
+                l.rawset(-3); // ud meta
                 l.pushlightuserdata(LuaConst.LRKEY_TARGET);
                 l.PushLuaRawObject(new WeakReference(thiz));
-                l.rawset(-3);
-                thiz.Binding = new LuaTable(l, -1);
+                l.rawset(-3); // ud meta
+                thiz.Binding = new LuaTable(l, -2);
+                l.pop(2); // X
                 return true;
             }
             else
@@ -755,21 +764,29 @@ namespace Capstones.LuaLib
                     }
                 }
                 l.checkstack(3);
-                l.PushLua(val.Binding);
-                l.pushlightuserdata(LuaConst.LRKEY_TARGET);
-                l.rawget(-2);
+                l.PushLua(val.Binding); // ud
+                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
+                l.gettable(-2); // ud tar
                 var current = (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>();
                 if (ReferenceEquals(current, val))
                 {
-                    l.pop(2);
+                    l.pop(2); // X
                 }
                 else
                 {
-                    l.pop(1);
-                    l.pushlightuserdata(LuaConst.LRKEY_TARGET);
-                    l.PushLuaRawObject(new WeakReference(val));
-                    l.rawset(-3);
-                    l.pop(1);
+                    l.pop(1); // ud
+                    if (!l.getmetatable(-1)) // ud meta
+                    { // ud
+                        l.newtable(); // ud meta
+                        l.pushvalue(-1); // ud meta meta
+                        l.SetField(-2, "__index"); // ud meta
+                        l.pushvalue(-1); // ud meta meta
+                        l.setmetatable(-3); // ud meta
+                    }
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                    l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                    l.rawset(-3); // ud meta
+                    l.pop(2); // X
                 }
             }
             public static T GetLuaRaw(IntPtr l, int index)
@@ -777,11 +794,11 @@ namespace Capstones.LuaLib
                 if (l.istable(index))
                 {
                     l.checkstack(3);
-                    l.pushvalue(index);
-                    l.pushlightuserdata(LuaConst.LRKEY_TARGET);
-                    l.rawget(-2);
+                    l.pushvalue(index); // ud
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
+                    l.gettable(-2); // ud tar
                     var current = (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>();
-                    l.pop(2);
+                    l.pop(2); // X
                     if (current != null)
                     {
                         return current;
@@ -791,13 +808,21 @@ namespace Capstones.LuaLib
                         var val = new T();
                         if (val != null)
                         {
-                            l.pushvalue(index);
-                            val.Binding = new BaseLua(l, l.refer());
-                            l.pushvalue(index);
-                            l.pushlightuserdata(LuaConst.LRKEY_TARGET);
-                            l.PushLuaRawObject(new WeakReference(val));
-                            l.rawset(-3);
-                            l.pop(1);
+                            l.pushvalue(index); // ud
+                            val.Binding = new BaseLua(l, l.refer()); // X
+                            l.pushvalue(index); // ud
+                            if (!l.getmetatable(-1)) // ud meta
+                            { // ud
+                                l.newtable(); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.SetField(-2, "__index"); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.setmetatable(-3); // ud meta
+                            }
+                            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                            l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                            l.rawset(-3); // ud meta
+                            l.pop(2); // X
                             return val;
                         }
                     }

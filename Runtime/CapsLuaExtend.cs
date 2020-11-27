@@ -284,15 +284,13 @@ namespace Capstones.LuaLib
             else if (l.istable(index))
             {
                 int exttype = 0;
-                l.getmetatable(index); // meta
-                if (l.istable(-1))
+                if (l.getmetatable(index)) // meta
                 {
                     l.pushlightuserdata(LuaConst.LRKEY_EXTENDED); // meta #ext
                     l.rawget(-2); // meta exttype
                     exttype = (int)l.tonumber(-1);
-                    l.pop(1); // meta
+                    l.pop(2); // X
                 }
-                l.pop(1); // X
 
                 switch (exttype)
                 {
@@ -550,8 +548,7 @@ namespace Capstones.LuaLib
         {
             l.pushvalue(1); // obj
             MakeUnextend(l, -1);
-            l.getmetatable(-1); // obj meta
-            if (l.istable(-1))
+            if (l.getmetatable(-1)) // obj meta
             {
                 l.pushvalue(lua.upvalueindex(1)); // obj meta $op
                 l.rawget(-2); // obj meta op
@@ -566,9 +563,9 @@ namespace Capstones.LuaLib
                 MakeExtend(l, -1);
                 return 1;
             }
-            else
+            else // obj
             {
-                l.pop(2); // X
+                l.pop(1); // X
                 return 0;
             }
         }

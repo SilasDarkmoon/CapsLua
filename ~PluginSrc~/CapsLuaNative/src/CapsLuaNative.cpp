@@ -485,15 +485,13 @@ extern "C"
         else if (lua_istable(l, index))
         {
             int exttype = 0;
-            lua_getmetatable(l, index); // meta
-            if (lua_istable(l, -1))
+            if (lua_getmetatable(l, index)) // meta
             {
                 lua_pushlightuserdata(l, (void*)2401); // meta #ext
                 lua_rawget(l, -2); // meta exttype
                 exttype = (int)lua_tonumber(l, -1);
-                lua_pop(l, 1); // meta
+                lua_pop(l, 2); // X
             }
-            lua_pop(l, 1); // X
             
             switch (exttype)
             {
@@ -739,8 +737,7 @@ extern "C"
     {
         lua_pushvalue(l, 1); // obj
         MakeUnextend(l, -1);
-        lua_getmetatable(l, -1); // obj meta
-        if (lua_istable(l, -1))
+        if (lua_getmetatable(l, -1)) // obj meta
         {
             lua_pushvalue(l, lua_upvalueindex(1)); // obj meta $op
             lua_rawget(l, -2); // obj meta op
@@ -755,9 +752,9 @@ extern "C"
             MakeExtend(l, -1);
             return 1;
         }
-        else
+        else // obj
         {
-            lua_pop(l, 2); // X
+            lua_pop(l, 1); // X
             return 0;
         }
     }
