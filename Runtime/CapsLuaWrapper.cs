@@ -709,9 +709,9 @@ namespace Capstones.LuaWrap
             {
                 if (string.IsNullOrEmpty(thiz.LuaFile))
                 {
-                    return false;
+                    l.newtable();
                 }
-                if(!l.NewTable(thiz.LuaFile, args)) // ud
+                else if (!l.NewTable(thiz.LuaFile, args)) // ud
                 {
                     l.pop(1);
                     return false;
@@ -871,4 +871,141 @@ namespace Capstones.LuaLib
     }
 }
 
+// Some lua collections
+namespace Capstones.LuaWrap
+{
+    //public class LuaList<T> : BaseLuaWrapper, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
+    //{
+    //    private static LuaHub.BaseLuaWrapperHub<LuaList<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaList<T>>();
 
+    //    public bool IsSynchronized { get { return false; } }
+
+    //    public object SyncRoot { get { return null; } }
+
+    //    public void CopyTo(Array array, int index)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //    public T this[int index] { get; set; }
+
+    //    public int Count
+    //    {
+    //        get
+    //        {
+    //            var l = Binding.L;
+    //            l.refer(Binding.Refid);
+    //            var cnt = l.getn(-1);
+    //            l.pop(1);
+    //            return cnt;
+    //        }
+    //    }
+
+    //    public int Capacity { get { return int.MaxValue; } }
+
+    //    public bool IsReadOnly => throw new NotImplementedException();
+
+    //    public bool IsFixedSize => throw new NotImplementedException();
+
+    //    object IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    //    public void Add(T item);
+    //    public void AddRange(IEnumerable<T> collection);
+    //    public ReadOnlyCollection<T> AsReadOnly();
+    //    public int BinarySearch(T item);
+    //    public int BinarySearch(T item, IComparer<T> comparer);
+    //    public int BinarySearch(int index, int count, T item, IComparer<T> comparer);
+    //    public void Clear();
+    //    public bool Contains(T item);
+    //    public List<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter);
+    //    public void CopyTo(int index, T[] array, int arrayIndex, int count);
+    //    public void CopyTo(T[] array, int arrayIndex);
+    //    public void CopyTo(T[] array);
+    //    public bool Exists(Predicate<T> match);
+    //    public T Find(Predicate<T> match);
+    //    public List<T> FindAll(Predicate<T> match);
+    //    public int FindIndex(int startIndex, int count, Predicate<T> match);
+    //    public int FindIndex(int startIndex, Predicate<T> match);
+    //    public int FindIndex(Predicate<T> match);
+    //    public T FindLast(Predicate<T> match);
+    //    public int FindLastIndex(int startIndex, int count, Predicate<T> match);
+    //    public int FindLastIndex(int startIndex, Predicate<T> match);
+    //    public int FindLastIndex(Predicate<T> match);
+    //    public void ForEach(Action<T> action);
+    //    public IEnumerator<T> GetEnumerator()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //    public List<T> GetRange(int index, int count);
+    //    public int IndexOf(T item, int index, int count);
+    //    public int IndexOf(T item, int index);
+    //    public int IndexOf(T item);
+    //    public void Insert(int index, T item);
+    //    public void InsertRange(int index, IEnumerable<T> collection);
+    //    public int LastIndexOf(T item);
+    //    public int LastIndexOf(T item, int index);
+    //    public int LastIndexOf(T item, int index, int count);
+    //    public bool Remove(T item);
+    //    public int RemoveAll(Predicate<T> match);
+    //    public void RemoveAt(int index);
+    //    public void RemoveRange(int index, int count);
+    //    public void Reverse(int index, int count);
+    //    public void Reverse();
+    //    public void Sort(Comparison<T> comparison);
+    //    public void Sort(int index, int count, IComparer<T> comparer);
+    //    public void Sort();
+    //    public void Sort(IComparer<T> comparer);
+    //    public T[] ToArray();
+    //    public void TrimExcess();
+    //    public bool TrueForAll(Predicate<T> match);
+
+    //    public int Add(object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public bool Contains(object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public int IndexOf(object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void Insert(int index, object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void Remove(object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+
+    //public class LuaQueue<T> : LuaList<T>
+    //{
+    //    private static LuaHub.BaseLuaWrapperHub<LuaQueue<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaQueue<T>>();
+
+
+
+    //    public T Dequeue()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //    public void Enqueue(T item)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //    public T Peek()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+}
