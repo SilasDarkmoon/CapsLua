@@ -671,6 +671,13 @@ namespace Capstones.LuaWrap
     {
         public BaseLua Binding { get; set; }
         public virtual string LuaFile { get; protected set; }
+        public IntPtr L { get { return ReferenceEquals(Binding, null) ? IntPtr.Zero : Binding.L; } }
+
+        public BaseLuaWrapper() { }
+        public BaseLuaWrapper(IntPtr l)
+        {
+            this.BindLua(l);
+        }
 
         private static LuaHub.BaseLuaWrapperHub<BaseLuaWrapper> LuaHubSub = new LuaHub.BaseLuaWrapperHub<BaseLuaWrapper>();
 
@@ -743,6 +750,47 @@ namespace Capstones.LuaWrap
         public static bool BindLua(this ILuaWrapper thiz, IntPtr l)
         {
             return thiz.BindLua(l, Pack());
+        }
+
+        public static T GetWrapper<T>(this ILuaWrapper thiz) where T : ILuaWrapper, new()
+        {
+            var copy = new T();
+            copy.Binding = thiz.Binding;
+            return copy;
+        }
+        public static void GetWrapper<T>(this ILuaWrapper thiz, out T copy) where T : ILuaWrapper, new()
+        {
+            copy = thiz.GetWrapper<T>();
+        }
+
+        public static T GetWrapper<T>(this BaseLua lua) where T : ILuaWrapper, new()
+        {
+            var result = new T();
+            result.Binding = lua;
+            return result;
+        }
+        public static void GetWrapper<T>(this BaseLua lua, out T result) where T : ILuaWrapper, new()
+        {
+            result = lua.GetWrapper<T>();
+        }
+
+        public static T GetWrapper<T>(this object o) where T : ILuaWrapper, new()
+        {
+            if (o is T)
+            {
+                return (T)o;
+            }
+            if (o is BaseLua)
+            {
+                var result = new T();
+                result.Binding = (BaseLua)o;
+                return result;
+            }
+            return default(T);
+        }
+        public static void GetWrapper<T>(this object o, out T result) where T : ILuaWrapper, new()
+        {
+            result = o.GetWrapper<T>();
         }
     }
 }
