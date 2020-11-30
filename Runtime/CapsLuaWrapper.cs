@@ -720,7 +720,7 @@ namespace Capstones.LuaWrap
                 { // ud
                     l.newtable(); // ud meta
                     l.pushvalue(-1); // ud meta meta
-                    l.SetField(-2, "__index"); // ud meta
+                    l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
                     l.pushvalue(-1); // ud meta meta
                     l.setmetatable(-3); // ud meta
                 }
@@ -779,7 +779,7 @@ namespace Capstones.LuaLib
                     { // ud
                         l.newtable(); // ud meta
                         l.pushvalue(-1); // ud meta meta
-                        l.SetField(-2, "__index"); // ud meta
+                        l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
                         l.pushvalue(-1); // ud meta meta
                         l.setmetatable(-3); // ud meta
                     }
@@ -815,7 +815,7 @@ namespace Capstones.LuaLib
                             { // ud
                                 l.newtable(); // ud meta
                                 l.pushvalue(-1); // ud meta meta
-                                l.SetField(-2, "__index"); // ud meta
+                                l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
                                 l.pushvalue(-1); // ud meta meta
                                 l.setmetatable(-3); // ud meta
                             }
@@ -854,7 +854,7 @@ namespace Capstones.LuaLib
                     return IntPtr.Zero;
                 }
             }
-            public static LuaWrapperNative LuaNative = new LuaWrapperNative();
+            public static readonly LuaWrapperNative LuaHubNative = new LuaWrapperNative();
 
             public BaseLuaWrapperHub() : base(null)
             {
