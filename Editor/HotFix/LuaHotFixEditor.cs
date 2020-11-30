@@ -575,7 +575,7 @@ namespace Capstones.UnityEditorEx
                     sw.Write("> pack;");
                     sw.WriteLine();
                     sw.WriteLine("            var l = lua.L;");
-                    sw.WriteLine("            l.refer(lua.Refid);");
+                    sw.WriteLine("            l.getref(lua.Refid);");
                     sw.WriteLine("            l.GetField(-1, func);");
                     sw.WriteLine("            l.remove(-2);");
                     sw.WriteLine("            PushArgsAndCall(l, args, out pack);");
@@ -598,7 +598,7 @@ namespace Capstones.UnityEditorEx
                     sw.Write("> pack;");
                     sw.WriteLine();
                     sw.WriteLine("            var l = lua.L;");
-                    sw.WriteLine("            l.refer(lua.Refid);");
+                    sw.WriteLine("            l.getref(lua.Refid);");
                     sw.WriteLine("            l.GetField(-1, func);");
                     sw.WriteLine("            l.remove(-2);");
                     sw.WriteLine("            PushArgsAndCallSelf(l, lua, args, out pack);");
