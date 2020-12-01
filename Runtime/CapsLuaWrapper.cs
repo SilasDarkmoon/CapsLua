@@ -956,21 +956,12 @@ namespace Capstones.LuaWrap
     public class LuaList<T> : BaseLuaWrapper, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
     {
         private static LuaHub.BaseLuaWrapperHub<LuaList<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaList<T>>();
-        public override string LuaFile { get { return "coregame.LuaList"; } protected set { } }
+
+        public LuaList() { }
+        public LuaList(IntPtr l) : base(l) { }
 
         public bool IsSynchronized { get { return false; } }
-
         public object SyncRoot { get { return null; } }
-
-        public LuaList()
-        {
-
-        }
-
-        public LuaList(IntPtr L)
-        {
-            this.BindLua(L);
-        }
 
         public void CopyTo(Array array, int index)
         {
@@ -981,6 +972,9 @@ namespace Capstones.LuaWrap
         {
             get
             {
+                var l = L;
+
+
                 T val = default(T);
                 Binding.CallSelf("Get", out val, Pack(index + 1));
                 return val;
@@ -1025,7 +1019,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public ReadOnlyCollection<T> AsReadOnly()
+        public System.Collections.ObjectModel.ReadOnlyCollection<T> AsReadOnly()
         {
             throw new NotImplementedException();
         }

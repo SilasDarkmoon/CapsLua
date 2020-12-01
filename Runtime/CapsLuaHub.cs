@@ -798,7 +798,8 @@ namespace Capstones.LuaLib
         public static void GetLua<T>(this IntPtr l, int index, out T val)
         {
             // 1. trans stored in table
-            bool istable = l.istable(index);
+            var luatype = l.type(index);
+            bool istable = luatype == lua.LUA_TTABLE;
             if (istable)
             {
                 l.checkstack(2);
@@ -839,6 +840,7 @@ namespace Capstones.LuaLib
                 }
             }
             // 2. check lua-native hub
+            if (luatype > 0) // !l.isnoneornil
             {
                 object func;
                 {
