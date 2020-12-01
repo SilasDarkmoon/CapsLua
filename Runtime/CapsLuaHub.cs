@@ -328,7 +328,7 @@ namespace Capstones.LuaLib
                 return;
             }
             object func;
-            LuaPushNative._NativePushLuaFuncs.TryGetValue(typeof(T), out func);
+            LuaPushNative._NativePushLuaFuncs.TryGetValue(val.GetType(), out func);
             ILuaPush<T> gfunc = func as ILuaPush<T>;
             if (gfunc != null)
             {

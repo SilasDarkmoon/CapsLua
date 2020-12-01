@@ -834,6 +834,9 @@ namespace Capstones.LuaLib
                     l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
                     l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
                     l.rawset(-3); // ud meta
+                    l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
+                    l.pushlightuserdata(LuaTypeHub.GetTypeHub(typeof(T)).r);
+                    l.rawset(-3);
                     l.pop(2); // X
                 }
             }
@@ -870,6 +873,9 @@ namespace Capstones.LuaLib
                             l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
                             l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
                             l.rawset(-3); // ud meta
+                            l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
+                            l.pushlightuserdata(LuaTypeHub.GetTypeHub(typeof(T)).r);
+                            l.rawset(-3);
                             l.pop(2); // X
                             return val;
                         }
