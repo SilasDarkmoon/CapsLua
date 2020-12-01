@@ -672,13 +672,31 @@ namespace Capstones.LuaWrap
         public BaseLua Binding { get; set; }
         public virtual string LuaFile { get; protected set; }
         public IntPtr L { get { return ReferenceEquals(Binding, null) ? IntPtr.Zero : Binding.L; } }
+        protected virtual bool ShouldCheckLuaHubSub { get { return true; } }
 
-        public BaseLuaWrapper() { }
-        public BaseLuaWrapper(IntPtr l)
+        public BaseLuaWrapper()
+        {
+            if (ShouldCheckLuaHubSub)
+            {
+                CheckLuaHubSub(this);
+            }
+        }
+        public BaseLuaWrapper(IntPtr l) : this()
         {
             this.BindLua(l);
         }
-
+        protected static LuaTypeHub.TypeHubValueType CheckLuaHubSub(object thiz)
+        {
+            var type = thiz.GetType();
+            LuaTypeHub.TypeHubValueType hub;
+            if (!LuaHubSubs.TryGetValue(type, out hub))
+            {
+                hub = (LuaTypeHub.TypeHubValueType)Activator.CreateInstance(typeof(LuaHub.BaseLuaWrapperHub<>).MakeGenericType(type));
+                //LuaHubSubs[type] = hub;
+            }
+            return hub;
+        }
+        protected internal static readonly Dictionary<Type, LuaTypeHub.TypeHubValueType> LuaHubSubs = new Dictionary<Type, LuaTypeHub.TypeHubValueType>();
         private static LuaHub.BaseLuaWrapperHub<BaseLuaWrapper> LuaHubSub = new LuaHub.BaseLuaWrapperHub<BaseLuaWrapper>();
 
         public T Get<T>(string field)
@@ -701,6 +719,14 @@ namespace Capstones.LuaWrap
                 l.SetTable(-1, Pack(val), field);
             }
         }
+    }
+    public class BaseLuaWrapper<T> : BaseLuaWrapper where T : BaseLuaWrapper, new()
+    {
+        protected override bool ShouldCheckLuaHubSub { get { return false; } }
+        public BaseLuaWrapper() : base() { }
+        public BaseLuaWrapper(IntPtr l) : base(l) { }
+
+        protected static LuaHub.BaseLuaWrapperHub<T> LuaHubSub = new LuaHub.BaseLuaWrapperHub<T>();
     }
 
     public static class LuaWrapperExtensions
@@ -730,6 +756,11 @@ namespace Capstones.LuaWrap
                     l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
                     l.pushvalue(-1); // ud meta meta
                     l.setmetatable(-3); // ud meta
+                }
+                else
+                { // we have already made metatable. that means we attached to lua class. this metatable is shared. so we'd better not record data to the metatable.
+                    l.pop(1);
+                    l.pushvalue(-1); // ud ud
                 }
                 l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta #trans
                 l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud meta #trans trans
@@ -831,6 +862,20 @@ namespace Capstones.LuaLib
                         l.pushvalue(-1); // ud meta meta
                         l.setmetatable(-3); // ud meta
                     }
+                    else
+                    {
+                        l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                        l.rawget(-2); // ud meta tar
+                        if (l.isnoneornil(-1))
+                        { // the tar is not stored in metatable
+                            l.pop(2); // ud
+                            l.pushvalue(-1); // ud ud
+                        }
+                        else
+                        {
+                            l.pop(1); // ud meta
+                        }
+                    }
                     l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
                     l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
                     l.rawset(-3); // ud meta
@@ -869,6 +914,20 @@ namespace Capstones.LuaLib
                                 l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
                                 l.pushvalue(-1); // ud meta meta
                                 l.setmetatable(-3); // ud meta
+                            }
+                            else
+                            {
+                                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                                l.rawget(-2); // ud meta tar
+                                if (l.isnoneornil(-1))
+                                { // the tar is not stored in metatable
+                                    l.pop(2); // ud
+                                    l.pushvalue(-1); // ud ud
+                                }
+                                else
+                                {
+                                    l.pop(1); // ud meta
+                                }
                             }
                             l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
                             l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
@@ -914,6 +973,7 @@ namespace Capstones.LuaLib
             {
                 t = typeof(T);
                 PutIntoCache();
+                BaseLuaWrapper.LuaHubSubs[t] = this;
             }
             protected override bool UpdateDataAfterCall
             {
@@ -953,19 +1013,30 @@ namespace Capstones.LuaLib
 // Some lua collections
 namespace Capstones.LuaWrap
 {
-    public class LuaList<T> : BaseLuaWrapper, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
+    public class LuaList<T> : BaseLuaWrapper<LuaList<T>>, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
     {
-        private static LuaHub.BaseLuaWrapperHub<LuaList<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaList<T>>();
-
-        public LuaList() { }
+        public LuaList() : base() { }
         public LuaList(IntPtr l) : base(l) { }
 
         public bool IsSynchronized { get { return false; } }
-        public object SyncRoot { get { return null; } }
+        public object SyncRoot { get { return LuaHubSub; } }
 
         public void CopyTo(Array array, int index)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    array.SetValue(val, index + i);
+                    l.pop(1);
+                }
+            }
         }
 
         public T this[int index]
@@ -973,15 +1044,24 @@ namespace Capstones.LuaWrap
             get
             {
                 var l = L;
-
-
-                T val = default(T);
-                Binding.CallSelf("Get", out val, Pack(index + 1));
-                return val;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.pushnumber(index + 1);
+                    l.rawget(-2);
+                    return l.GetLua<T>(-1);
+                }
             }
             set
             {
-                Binding.CallSelf("Set", Pack(index + 1, value));
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.pushnumber(index + 1);
+                    l.PushLua(value);
+                    l.rawset(-3);
+                }
             }
         }
 
@@ -989,191 +1069,536 @@ namespace Capstones.LuaWrap
         {
             get
             {
-                return Get<int>("count");
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    return l.getn(-1);
+                }
             }
         }
 
         public int Capacity { get { return int.MaxValue; } }
+        public bool IsReadOnly { get { return false; } }
+        public bool IsFixedSize { get { return false; } }
 
-        public bool IsReadOnly => throw new NotImplementedException();
-
-        public bool IsFixedSize => throw new NotImplementedException();
-
-        object IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        object IList.this[int index]
+        {
+            get { return this[index]; }
+            set { this[index] = (T)value; }
+        }
 
         public void Add(T item)
         {
-            Binding.CallSelf("Add", Pack(item));
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                l.pushnumber(cnt + 1);
+                l.PushLua(item);
+                l.rawset(-3);
+            }
         }
         public void AddRange(IEnumerable<T> collection)
         {
-            if (collection is LuaList<T>)
+            var index = 0;
+            var l = L;
+            using (var lr = l.CreateStackRecover())
             {
-                Binding.CallSelf("AddRange", Pack(collection));
-            }
-            else
-            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
                 foreach (var item in collection)
                 {
-                    Add(item);
+                    l.pushnumber(cnt + (++index));
+                    l.PushLua(item);
+                    l.rawset(-3);
                 }
             }
         }
-        public System.Collections.ObjectModel.ReadOnlyCollection<T> AsReadOnly()
-        {
-            throw new NotImplementedException();
-        }
-        public int BinarySearch(T item)
-        {
-            throw new NotImplementedException();
-        }
-        public int BinarySearch(T item, IComparer<T> comparer)
-        {
-            throw new NotImplementedException();
-        }
-        public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
-        {
-            throw new NotImplementedException();
-        }
         public void Clear()
         {
-            Binding.CallSelf("Clear", Pack());
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.pushnil();
+                    l.rawset(-3);
+                }
+            }
         }
         public bool Contains(T item)
         {
-            bool isContained = false;
-            Binding.CallSelf("AddRange", out isContained, Pack(item));
-            return isContained;
-        }
-        public List<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
-        {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (Equals(val, item))
+                    {
+                        return true;
+                    }
+                    l.pop(1);
+                }
+            }
+            return false;
         }
         public void CopyTo(int index, T[] array, int arrayIndex, int count)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(index + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    array[arrayIndex + i] = val;
+                    l.pop(1);
+                }
+            }
         }
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    array[arrayIndex + i] = val;
+                    l.pop(1);
+                }
+            }
         }
         public void CopyTo(T[] array)
         {
-            throw new NotImplementedException();
+            CopyTo(array, 0);
         }
+
         public bool Exists(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return true;
+                    }
+                    l.pop(1);
+                }
+            }
+            return false;
         }
         public T Find(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return val;
+                    }
+                    l.pop(1);
+                }
+            }
+            return default(T);
         }
         public List<T> FindAll(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            List<T> results = new List<T>();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        results.Add(val);
+                    }
+                    l.pop(1);
+                }
+            }
+            return results;
         }
         public int FindIndex(int startIndex, int count, Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(startIndex + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return startIndex + i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int FindIndex(int startIndex, Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var count = l.getn(-1) - startIndex;
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(startIndex + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return startIndex + i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int FindIndex(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            return FindIndex(0, match);
         }
         public T FindLast(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = cnt; i > 0; --i)
+                {
+                    l.pushnumber(i);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return val;
+                    }
+                    l.pop(1);
+                }
+            }
+            return default(T);
         }
         public int FindLastIndex(int startIndex, int count, Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(startIndex + 1 - i);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return startIndex - i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int FindLastIndex(int startIndex, Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var count = l.getn(-1);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(startIndex + 1 - i);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return startIndex - i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int FindLastIndex(Predicate<T> match)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = cnt; i > 0; --i)
+                {
+                    l.pushnumber(i);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (match(val))
+                    {
+                        return i - 1;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public void ForEach(Action<T> action)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = 0; i < cnt; ++i)
+                {
+                    l.pushnumber(i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    l.pop(1);
+                    action(val);
+                }
+            }
         }
 
         public class Enumerator : IEnumerator<T>
         {
-            public T Current => throw new NotImplementedException();
+            private BaseLua Binding;
+            private int Index;
 
-            object IEnumerator.Current => list == null ? default(T) : list[index];
+            public T Current
+            {
+                get
+                {
+                    var l = Binding.L;
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.PushLua(Binding);
+                        l.pushnumber(Index);
+                        l.rawget(-2);
+                        return l.GetLua<T>(-1);
+                    }
+                }
+            }
 
-            private int index = 0;
-
-            private LuaList<T> list;
+            object IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
 
             public Enumerator(LuaList<T> list)
             {
-                this.list = list;
+                Binding = list.Binding;
             }
 
             public void Dispose()
             {
-                index = 0;
-                list = null;
+                Index = 0;
+                Binding = null;
             }
 
             public bool MoveNext()
             {
-                if (list == null)
+                var index = ++Index;
+                if (ReferenceEquals(Binding, null))
                 {
                     return false;
                 }
-                return ++index < list.Count;
+                var l = Binding.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    var cnt = l.getn(-1);
+                    return index <= cnt;
+                }
             }
 
             public void Reset()
             {
-                index = 0;
+                Index = 0;
             }
         }
-
         public IEnumerator<T> GetEnumerator()
         {
             return new Enumerator(this);
         }
-
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerator();
         }
+
         public List<T> GetRange(int index, int count)
         {
-            throw new NotImplementedException();
+            List<T> results = new List<T>();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(index + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    results.Add(val);
+                    l.pop(1);
+                }
+            }
+            return results;
         }
         public int IndexOf(T item, int index, int count)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(index + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (Equals(val, item))
+                    {
+                        return index + i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int IndexOf(T item, int index)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var count = l.getn(-1) - index;
+                for (int i = 0; i < count; ++i)
+                {
+                    l.pushnumber(index + i + 1);
+                    l.rawget(-2);
+                    var val = l.GetLua<T>(-1);
+                    if (Equals(val, item))
+                    {
+                        return index + i;
+                    }
+                    l.pop(1);
+                }
+            }
+            return -1;
         }
         public int IndexOf(T item)
         {
-            throw new NotImplementedException();
+            return IndexOf(item, 0);
         }
         public void Insert(int index, T item)
         {
-            throw new NotImplementedException();
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                for (int i = cnt - 1; i >= 0; --i)
+                {
+                    if (i > index)
+                    {
+                        l.pushnumber(i + 2);
+                        l.pushnumber(i + 1);
+                        l.rawget(-3);
+                        l.rawset(-3);
+                    }
+                    else if (i == index)
+                    {
+                        l.pushnumber(i + 1);
+                        l.PushLua(item);
+                        l.rawset(-3);
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
         }
         public void InsertRange(int index, IEnumerable<T> collection)
         {
-            throw new NotImplementedException();
+            var list = new List<T>();
+            foreach (var item in collection)
+            {
+                list.Add(item);
+            }
+            var rangecnt = list.Count;
+            if (rangecnt > 0)
+            {
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    var cnt = l.getn(-1);
+                    for (int i = cnt - 1; i >= 0; --i)
+                    {
+                        if (i > index)
+                        {
+                            l.pushnumber(i + 1 + rangecnt);
+                            l.pushnumber(i + 1);
+                            l.rawget(-3);
+                            l.rawset(-3);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < rangecnt; ++i)
+                    {
+                        l.pushnumber(index + 1 + i);
+                        l.PushLua(list[i]);
+                        l.rawset(-3);
+                    }
+                }
+            }
         }
         public int LastIndexOf(T item)
         {
@@ -1268,8 +1693,7 @@ namespace Capstones.LuaWrap
 
     public class LuaQueue<T> : LuaList<T>
     {
-        private static LuaHub.BaseLuaWrapperHub<LuaQueue<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaQueue<T>>();
-        public override string LuaFile { get { return "coregame.LuaQueue"; } protected set { } }
+        private static new LuaHub.BaseLuaWrapperHub<LuaQueue<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaQueue<T>>();
 
         public LuaQueue()
         {
