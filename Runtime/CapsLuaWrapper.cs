@@ -953,138 +953,356 @@ namespace Capstones.LuaLib
 // Some lua collections
 namespace Capstones.LuaWrap
 {
-    //public class LuaList<T> : BaseLuaWrapper, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
-    //{
-    //    private static LuaHub.BaseLuaWrapperHub<LuaList<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaList<T>>();
+    public class LuaList<T> : BaseLuaWrapper, ICollection<T>, IEnumerable<T>, IEnumerable, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection, IList
+    {
+        private static LuaHub.BaseLuaWrapperHub<LuaList<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaList<T>>();
+        public override string LuaFile { get { return "coregame.LuaList"; } protected set { } }
 
-    //    public bool IsSynchronized { get { return false; } }
+        public bool IsSynchronized { get { return false; } }
 
-    //    public object SyncRoot { get { return null; } }
+        public object SyncRoot { get { return null; } }
 
-    //    public void CopyTo(Array array, int index)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //    public T this[int index] { get; set; }
+        public LuaList()
+        {
 
-    //    public int Count
-    //    {
-    //        get
-    //        {
-    //            var l = Binding.L;
-    //            l.refer(Binding.Refid);
-    //            var cnt = l.getn(-1);
-    //            l.pop(1);
-    //            return cnt;
-    //        }
-    //    }
+        }
 
-    //    public int Capacity { get { return int.MaxValue; } }
+        public LuaList(IntPtr L)
+        {
+            this.BindLua(L);
+        }
 
-    //    public bool IsReadOnly => throw new NotImplementedException();
+        public void CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
 
-    //    public bool IsFixedSize => throw new NotImplementedException();
+        public T this[int index]
+        {
+            get
+            {
+                T val = default(T);
+                Binding.CallSelf("Get", out val, Pack(index + 1));
+                return val;
+            }
+            set
+            {
+                Binding.CallSelf("Set", Pack(index + 1, value));
+            }
+        }
 
-    //    object IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int Count
+        {
+            get
+            {
+                return Get<int>("count");
+            }
+        }
 
-    //    public void Add(T item);
-    //    public void AddRange(IEnumerable<T> collection);
-    //    public ReadOnlyCollection<T> AsReadOnly();
-    //    public int BinarySearch(T item);
-    //    public int BinarySearch(T item, IComparer<T> comparer);
-    //    public int BinarySearch(int index, int count, T item, IComparer<T> comparer);
-    //    public void Clear();
-    //    public bool Contains(T item);
-    //    public List<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter);
-    //    public void CopyTo(int index, T[] array, int arrayIndex, int count);
-    //    public void CopyTo(T[] array, int arrayIndex);
-    //    public void CopyTo(T[] array);
-    //    public bool Exists(Predicate<T> match);
-    //    public T Find(Predicate<T> match);
-    //    public List<T> FindAll(Predicate<T> match);
-    //    public int FindIndex(int startIndex, int count, Predicate<T> match);
-    //    public int FindIndex(int startIndex, Predicate<T> match);
-    //    public int FindIndex(Predicate<T> match);
-    //    public T FindLast(Predicate<T> match);
-    //    public int FindLastIndex(int startIndex, int count, Predicate<T> match);
-    //    public int FindLastIndex(int startIndex, Predicate<T> match);
-    //    public int FindLastIndex(Predicate<T> match);
-    //    public void ForEach(Action<T> action);
-    //    public IEnumerator<T> GetEnumerator()
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        public int Capacity { get { return int.MaxValue; } }
 
-    //    IEnumerator IEnumerable.GetEnumerator()
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //    public List<T> GetRange(int index, int count);
-    //    public int IndexOf(T item, int index, int count);
-    //    public int IndexOf(T item, int index);
-    //    public int IndexOf(T item);
-    //    public void Insert(int index, T item);
-    //    public void InsertRange(int index, IEnumerable<T> collection);
-    //    public int LastIndexOf(T item);
-    //    public int LastIndexOf(T item, int index);
-    //    public int LastIndexOf(T item, int index, int count);
-    //    public bool Remove(T item);
-    //    public int RemoveAll(Predicate<T> match);
-    //    public void RemoveAt(int index);
-    //    public void RemoveRange(int index, int count);
-    //    public void Reverse(int index, int count);
-    //    public void Reverse();
-    //    public void Sort(Comparison<T> comparison);
-    //    public void Sort(int index, int count, IComparer<T> comparer);
-    //    public void Sort();
-    //    public void Sort(IComparer<T> comparer);
-    //    public T[] ToArray();
-    //    public void TrimExcess();
-    //    public bool TrueForAll(Predicate<T> match);
+        public bool IsReadOnly => throw new NotImplementedException();
 
-    //    public int Add(object value)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        public bool IsFixedSize => throw new NotImplementedException();
 
-    //    public bool Contains(object value)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        object IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    //    public int IndexOf(object value)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        public void Add(T item)
+        {
+            Binding.CallSelf("Add", Pack(item));
+        }
+        public void AddRange(IEnumerable<T> collection)
+        {
+            if (collection is LuaList<T>)
+            {
+                Binding.CallSelf("AddRange", Pack(collection));
+            }
+            else
+            {
+                foreach (var item in collection)
+                {
+                    Add(item);
+                }
+            }
+        }
+        public ReadOnlyCollection<T> AsReadOnly()
+        {
+            throw new NotImplementedException();
+        }
+        public int BinarySearch(T item)
+        {
+            throw new NotImplementedException();
+        }
+        public int BinarySearch(T item, IComparer<T> comparer)
+        {
+            throw new NotImplementedException();
+        }
+        public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
+        {
+            throw new NotImplementedException();
+        }
+        public void Clear()
+        {
+            Binding.CallSelf("Clear", Pack());
+        }
+        public bool Contains(T item)
+        {
+            bool isContained = false;
+            Binding.CallSelf("AddRange", out isContained, Pack(item));
+            return isContained;
+        }
+        public List<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
+        {
+            throw new NotImplementedException();
+        }
+        public void CopyTo(int index, T[] array, int arrayIndex, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+        public void CopyTo(T[] array)
+        {
+            throw new NotImplementedException();
+        }
+        public bool Exists(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public T Find(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public List<T> FindAll(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindIndex(int startIndex, int count, Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindIndex(int startIndex, Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindIndex(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public T FindLast(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindLastIndex(int startIndex, Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public int FindLastIndex(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public void ForEach(Action<T> action)
+        {
+            throw new NotImplementedException();
+        }
 
-    //    public void Insert(int index, object value)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        public class Enumerator : IEnumerator<T>
+        {
+            public T Current => throw new NotImplementedException();
 
-    //    public void Remove(object value)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+            object IEnumerator.Current => list == null ? default(T) : list[index];
 
-    //public class LuaQueue<T> : LuaList<T>
-    //{
-    //    private static LuaHub.BaseLuaWrapperHub<LuaQueue<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaQueue<T>>();
+            private int index = 0;
+
+            private LuaList<T> list;
+
+            public Enumerator(LuaList<T> list)
+            {
+                this.list = list;
+            }
+
+            public void Dispose()
+            {
+                index = 0;
+                list = null;
+            }
+
+            public bool MoveNext()
+            {
+                if (list == null)
+                {
+                    return false;
+                }
+                return ++index < list.Count;
+            }
+
+            public void Reset()
+            {
+                index = 0;
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+        public List<T> GetRange(int index, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public int IndexOf(T item, int index, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public int IndexOf(T item, int index)
+        {
+            throw new NotImplementedException();
+        }
+        public int IndexOf(T item)
+        {
+            throw new NotImplementedException();
+        }
+        public void Insert(int index, T item)
+        {
+            throw new NotImplementedException();
+        }
+        public void InsertRange(int index, IEnumerable<T> collection)
+        {
+            throw new NotImplementedException();
+        }
+        public int LastIndexOf(T item)
+        {
+            throw new NotImplementedException();
+        }
+        public int LastIndexOf(T item, int index)
+        {
+            throw new NotImplementedException();
+        }
+        public int LastIndexOf(T item, int index, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public bool Remove(T item)
+        {
+            throw new NotImplementedException();
+        }
+        public int RemoveAll(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+        public void RemoveAt(int index)
+        {
+            Binding.CallSelf("RemoveAt", Pack(index + 1));
+        }
+        public void RemoveRange(int index, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public void Reverse(int index, int count)
+        {
+            throw new NotImplementedException();
+        }
+        public void Reverse()
+        {
+            throw new NotImplementedException();
+        }
+        public void Sort(Comparison<T> comparison)
+        {
+            throw new NotImplementedException();
+        }
+        public void Sort(int index, int count, IComparer<T> comparer)
+        {
+            throw new NotImplementedException();
+        }
+        public void Sort()
+        {
+            throw new NotImplementedException();
+        }
+        public void Sort(IComparer<T> comparer)
+        {
+            throw new NotImplementedException();
+        }
+        public T[] ToArray()
+        {
+            throw new NotImplementedException();
+        }
+        public void TrimExcess()
+        {
+            throw new NotImplementedException();
+        }
+        public bool TrueForAll(Predicate<T> match)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Add(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int IndexOf(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Insert(int index, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Remove(object value)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class LuaQueue<T> : LuaList<T>
+    {
+        private static LuaHub.BaseLuaWrapperHub<LuaQueue<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaQueue<T>>();
+        public override string LuaFile { get { return "coregame.LuaQueue"; } protected set { } }
+
+        public LuaQueue()
+        {
+
+        }
+
+        public LuaQueue(IntPtr L) : base(L)
+        {
+
+        }
 
 
-
-    //    public T Dequeue()
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //    public void Enqueue(T item)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //    public T Peek()
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+        public T Dequeue()
+        {
+            T first = default(T);
+            Binding.CallSelf("Dequeue", out first, Pack());
+            return first;
+        }
+        public void Enqueue(T item)
+        {
+            Binding.CallSelf("Enqueue", Pack(item));
+        }
+        public T Peek()
+        {
+            T first = default(T);
+            Binding.CallSelf("Peek", out first, Pack());
+            return first;
+        }
+    }
 }
