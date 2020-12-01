@@ -151,6 +151,44 @@ namespace Capstones.LuaWrap
                 }
             }
         }
+        public static void PushArgsAndCallSelf<TIn, TOut>(this IntPtr l, TIn args, out TOut result)
+            where TIn : struct, ILuaPack
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (l != IntPtr.Zero)
+            {
+                var oldtop = l.gettop() - 1; // *func self
+                l.pushcfunction(LuaHub.LuaFuncOnError); // func self error
+                l.insert(oldtop); // error func self
+                var argc = args.ElementCount;
+                args.PushToLua(l); // error func self args
+                var code = l.pcall(argc + 1, result.ElementCount, oldtop); // error results
+                if (code == 0)
+                {
+                    int onstackcnt = result.OnStackCount();
+                    if (onstackcnt > 0)
+                    {
+                        l.remove(oldtop); // results
+                        result.GetFromLua(l);
+                        int popcnt = result.ElementCount - onstackcnt;
+                        if (popcnt > 0)
+                        {
+                            l.pop(popcnt);
+                        }
+                    }
+                    else
+                    {
+                        result.GetFromLua(l);
+                        l.settop(oldtop - 1); // X
+                    }
+                }
+                else
+                {
+                    l.settop(oldtop - 1); // X
+                }
+            }
+        }
         public static TOut CallGlobal<TIn, TOut>(this IntPtr l, string name, TIn args)
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack
@@ -5704,7 +5742,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -5714,10 +5752,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
         }
 
         public static void PushArgsAndCall<TIn, T0>(this IntPtr l, out T0 rv0, TIn args)
@@ -5809,7 +5847,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -5820,10 +5858,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0);
         }
 
@@ -5916,7 +5954,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -5927,10 +5965,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1);
         }
 
@@ -6023,7 +6061,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6034,10 +6072,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2);
         }
 
@@ -6130,7 +6168,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6141,10 +6179,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
         }
 
@@ -6237,7 +6275,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6248,10 +6286,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
         }
 
@@ -6344,7 +6382,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6355,10 +6393,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
         }
 
@@ -6451,7 +6489,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6462,10 +6500,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
         }
 
@@ -6558,7 +6596,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6569,10 +6607,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
         }
 
@@ -6665,7 +6703,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6676,10 +6714,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
         }
 
@@ -6772,7 +6810,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6783,10 +6821,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
         }
 
@@ -6879,7 +6917,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6890,10 +6928,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
         }
 
@@ -6986,7 +7024,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -6997,10 +7035,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
         }
 
@@ -7093,7 +7131,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -7104,10 +7142,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
         }
 
@@ -7200,7 +7238,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -7211,10 +7249,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
         }
 
@@ -7307,7 +7345,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -7318,10 +7356,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
         }
 
@@ -7414,7 +7452,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -7425,10 +7463,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
         }
 
@@ -7521,7 +7559,7 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
             l.remove(-2);
             PushArgsAndCall(l, args, out pack);
@@ -7532,10 +7570,10 @@ namespace Capstones.LuaWrap
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
             var l = lua.L;
-            l.getref(lua.Refid);
+            l.PushLua(lua);
             l.GetField(-1, func);
-            l.remove(-2);
-            PushArgsAndCallSelf(l, lua, args, out pack);
+            l.insert(-2);
+            PushArgsAndCallSelf(l, args, out pack);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
         }
     }
