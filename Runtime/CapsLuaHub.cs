@@ -935,6 +935,20 @@ namespace Capstones.LuaLib
                             val = (T)(object)CapsLuaDelegateGenerator.CreateDelegate(typeof(T), raw as LuaWrap.BaseLua);
                             return;
                         }
+                        else if (typeof(T).IsSubclassOf(typeof(LuaWrap.BaseLuaWrapper)))
+                        { // the BaseLuaWrapper is not initialized?
+                            try
+                            {
+                                val = Activator.CreateInstance<T>();
+                                var wrapper = (LuaWrap.BaseLuaWrapper)(object)val;
+                                wrapper.Binding = raw as LuaWrap.BaseLua;
+                                return;
+                            }
+                            catch (Exception e)
+                            { // we can not create instance of wrapper?
+                                PlatDependant.LogError(e);
+                            }
+                        }
                     }
                 }
 
