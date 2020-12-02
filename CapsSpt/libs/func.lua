@@ -369,6 +369,31 @@ function table.merge(dest, src)
     end
 end
 
+function table.deepmerge(dst, src)
+    local visited = {}
+    local function mergeTable(dst, src)
+        visited[src] = dst
+        for k, v in pairs(src) do
+            if type(v) ~= "table" then
+                dst[k] = v
+            else
+                if visited[v] then
+                    dst[k] = visited[v]
+                else
+                    if type(dst[k]) ~= "table" then
+                        dst[k] = v
+                    else
+                        mergeTable(dst[k], v)
+                    end
+                end
+            end
+        end
+    end
+
+    mergeTable(dst, src)
+    return dst
+end
+
 --[[--
 
 Merge arraies.
