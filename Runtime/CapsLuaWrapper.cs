@@ -792,9 +792,16 @@ namespace Capstones.LuaWrap
 
         public static T GetWrapper<T>(this ILuaWrapper thiz) where T : ILuaWrapper, new()
         {
-            var copy = new T();
-            copy.Binding = thiz.Binding;
-            return copy;
+            if (thiz == null)
+            {
+                return default(T);
+            }
+            else
+            {
+                var copy = new T();
+                copy.Binding = thiz.Binding;
+                return copy;
+            }
         }
         public static void GetWrapper<T>(this ILuaWrapper thiz, out T copy) where T : ILuaWrapper, new()
         {
@@ -803,9 +810,16 @@ namespace Capstones.LuaWrap
 
         public static T GetWrapper<T>(this BaseLua lua) where T : ILuaWrapper, new()
         {
-            var result = new T();
-            result.Binding = lua;
-            return result;
+            if (ReferenceEquals(lua, null))
+            {
+                return default(T);
+            }
+            else
+            {
+                var result = new T();
+                result.Binding = lua;
+                return result;
+            }
         }
         public static void GetWrapper<T>(this BaseLua lua, out T result) where T : ILuaWrapper, new()
         {
@@ -818,10 +832,16 @@ namespace Capstones.LuaWrap
             {
                 return (T)o;
             }
-            if (o is BaseLua)
+            else if (o is BaseLua)
             {
                 var result = new T();
                 result.Binding = (BaseLua)o;
+                return result;
+            }
+            else if (o is ILuaWrapper)
+            {
+                var result = new T();
+                result.Binding = ((ILuaWrapper)o).Binding;
                 return result;
             }
             return default(T);
