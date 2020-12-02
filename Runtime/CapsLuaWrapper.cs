@@ -853,7 +853,7 @@ namespace Capstones.LuaLib
                 l.PushLua(val.Binding); // ud
                 l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
                 l.gettable(-2); // ud tar
-                var current = (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>();
+                var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
                 if (ReferenceEquals(current, val))
                 {
                     l.pop(2); // X
@@ -903,7 +903,7 @@ namespace Capstones.LuaLib
                     l.pushvalue(index); // ud
                     l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
                     l.gettable(-2); // ud tar
-                    var current = (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>();
+                    var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
                     l.pop(2); // X
                     if (current != null)
                     {
@@ -2564,3 +2564,71 @@ namespace Capstones.LuaWrap
         }
     }
 }
+
+#if UNITY_EDITOR
+#if UNITY_INCLUDE_TESTS
+#region TESTS
+namespace Capstones.Test
+{
+    using Capstones.UnityEngineEx;
+
+    public static class TestLuaCollections
+    {
+        [UnityEditor.MenuItem("Test/Lua/Test Collections", priority = 300030)]
+        public static void Test()
+        {
+            var l = GlobalLua.L.L;
+            using (var lr = l.CreateStackRecover())
+            {
+                var ll = new LuaList<int>(l);
+                for (int i = 0; i < 10; ++i)
+                {
+                    ll.Add(i);
+                }
+
+                ll.RemoveRange(3, 2);
+                l.CallGlobal("dumpraw", Pack(ll));
+
+                l.newtable();
+                LuaQueue<int> lq;
+                l.GetLua(-1, out lq);
+                for (int i = 0; i < 10; ++i)
+                {
+                    lq.Enqueue(i);
+                }
+                PlatDependant.LogInfo(lq.Dequeue());
+                PlatDependant.LogInfo(lq.Dequeue());
+                l.CallGlobal("dumpraw", Pack(lq));
+                l.pop(1);
+
+                l.newtable();
+                LuaStack<int> ls = l.GetLuaOnStack(-1).GetWrapper<LuaStack<int>>();
+                for (int i = 0; i < 10; ++i)
+                {
+                    ls.Push(i);
+                }
+                PlatDependant.LogInfo(ls.Pop());
+                PlatDependant.LogInfo(ls.Pop());
+                l.CallGlobal("dumpraw", Pack(ls));
+                l.pop(1);
+
+                var ld = new LuaDictionary<string, int>(l);
+                for (int i = 0; i < 10; ++i)
+                {
+                    ld["s" + i] = i;
+                }
+                PlatDependant.LogInfo(ld["s3"]);
+                PlatDependant.LogInfo(ld.Remove("s3"));
+                int s4;
+                PlatDependant.LogInfo(ld.TryGetValue("s4", out s4));
+                PlatDependant.LogInfo(s4);
+
+                PlatDependant.LogInfo(ld.Get<GCCollectionMode>("s0"));
+                l.CallGlobal("dumpraw", Pack(ld));
+            }
+        }
+    }
+}
+#endregion
+#endif
+#endif
