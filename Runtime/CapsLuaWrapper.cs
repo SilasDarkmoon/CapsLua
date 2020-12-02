@@ -1028,6 +1028,12 @@ namespace Capstones.LuaWrap
         public LuaList() : base() { }
         public LuaList(IntPtr l) : base(l) { }
 
+        protected IEqualityComparer<T> _Comparer = EqualityComparer<T>.Default;
+        protected bool Equals(T v1, T v2)
+        {
+            return _Comparer.Equals(v1, v2);
+        }
+
         public bool IsSynchronized { get { return false; } }
         public object SyncRoot { get { return LuaHubSub; } }
 
@@ -1410,7 +1416,7 @@ namespace Capstones.LuaWrap
             }
         }
 
-        public class Enumerator : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>
         {
             private BaseLua Binding;
             private int Index;
@@ -1440,6 +1446,7 @@ namespace Capstones.LuaWrap
 
             public Enumerator(LuaList<T> list)
             {
+                Index = 0;
                 Binding = list.Binding;
             }
 
@@ -1823,12 +1830,12 @@ namespace Capstones.LuaWrap
             return true;
         }
 
-        public int Add(object value)
+        int IList.Add(object value)
         {
             Add((T)value);
             return Count - 1;
         }
-        public bool Contains(object value)
+        bool IList.Contains(object value)
         {
             if (value is T)
             {
@@ -1840,7 +1847,7 @@ namespace Capstones.LuaWrap
             }
             return false;
         }
-        public int IndexOf(object value)
+        int IList.IndexOf(object value)
         {
             if (value is T)
             {
@@ -1852,11 +1859,11 @@ namespace Capstones.LuaWrap
             }
             return -1;
         }
-        public void Insert(int index, object value)
+        void IList.Insert(int index, object value)
         {
             Insert(index, (T)value);
         }
-        public void Remove(object value)
+        void IList.Remove(object value)
         {
             if (value is T)
             {
@@ -1917,6 +1924,643 @@ namespace Capstones.LuaWrap
                 l.GetLua(-1, out item);
                 return item;
             }
+        }
+    }
+
+    public class LuaStack<T> : LuaList<T>
+    {
+        private static new LuaHub.BaseLuaWrapperHub<LuaStack<T>> LuaHubSub = new LuaHub.BaseLuaWrapperHub<LuaStack<T>>();
+
+        public LuaStack() : base() { }
+        public LuaStack(IntPtr l) : base(l) { }
+
+        public T Peek()
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                if (cnt > 0)
+                {
+                    l.pushnumber(cnt);
+                    l.rawget(-2);
+                    return l.GetLua<T>(-1);
+                }
+                else
+                {
+                    return default(T);
+                }
+            }
+        }
+        public T Pop()
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                var cnt = l.getn(-1);
+                if (cnt > 0)
+                {
+                    l.pushnumber(cnt);
+                    l.rawget(-2);
+                    var item = l.GetLua<T>(-1);
+                    l.pop(1);
+                    l.pushnumber(cnt);
+                    l.pushnil();
+                    l.rawset(-3);
+                    return item;
+                }
+                else
+                {
+                    return default(T);
+                }
+            }
+        }
+        public void Push(T item)
+        {
+            Add(item);
+        }
+    }
+
+    public class LuaDictionary<TK, TV> : BaseLuaWrapper<LuaDictionary<TK, TV>>, ICollection<KeyValuePair<TK, TV>>, IEnumerable<KeyValuePair<TK, TV>>, IEnumerable, IDictionary<TK, TV>, IReadOnlyCollection<KeyValuePair<TK, TV>>, IReadOnlyDictionary<TK, TV>, ICollection, IDictionary,
+        UnityEngineEx.IConvertibleDictionary
+    {
+        public LuaDictionary() : base() { }
+        public LuaDictionary(IntPtr l) : base(l) { }
+        public virtual bool IsRaw { get; set; }
+
+        protected static IEqualityComparer<TK> _KeyComparer = EqualityComparer<TK>.Default;
+        protected static bool Equals(TK v1, TK v2)
+        {
+            return _KeyComparer.Equals(v1, v2);
+        }
+        protected static IEqualityComparer<TV> _ValueComparer = EqualityComparer<TV>.Default;
+        protected static bool EqualsValue(TV v1, TV v2)
+        {
+            return _ValueComparer.Equals(v1, v2);
+        }
+
+        protected void GetTable(IntPtr l, int index)
+        {
+            if (IsRaw)
+            {
+                l.rawget(index);
+            }
+            else
+            {
+                l.gettable(index);
+            }
+        }
+        protected void SetTable(IntPtr l, int index)
+        {
+            if (IsRaw)
+            {
+                l.rawset(index);
+            }
+            else
+            {
+                l.settable(index);
+            }
+        }
+        protected void GetTable(int index)
+        {
+            GetTable(L, index);
+        }
+        protected void SetTable(int index)
+        {
+            SetTable(L, index);
+        }
+
+        public TV this[TK key]
+        {
+            get
+            {
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    TV item;
+                    l.PushLua(key);
+                    GetTable(l, -2);
+                    l.GetLua(-1, out item);
+                    return item;
+                }
+            }
+            set
+            {
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.PushLua(key);
+                    l.PushLua(value);
+                    SetTable(l, -3);
+                }
+            }
+        }
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                var l = L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        ++count;
+                        l.pop(1);
+                    }
+                }
+                return count;
+            }
+        }
+        public void Add(TK key, TV value)
+        {
+            this[key] = value;
+        }
+        public void Clear()
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.pushnil();
+                while (l.next(-2))
+                {
+                    l.pop(1);
+                    l.pushvalue(-1);
+                    l.pushnil();
+                    l.rawset(-4);
+                }
+            }
+        }
+        public bool ContainsKey(TK key)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.PushLua(key);
+                GetTable(l, -2);
+                return !l.isnoneornil(-1);
+            }
+        }
+        public bool Remove(TK key)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.PushLua(key);
+                l.pushvalue(-1);
+                GetTable(l, -3);
+                var exist = !l.isnoneornil(-1);
+                l.pop(1);
+                l.pushnil();
+                SetTable(l, -3);
+                return exist;
+            }
+        }
+        public bool TryGetValue(TK key, out TV value)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.PushLua(key);
+                GetTable(l, -2);
+                var exist = !l.isnoneornil(-1);
+                if (exist)
+                {
+                    l.GetLua(-1, out value);
+                }
+                else
+                {
+                    value = default(TV);
+                }
+                return exist;
+            }
+        }
+        public bool ContainsValue(TV value)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.pushnil();
+                while (l.next(-2))
+                {
+                    var item = l.GetLua<TV>(-1);
+                    if (EqualsValue(item, value))
+                    {
+                        return true;
+                    }
+                    l.pop(1);
+                }
+            }
+            return false;
+        }
+
+        public void CopyTo(Array array, int arrayIndex)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                int count = 0;
+                l.PushLua(Binding);
+                l.pushnil();
+                while (l.next(-2))
+                {
+                    var val = l.GetLua<TV>(-1);
+                    l.pushvalue(-2);
+                    var key = l.GetLua<TK>(-1);
+                    array.SetValue(new KeyValuePair<TK, TV>(key, val), arrayIndex + count);
+                    l.pop(2);
+                    ++count;
+                }
+            }
+        }
+        public void CopyTo(KeyValuePair<TK, TV>[] array, int arrayIndex)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                int count = 0;
+                l.PushLua(Binding);
+                l.pushnil();
+                while (l.next(-2))
+                {
+                    var val = l.GetLua<TV>(-1);
+                    l.pushvalue(-2);
+                    var key = l.GetLua<TK>(-1);
+                    array[arrayIndex + count] = new KeyValuePair<TK, TV>(key, val);
+                    l.pop(2);
+                    ++count;
+                }
+            }
+        }
+        public void Add(KeyValuePair<TK, TV> item)
+        {
+            Add(item.Key, item.Value);
+        }
+        public bool Contains(KeyValuePair<TK, TV> item)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.PushLua(item.Key);
+                GetTable(l, -2);
+                var existing = l.GetLua<TV>(-1);
+                if (EqualsValue(existing, item.Value))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+        public bool Remove(KeyValuePair<TK, TV> item)
+        {
+            var l = L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                l.PushLua(item.Key);
+                l.pushvalue(-1);
+                GetTable(l, -3);
+                var existing = l.GetLua<TV>(-1);
+                if (EqualsValue(existing, item.Value))
+                {
+                    l.pop(1);
+                    l.pushnil();
+                    SetTable(l, -3);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public struct Enumerator : IEnumerator<KeyValuePair<TK, TV>>, IEnumerator, IDisposable, IDictionaryEnumerator
+        {
+            private BaseLua Binding;
+            private object CurrentKey;
+
+            public Enumerator(LuaDictionary<TK, TV> thiz)
+            {
+                CurrentKey = null;
+                Binding = thiz.Binding;
+            }
+
+            public KeyValuePair<TK, TV> Current { get; private set; }
+
+            object IEnumerator.Current { get { return Current; } }
+
+            DictionaryEntry IDictionaryEnumerator.Entry { get { return new DictionaryEntry(Current.Key, Current.Value); } }
+
+            object IDictionaryEnumerator.Key { get { return Current.Key; } }
+
+            object IDictionaryEnumerator.Value { get { return Current.Value; } }
+
+            public void Dispose()
+            {
+                Current = default(KeyValuePair<TK, TV>);
+                CurrentKey = null;
+                Binding = null;
+            }
+            public bool MoveNext()
+            {
+                var l = Binding.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.PushLua(CurrentKey);
+                    var success = l.next(-2);
+                    if (success)
+                    {
+                        var val = l.GetLua<TV>(-1);
+                        l.pushvalue(-2);
+                        var key = l.GetLua<TK>(-1);
+                        Current = new KeyValuePair<TK, TV>(key, val);
+                        CurrentKey = l.GetLua(-3);
+                    }
+                    else
+                    {
+                        Current = default(KeyValuePair<TK, TV>);
+                        //CurrentKey = null;
+                    }
+                    return success;
+                }
+            }
+            public void Reset()
+            {
+                Current = default(KeyValuePair<TK, TV>);
+                CurrentKey = null;
+            }
+        }
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+        IEnumerator<KeyValuePair<TK, TV>> IEnumerable<KeyValuePair<TK, TV>>.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        IDictionaryEnumerator IDictionary.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public KeyCollection Keys { get { return new KeyCollection(this); } }
+        public ValueCollection Values { get { return new ValueCollection(this); } }
+        ICollection<TK> IDictionary<TK, TV>.Keys { get { return Keys; } }
+        ICollection<TV> IDictionary<TK, TV>.Values { get { return Values; } }
+        IEnumerable<TK> IReadOnlyDictionary<TK, TV>.Keys { get { return Keys; } }
+        IEnumerable<TV> IReadOnlyDictionary<TK, TV>.Values { get { return Values; } }
+        ICollection IDictionary.Keys { get { return Keys; } }
+        ICollection IDictionary.Values { get { return Values; } }
+        public struct KeyCollection : ICollection<TK>, IEnumerable<TK>, IEnumerable, IReadOnlyCollection<TK>, ICollection
+        {
+            private LuaDictionary<TK, TV> Parent;
+            public KeyCollection(LuaDictionary<TK, TV> thiz)
+            {
+                Parent = thiz;
+            }
+            public int Count { get { return Parent.Count; } }
+            public void CopyTo(TK[] array, int index)
+            {
+                var l = Parent.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    int count = 0;
+                    l.PushLua(Parent.Binding);
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        l.pushvalue(-2);
+                        var key = l.GetLua<TK>(-1);
+                        array[index + count] = key;
+                        l.pop(2);
+                        ++count;
+                    }
+                }
+            }
+            public bool Contains(TK key)
+            {
+                return Parent.ContainsKey(key);
+            }
+            public bool IsReadOnly { get { return true; } }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(Parent.GetEnumerator());
+            }
+            IEnumerator<TK> IEnumerable<TK>.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public struct Enumerator : IEnumerator<TK>, IEnumerator, IDisposable
+            {
+                private LuaDictionary<TK, TV>.Enumerator Parent;
+                public Enumerator(LuaDictionary<TK, TV>.Enumerator parent)
+                {
+                    Parent = parent;
+                }
+                public TK Current { get { return Parent.Current.Key; } }
+                object IEnumerator.Current { get { return Current; } }
+
+                public void Dispose()
+                {
+                    Parent.Dispose();
+                }
+                public bool MoveNext()
+                {
+                    return Parent.MoveNext();
+                }
+                public void Reset()
+                {
+                    Parent.Reset();
+                }
+            }
+
+            void ICollection<TK>.Add(TK item)
+            {
+                throw new NotSupportedException();
+            }
+            void ICollection<TK>.Clear()
+            {
+                throw new NotSupportedException();
+            }
+            bool ICollection<TK>.Remove(TK item)
+            {
+                throw new NotSupportedException();
+            }
+            public bool IsSynchronized { get { return false; } }
+            public object SyncRoot { get { return LuaHubSub; } }
+            public void CopyTo(Array array, int index)
+            {
+                var l = Parent.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    int count = 0;
+                    l.PushLua(Parent.Binding);
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        l.pushvalue(-2);
+                        var key = l.GetLua<TK>(-1);
+                        array.SetValue(key, index + count);
+                        l.pop(2);
+                        ++count;
+                    }
+                }
+            }
+        }
+        public sealed class ValueCollection : ICollection<TV>, IEnumerable<TV>, IEnumerable, IReadOnlyCollection<TV>, ICollection
+        {
+            private LuaDictionary<TK, TV> Parent;
+            public ValueCollection(LuaDictionary<TK, TV> thiz)
+            {
+                Parent = thiz;
+            }
+            public int Count { get { return Parent.Count; } }
+            public void CopyTo(TV[] array, int index)
+            {
+                var l = Parent.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    int count = 0;
+                    l.PushLua(Parent.Binding);
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        var val = l.GetLua<TV>(-1);
+                        array[index + count] = val;
+                        l.pop(1);
+                        ++count;
+                    }
+                }
+            }
+            public bool Contains(TV val)
+            {
+                return Parent.ContainsValue(val);
+            }
+            public bool IsReadOnly { get { return true; } }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(Parent.GetEnumerator());
+            }
+            IEnumerator<TV> IEnumerable<TV>.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public struct Enumerator : IEnumerator<TV>, IEnumerator, IDisposable
+            {
+                private LuaDictionary<TK, TV>.Enumerator Parent;
+                public Enumerator(LuaDictionary<TK, TV>.Enumerator parent)
+                {
+                    Parent = parent;
+                }
+                public TV Current { get { return Parent.Current.Value; } }
+                object IEnumerator.Current { get { return Current; } }
+
+                public void Dispose()
+                {
+                    Parent.Dispose();
+                }
+                public bool MoveNext()
+                {
+                    return Parent.MoveNext();
+                }
+                public void Reset()
+                {
+                    Parent.Reset();
+                }
+            }
+
+            void ICollection<TV>.Add(TV item)
+            {
+                throw new NotSupportedException();
+            }
+            void ICollection<TV>.Clear()
+            {
+                throw new NotSupportedException();
+            }
+            bool ICollection<TV>.Remove(TV item)
+            {
+                throw new NotSupportedException();
+            }
+            public bool IsSynchronized { get { return false; } }
+            public object SyncRoot { get { return LuaHubSub; } }
+            public void CopyTo(Array array, int index)
+            {
+                var l = Parent.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    int count = 0;
+                    l.PushLua(Parent.Binding);
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        var val = l.GetLua<TV>(-1);
+                        array.SetValue(val, index + count);
+                        l.pop(1);
+                        ++count;
+                    }
+                }
+            }
+        }
+
+        public bool IsSynchronized { get { return false; } }
+        public object SyncRoot { get { return LuaHubSub; } }
+        public bool IsReadOnly { get { return false; } }
+        public bool IsFixedSize { get { return false; } }
+
+        void IDictionary.Add(object key, object value)
+        {
+            Add((TK)key, (TV)value);
+        }
+        bool IDictionary.Contains(object key)
+        {
+            if (key is TK)
+            {
+                return ContainsKey((TK)key);
+            }
+            if (key == null && !typeof(TK).IsValueType)
+            {
+                return ContainsKey((TK)key);
+            }
+            return false;
+        }
+        void IDictionary.Remove(object key)
+        {
+            if (key is TK)
+            {
+                Remove((TK)key);
+            }
+        }
+        object IDictionary.this[object key]
+        {
+            get { return this[(TK)key]; }
+            set { this[(TK)key] = (TV)value; }
         }
     }
 }
