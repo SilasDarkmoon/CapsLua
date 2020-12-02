@@ -151,137 +151,141 @@ namespace Capstones.LuaWrap
             DynamicHelper.LogInfo("__convert(" + type.ToString() + ") meta-method Not Implemented.");
             return null;
         }
+        public virtual void PushToLua(IntPtr l)
+        {
+            l.getref(Refid);
+        }
 
         public void Call()
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l);
         }
         public void Call<P0>(P0 p0)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0);
         }
         public void Call<P0, P1>(P0 p0, P1 p1)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1);
         }
         public void Call<P0, P1, P2>(P0 p0, P1 p1, P2 p2)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2);
         }
         public void Call<P0, P1, P2, P3>(P0 p0, P1 p1, P2 p2, P3 p3)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3);
         }
         public void Call<P0, P1, P2, P3, P4>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4);
         }
         public void Call<P0, P1, P2, P3, P4, P5>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5);
         }
         public void Call<P0, P1, P2, P3, P4, P5, P6>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6);
         }
         public void Call<P0, P1, P2, P3, P4, P5, P6, P7>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7);
         }
         public void Call<P0, P1, P2, P3, P4, P5, P6, P7, P8>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7, p8);
         }
         public void Call<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
         }
         public bool Call<R>(out R r)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r);
         }
         public bool Call<R, P0>(out R r, P0 p0)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0);
         }
         public bool Call<R, P0, P1>(out R r, P0 p0, P1 p1)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1);
         }
         public bool Call<R, P0, P1, P2>(out R r, P0 p0, P1 p1, P2 p2)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2);
         }
         public bool Call<R, P0, P1, P2, P3>(out R r, P0 p0, P1 p1, P2 p2, P3 p3)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3);
         }
         public bool Call<R, P0, P1, P2, P3, P4>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4);
         }
         public bool Call<R, P0, P1, P2, P3, P4, P5>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5);
         }
         public bool Call<R, P0, P1, P2, P3, P4, P5, P6>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6);
         }
         public bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7);
         }
         public bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7, p8);
         }
         public bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
         {
             var l = L;
-            l.getref(Refid);
+            PushToLua(l);
             return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
         }
         public R Call<R>()
@@ -412,204 +416,9 @@ namespace Capstones.LuaWrap
             DynamicHelper.LogInfo("__convert(" + type.ToString() + ") meta-method Not Implemented.");
             return null;
         }
-
-        public new void Call()
+        public override void PushToLua(IntPtr l)
         {
-            var l = L;
             l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l);
-        }
-        public new void Call<P0>(P0 p0)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0);
-        }
-        public new void Call<P0, P1>(P0 p0, P1 p1)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1);
-        }
-        public new void Call<P0, P1, P2>(P0 p0, P1 p1, P2 p2)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2);
-        }
-        public new void Call<P0, P1, P2, P3>(P0 p0, P1 p1, P2 p2, P3 p3)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3);
-        }
-        public new void Call<P0, P1, P2, P3, P4>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4);
-        }
-        public new void Call<P0, P1, P2, P3, P4, P5>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5);
-        }
-        public new void Call<P0, P1, P2, P3, P4, P5, P6>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6);
-        }
-        public new void Call<P0, P1, P2, P3, P4, P5, P6, P7>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7);
-        }
-        public new void Call<P0, P1, P2, P3, P4, P5, P6, P7, P8>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7, p8);
-        }
-        public new void Call<P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            LuaFuncHelper.PushArgsAndCall(l, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
-        }
-        public new bool Call<R>(out R r)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r);
-        }
-        public new bool Call<R, P0>(out R r, P0 p0)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0);
-        }
-        public new bool Call<R, P0, P1>(out R r, P0 p0, P1 p1)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1);
-        }
-        public new bool Call<R, P0, P1, P2>(out R r, P0 p0, P1 p1, P2 p2)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2);
-        }
-        public new bool Call<R, P0, P1, P2, P3>(out R r, P0 p0, P1 p1, P2 p2, P3 p3)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4, P5>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4, P5, P6>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7, p8);
-        }
-        public new bool Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(out R r, P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
-        {
-            var l = L;
-            l.pushvalue(StackPos);
-            return LuaFuncHelper.PushArgsAndCall(l, out r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
-        }
-        public new R Call<R>()
-        {
-            R r;
-            Call(out r);
-            return r;
-        }
-        public new R Call<R, P0>(P0 p0)
-        {
-            R r;
-            Call(out r, p0);
-            return r;
-        }
-        public new R Call<R, P0, P1>(P0 p0, P1 p1)
-        {
-            R r;
-            Call(out r, p0, p1);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2>(P0 p0, P1 p1, P2 p2)
-        {
-            R r;
-            Call(out r, p0, p1, p2);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3>(P0 p0, P1 p1, P2 p2, P3 p3)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4, P5>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4, p5);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4, P5, P6>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4, p5, p6);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4, p5, p6, p7);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8);
-            return r;
-        }
-        public new R Call<R, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9>(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
-        {
-            R r;
-            Call(out r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
-            return r;
         }
     }
 }

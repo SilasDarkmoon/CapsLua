@@ -789,7 +789,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -804,7 +811,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -820,7 +834,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -837,7 +858,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -855,7 +883,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -874,7 +909,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -894,7 +936,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -915,7 +964,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -937,7 +993,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -960,7 +1023,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
@@ -984,7 +1054,14 @@ namespace Capstones.LuaWrap
             if (code == 0 && l.gettop() > oldtop)
             {
                 l.GetLua(oldtop + 1, out r);
-                l.settop(oldtop);
+                if (typeof(R).IsOnStack())
+                {
+                    l.settop(oldtop + 1);
+                }
+                else
+                {
+                    l.settop(oldtop);
+                }
                 return true;
             }
             r = default(R);
