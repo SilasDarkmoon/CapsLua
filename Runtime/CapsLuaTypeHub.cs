@@ -1436,6 +1436,11 @@ namespace Capstones.LuaLib
 
         public abstract class TypeHubEnumPrecompiled<T> : TypeHubValueTypePrecompiled<T>
         {
+            public TypeHubEnumPrecompiled()
+            {
+                LuaHubNative = new TypeHubEnumNative(this);
+            }
+
             protected override bool UpdateDataAfterCall
             {
                 get { return false; }
@@ -1534,6 +1539,28 @@ namespace Capstones.LuaLib
                 }
                 return default(T);
             }
+
+            public class TypeHubEnumNative : LuaHub.LuaPushNativeBase<T>
+            {
+                protected TypeHubEnumPrecompiled<T> _Hub;
+                public TypeHubEnumNative(TypeHubEnumPrecompiled<T> hub)
+                {
+                    _Hub = hub;
+                }
+                public override T GetLua(IntPtr l, int index)
+                {
+                    l.pushvalue(index);
+                    var result = _Hub.ConvertFromNum(l.tonumber(-1));
+                    l.pop(1);
+                    return result;
+                }
+                public override IntPtr PushLua(IntPtr l, T val)
+                {
+                    l.pushnumber(_Hub.ConvertToNum(val));
+                    return IntPtr.Zero;
+                }
+            }
+            public readonly TypeHubEnumNative LuaHubNative;
         }
 
         public class TypeHubCreator<THubSub> where THubSub : TypeHubBase, new()

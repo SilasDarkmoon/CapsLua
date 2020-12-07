@@ -1464,6 +1464,10 @@ namespace Capstones.UnityEditorEx
                     }
                     sbline.Remove(0, sbline.Length);
                     sbline.Append(instance);
+                    if (type.IsEnum)
+                    {
+                        sbline.Append(".LuaHubNative");
+                    }
                     sbline.Append(".PushLua");
                     if (!type.IsValueType)
                     {

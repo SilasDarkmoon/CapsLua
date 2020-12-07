@@ -245,6 +245,10 @@ namespace Capstones.LuaLib
                 {
                     l.pushnumber(Convert.ToDouble(val));
                 }
+                else if (val is Enum)
+                {
+                    l.pushnumber(Convert.ToDouble(val));
+                }
                 else
                 {
                     l.PushLuaObject(val);
@@ -334,6 +338,10 @@ namespace Capstones.LuaLib
             {
                 gfunc.PushLua(l, val);
                 return;
+            }
+            else if (typeof(T).IsEnum)
+            {
+                l.pushnumber(Convert.ToDouble(val));
             }
             else if (isvalue || typeof(T).IsSealed)
             {
@@ -935,12 +943,12 @@ namespace Capstones.LuaLib
                             val = (T)(object)CapsLuaDelegateGenerator.CreateDelegate(typeof(T), raw as LuaWrap.BaseLua);
                             return;
                         }
-                        else if (typeof(T).IsSubclassOf(typeof(LuaWrap.BaseLuaWrapper)))
+                        else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
                         { // the BaseLuaWrapper is not initialized?
                             try
                             {
                                 val = Activator.CreateInstance<T>();
-                                var wrapper = (LuaWrap.BaseLuaWrapper)(object)val;
+                                var wrapper = (LuaWrap.ILuaWrapper)(object)val;
                                 wrapper.Binding = raw as LuaWrap.BaseLua;
                                 return;
                             }

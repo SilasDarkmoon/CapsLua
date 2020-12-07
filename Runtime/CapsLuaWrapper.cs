@@ -137,7 +137,7 @@ namespace Capstones.LuaWrap
             {
                 return Capstones.LuaLib.CapsLuaDelegateGenerator.CreateDelegate(type, this);
             }
-            if (type == typeof(bool))
+            else if (type == typeof(bool))
             {
                 if (L != IntPtr.Zero && Refid != 0)
                 {
@@ -147,6 +147,21 @@ namespace Capstones.LuaWrap
                     return rv;
                 }
                 return false;
+            }
+            else if (typeof(ILuaWrapper).IsAssignableFrom(type))
+            {
+                try
+                {
+                    var val = Activator.CreateInstance(type);
+                    var wrapper = (ILuaWrapper)val;
+                    wrapper.Binding = this;
+                    return wrapper;
+                }
+                catch (Exception e)
+                { // we can not create instance of wrapper?
+                    DynamicHelper.LogError(e);
+                    return null;
+                }
             }
             DynamicHelper.LogInfo("__convert(" + type.ToString() + ") meta-method Not Implemented.");
             return null;
@@ -412,6 +427,21 @@ namespace Capstones.LuaWrap
                     return rv;
                 }
                 return false;
+            }
+            else if (typeof(ILuaWrapper).IsAssignableFrom(type))
+            {
+                try
+                {
+                    var val = Activator.CreateInstance(type);
+                    var wrapper = (ILuaWrapper)val;
+                    wrapper.Binding = this;
+                    return wrapper;
+                }
+                catch (Exception e)
+                { // we can not create instance of wrapper?
+                    DynamicHelper.LogError(e);
+                    return null;
+                }
             }
             DynamicHelper.LogInfo("__convert(" + type.ToString() + ") meta-method Not Implemented.");
             return null;
