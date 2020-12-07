@@ -1434,7 +1434,7 @@ namespace Capstones.LuaLib
             }
         }
 
-        public abstract class TypeHubEnumPrecompiled<T> : TypeHubValueTypePrecompiled<T>
+        public abstract class TypeHubEnumPrecompiled<T> : TypeHubValueTypePrecompiled<T>, ILuaNative
         {
             public TypeHubEnumPrecompiled()
             {
@@ -1561,6 +1561,18 @@ namespace Capstones.LuaLib
                 }
             }
             public readonly TypeHubEnumNative LuaHubNative;
+
+            public void Wrap(IntPtr l, int index)
+            {
+                var val = GetLuaChecked(l, index);
+                PushLua(l, val);
+            }
+
+            public void Unwrap(IntPtr l, int index)
+            {
+                var val = GetLuaChecked(l, index);
+                l.pushnumber(ConvertToNum(val));
+            }
         }
 
         public class TypeHubCreator<THubSub> where THubSub : TypeHubBase, new()
