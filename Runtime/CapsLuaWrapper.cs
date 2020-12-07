@@ -614,7 +614,7 @@ namespace Capstones.LuaWrap
             }
         }
 
-        public static bool operator==(BaseLuaWrapper<T> w1, object w2)
+        public static bool operator ==(BaseLuaWrapper<T> w1, object w2)
         {
             bool w1null = ReferenceEquals(w1, null);
             bool w2null = ReferenceEquals(w2, null);
