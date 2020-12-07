@@ -22,7 +22,7 @@ namespace Capstones.LuaLib
         void SetData(IntPtr l, int index, object val);
         object GetLua(IntPtr l, int index);
         Type GetType(IntPtr l, int index);
-        //bool Nonexclusive { get; } // for GetLua<T>. Can the lua-table be converted to C# objects of different types?
+        bool Nonexclusive { get; } // for GetLua<T>. Can the lua-table be converted to C# objects of different types?
     }
     public interface ILuaTrans<T>
     {

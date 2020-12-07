@@ -419,6 +419,7 @@ namespace Capstones.LuaLib
             {
                 get { return false; }
             }
+            public virtual bool Nonexclusive { get { return false; } }
 
             public Type t { get; protected set; }
 

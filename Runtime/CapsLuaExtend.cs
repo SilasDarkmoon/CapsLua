@@ -82,6 +82,8 @@ namespace Capstones.LuaLib
                 l.pop(2);
                 return rv;
             }
+
+            public bool Nonexclusive { get { return false; } }
             #endregion
 
             #region ILuaTransMulti
@@ -135,10 +137,30 @@ namespace Capstones.LuaLib
                         }
                         else
                         {
-                            var raw = trans.GetLua(l, -1);
-                            if (raw is T)
+                            if (trans.Nonexclusive && !typeof(T).IsAssignableFrom(trans.GetType(l, -1)))
                             {
-                                rv = (T)raw;
+                                var extrans = LuaTypeHub.GetTypeHub(typeof(T));
+                                var gtrans = extrans as ILuaTrans<T>;
+                                if (gtrans != null)
+                                {
+                                    rv = gtrans.GetLua(l, -1);
+                                }
+                                else
+                                {
+                                    var raw = extrans.GetLua(l, -1);
+                                    if (raw is T)
+                                    {
+                                        rv = (T)raw;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var raw = trans.GetLua(l, -1);
+                                if (raw is T)
+                                {
+                                    rv = (T)raw;
+                                }
                             }
                         }
                     }

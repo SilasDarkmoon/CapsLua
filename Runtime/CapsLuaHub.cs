@@ -835,16 +835,19 @@ namespace Capstones.LuaLib
                         val = mtrans.GetLua<T>(l, index);
                         return;
                     }
-                    var raw = trans.GetLua(l, index);
-                    if (raw is T)
+                    if (!trans.Nonexclusive || typeof(T).IsAssignableFrom(trans.GetType(l, index)))
                     {
-                        val = (T)raw;
+                        var raw = trans.GetLua(l, index);
+                        //if (raw is T)
+                        {
+                            val = (T)raw;
+                        }
+                        //else
+                        //{
+                        //    val = default(T);
+                        //}
+                        return;
                     }
-                    else
-                    {
-                        val = default(T);
-                    }
-                    return;
                 }
             }
             // 2. check lua-native hub

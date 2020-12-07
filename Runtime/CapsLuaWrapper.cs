@@ -699,6 +699,7 @@ namespace Capstones.LuaLib
         public class BaseLuaWrapperHub<T> : LuaTypeHub.TypeHubValueType, ILuaTrans<T>, ILuaPush<T>
             where T : ILuaWrapper, new()
         {
+            public override bool Nonexclusive { get { return true; } }
             public static void SetDataRaw(IntPtr l, int index, T val)
             {
                 if (ReferenceEquals(val.Binding, null))

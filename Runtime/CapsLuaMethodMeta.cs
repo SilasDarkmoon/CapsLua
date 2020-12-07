@@ -474,6 +474,7 @@ namespace Capstones.LuaLib
         {
             return GetType();
         }
+        public bool Nonexclusive { get { return false; } }
         #endregion
 
         //#region ILuaPush

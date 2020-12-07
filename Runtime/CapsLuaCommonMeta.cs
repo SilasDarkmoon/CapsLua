@@ -177,6 +177,7 @@ namespace Capstones.LuaLib
                 }
                 return null;
             }
+            public bool Nonexclusive { get { return false; } }
             #endregion
         }
 
@@ -217,6 +218,7 @@ namespace Capstones.LuaLib
             {
                 return typeof(Type);
             }
+            public bool Nonexclusive { get { return false; } }
             #endregion
         }
 
