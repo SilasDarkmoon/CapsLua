@@ -572,6 +572,69 @@ namespace Capstones.LuaWrap
         public BaseLuaWrapper() : base() { }
         public BaseLuaWrapper(IntPtr l) : base(l) { }
 
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            BaseLua b1 = Binding;
+            BaseLua b2 = null;
+            var wrapper = obj as ILuaWrapper;
+            if (!ReferenceEquals(wrapper, null))
+            {
+                b2 = wrapper.Binding;
+            }
+            else
+            {
+                b2 = obj as BaseLua;
+                if (ReferenceEquals(b2, null))
+                {
+                    return false;
+                }
+            }
+            if (ReferenceEquals(b1, null))
+            {
+                return ReferenceEquals(b2, null);
+            }
+            else
+            {
+                return b1.Equals(b2);
+            }
+        }
+        public override int GetHashCode()
+        {
+            if (ReferenceEquals(Binding, null))
+            {
+                return 0;
+            }
+            else
+            {
+                return Binding.GetHashCode();
+            }
+        }
+
+        public static bool operator==(BaseLuaWrapper<T> w1, object w2)
+        {
+            bool w1null = ReferenceEquals(w1, null);
+            bool w2null = ReferenceEquals(w2, null);
+            if (w1null || w2null)
+            {
+                return w1null == w2null;
+            }
+            return w1.Equals(w2);
+        }
+        public static bool operator !=(BaseLuaWrapper<T> w1, object w2)
+        {
+            bool w1null = ReferenceEquals(w1, null);
+            bool w2null = ReferenceEquals(w2, null);
+            if (w1null || w2null)
+            {
+                return w1null != w2null;
+            }
+            return !w1.Equals(w2);
+        }
+
         protected static LuaHub.BaseLuaWrapperHub<T> LuaHubSub = new LuaHub.BaseLuaWrapperHub<T>();
     }
 
