@@ -767,55 +767,52 @@ namespace Capstones.LuaLib
             {
                 if (ReferenceEquals(val.Binding, null))
                 {
-                    if (!val.BindLua(l))
+                    val.BindLua(l);
+                }
+                else if (!(val.Binding is BaseLuaOnStack))
+                {
+                    l.checkstack(3);
+                    l.PushLua(val.Binding); // ud
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
+                    l.gettable(-2); // ud tar
+                    var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
+                    if (ReferenceEquals(current, val))
                     {
-                        return;
-                    }
-                }
-                l.checkstack(3);
-                l.PushLua(val.Binding); // ud
-                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
-                l.gettable(-2); // ud tar
-                var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
-                if (ReferenceEquals(current, val))
-                {
-                    l.pop(2); // X
-                }
-                else
-                {
-                    l.pop(1); // ud
-                    if (!l.getmetatable(-1)) // ud meta
-                    { // ud
-                        l.newtable(); // ud meta
-                        l.pushvalue(-1); // ud meta meta
-                        l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
-                        l.pushvalue(-1); // ud meta meta
-                        l.setmetatable(-3); // ud meta
+                        l.pop(2); // X
                     }
                     else
                     {
-                        l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
-                        l.rawget(-2); // ud meta tar
-                        if (l.isnoneornil(-1))
-                        { // the tar is not stored in metatable
-                            l.pop(2); // ud
-                            l.pushvalue(-1); // ud ud
+                        l.pop(1); // ud
+                        if (!l.getmetatable(-1)) // ud meta
+                        { // ud
+                            l.newtable(); // ud meta
+                            l.pushvalue(-1); // ud meta meta
+                            l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
+                            l.pushvalue(-1); // ud meta meta
+                            l.setmetatable(-3); // ud meta
                         }
                         else
                         {
-                            l.pop(1); // ud meta
+                            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                            l.rawget(-2); // ud meta tar
+                            if (l.isnoneornil(-1))
+                            { // the tar is not stored in metatable
+                                l.pop(2); // ud
+                                l.pushvalue(-1); // ud ud
+                            }
+                            else
+                            {
+                                l.pop(1); // ud meta
+                            }
                         }
-                    }
-                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
-                    l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
-                    l.rawset(-3); // ud meta
-                    if (!(val.Binding is BaseLuaOnStack))
-                    {
+                        l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                        l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                        l.rawset(-3); // ud meta
                         l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
                         l.pushlightuserdata(LuaTypeHub.GetTypeHub(typeof(T)).r);
                         l.rawset(-3);
+                        l.pop(2); // X
                     }
-                    l.pop(2); // X
                 }
             }
             public static T GetLuaRaw(IntPtr l, int index)
@@ -830,9 +827,17 @@ namespace Capstones.LuaLib
                     l.pop(2); // X
                     if (current != null)
                     {
-                        return current;
+                        // TODO: Can current.Binding be null?
+                        // Notice: the current may point to diffent lua table because it is created by clone() in lua.
+                        var pthis = l.topointer(index);
+                        l.PushLua(current.Binding);
+                        var pcur = l.topointer(-1);
+                        l.pop(1);
+                        if (pthis == pcur)
+                        {
+                            return current;
+                        }
                     }
-                    else
                     {
                         var val = new T();
                         if (val != null)
