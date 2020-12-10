@@ -515,7 +515,33 @@ namespace Capstones.LuaWrap
     }
     public class BaseLuaWrapper : ILuaWrapper
     {
-        public BaseLua Binding { get; set; }
+        protected BaseLua _Binding;
+        public virtual BaseLua Binding
+        {
+            get { return _Binding; }
+            set
+            {
+                _Binding = value;
+                if (!ReferenceEquals(value, null))
+                {
+                    if (_CachedFields != null)
+                    {
+                        var l = L;
+                        using (var lr = l.CreateStackRecover())
+                        {
+                            l.PushLua(value);
+                            foreach (var kvp in _CachedFields)
+                            {
+                                l.PushString(kvp.Key);
+                                l.PushLua(kvp.Value);
+                                l.settable(-3);
+                            }
+                        }
+                        _CachedFields = null;
+                    }
+                }
+            }
+        }
         public virtual string LuaFile { get; protected set; }
         public IntPtr L { get { return ReferenceEquals(Binding, null) ? IntPtr.Zero : Binding.L; } }
         protected virtual bool ShouldCheckLuaHubSub { get { return true; } }
@@ -545,42 +571,87 @@ namespace Capstones.LuaWrap
         protected internal static readonly Dictionary<Type, LuaTypeHub.TypeHubValueType> LuaHubSubs = new Dictionary<Type, LuaTypeHub.TypeHubValueType>();
         private static LuaHub.BaseLuaWrapperHub<BaseLuaWrapper> LuaHubSub = new LuaHub.BaseLuaWrapperHub<BaseLuaWrapper>();
 
+        protected Dictionary<string, object> _CachedFields;
         public T Get<T>(string field)
         {
-            var l = Binding.L;
-            using (var lr = l.CreateStackRecover())
+            if (ReferenceEquals(Binding, null))
             {
-                l.PushLua(Binding);
-                T val;
-                l.GetTable(out val, -1, field);
-                return val;
+                object val;
+                if (_CachedFields == null)
+                {
+                    return default(T);
+                }
+                else
+                {
+                    _CachedFields.TryGetValue(field, out val);
+                    return val is T ? (T)val : default(T);
+                }
+            }
+            else
+            {
+                var l = Binding.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    T val;
+                    l.GetTable(out val, -1, field);
+                    return val;
+                }
             }
         }
         public void Set<T>(string field, T val)
         {
-            var l = Binding.L;
-            using (var lr = l.CreateStackRecover())
+            if (ReferenceEquals(Binding, null))
             {
-                l.PushLua(Binding);
-                l.SetTable(-1, Pack(val), field);
+                if (_CachedFields == null)
+                {
+                    _CachedFields = new Dictionary<string, object>();
+                }
+                _CachedFields[field] = val;
+            }
+            else
+            {
+                var l = Binding.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    l.SetTable(-1, Pack(val), field);
+                }
             }
         }
         public T GetOrCreate<T>(string field)
             where T : ILuaWrapper, new()
         {
-            var l = Binding.L;
-            using (var lr = l.CreateStackRecover())
+            if (ReferenceEquals(Binding, null))
             {
-                l.PushLua(Binding);
-                T val;
-                l.GetTable(out val, -1, field);
-                if (ReferenceEquals(val, null))
+                if (_CachedFields == null)
+                {
+                    _CachedFields = new Dictionary<string, object>();
+                }
+                object val;
+                if (!_CachedFields.TryGetValue(field, out val) || !(val is T))
                 {
                     val = new T();
-                    val.BindLua(l);
-                    l.SetTable(-1, Pack(val), field);
+                    _CachedFields[field] = val;
                 }
-                return val;
+                return (T)val;
+            }
+            else
+            {
+                var l = Binding.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    l.PushLua(Binding);
+                    T val;
+                    l.GetTable(out val, -1, field);
+                    if (ReferenceEquals(val, null))
+                    {
+                        val = new T();
+                        val.BindLua(l);
+                        l.SetTable(-1, Pack(val), field);
+                    }
+                    return val;
+                }
             }
         }
     }
