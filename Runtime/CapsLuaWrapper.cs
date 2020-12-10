@@ -565,6 +565,24 @@ namespace Capstones.LuaWrap
                 l.SetTable(-1, Pack(val), field);
             }
         }
+        public T GetOrCreate<T>(string field)
+            where T : ILuaWrapper, new()
+        {
+            var l = Binding.L;
+            using (var lr = l.CreateStackRecover())
+            {
+                l.PushLua(Binding);
+                T val;
+                l.GetTable(out val, -1, field);
+                if (ReferenceEquals(val, null))
+                {
+                    val = new T();
+                    val.BindLua(l);
+                    l.SetTable(-1, Pack(val), field);
+                }
+                return val;
+            }
+        }
     }
     public class BaseLuaWrapper<T> : BaseLuaWrapper where T : BaseLuaWrapper, new()
     {
