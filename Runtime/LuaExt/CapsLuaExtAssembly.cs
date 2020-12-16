@@ -150,6 +150,8 @@ namespace Capstones.LuaExt
                         break;
                     if (!l.istable(1))
                         break;
+                    if (!l.IsString(2))
+                        break;
                     string key = l.GetString(2);
                     if (key == null)
                     {
