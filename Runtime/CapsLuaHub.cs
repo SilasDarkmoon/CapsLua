@@ -909,12 +909,13 @@ namespace Capstones.LuaLib
                 if (raw is T)
                 {
                     val = (T)raw;
+                    return;
                 }
-                else
-                {
-                    val = default(T);
-                }
-                return;
+                //else
+                //{
+                //    val = default(T);
+                //}
+                //return;
             }
             // 4. use non-generic GetLua
             { 
