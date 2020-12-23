@@ -1,4 +1,5 @@
-﻿#if UNITY_INCLUDE_TESTS
+﻿#if TEST_HOTFIX_IN_CAPSLUA
+#if UNITY_INCLUDE_TESTS
 #region TESTS
 using Capstones.LuaLib;
 using Capstones.UnityEngineEx;
@@ -260,4 +261,5 @@ namespace Capstones.LuaWrap.HotFixTest
     }
 }
 #endregion
+#endif
 #endif

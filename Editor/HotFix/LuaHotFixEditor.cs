@@ -771,6 +771,7 @@ namespace Capstones.UnityEditorEx
 #endif
                 }
                 IsBuildingPlayer = false;
+                LuaHotFixCodeInjector.LoadAssemblies();
                 LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
                 LuaHotFixCodeInjector.UnloadAssemblies();
             };
@@ -825,6 +826,7 @@ namespace Capstones.UnityEditorEx
             }
         }
 
+#if TEST_HOTFIX_IN_CAPSLUA
         [MenuItem("Lua/HotFix/Test HotFix", priority = 290010)]
         public static void TestHotFix()
         {
@@ -849,6 +851,7 @@ namespace Capstones.UnityEditorEx
             var test5 = new Capstones.LuaWrap.HotFixTest.TestGenericClass<int>();
             test5.TestVoidFunc();
         }
+#endif
 
         [MenuItem("Lua/HotFix/Test LuaPack", priority = 290020)]
         public static void TestLuaPack()
