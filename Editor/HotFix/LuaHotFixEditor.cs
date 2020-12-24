@@ -16,6 +16,7 @@ using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
 using static Capstones.LuaWrap.LuaPack;
+using static Capstones.UnityEngineEx.ValueArray;
 
 using Object = UnityEngine.Object;
 using Types = Capstones.LuaLib.Types;
@@ -116,7 +117,7 @@ namespace Capstones.UnityEditorEx
                 }
                 sw.WriteLine("        }");
                 sw.WriteLine();
-                sw.Write("        public int ElementCount { get { return ");
+                sw.Write("        public int Length { get { return ");
                 sw.Write(paramCnt);
                 sw.WriteLine("; } }");
                 sw.WriteLine("        public void GetFromLua(IntPtr l)");
@@ -445,11 +446,47 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetTable<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, TArgs fields) where TArgs : struct, ITuple");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTable(l, index, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void GetSubTable<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
                     sw.Write(outpars);
                     sw.Write(", int index, string fieldname, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTable(l, index, fieldname, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetSubTable<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, TArgs fields) where TArgs : struct, ITuple");
                     sw.WriteLine();
                     sw.WriteLine("        {");
                     sw.Write("            LuaPack<");
@@ -481,11 +518,47 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, TArgs fields) where TArgs : struct, ITuple");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTableHierarchical(l, index, fieldname, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void GetGlobalTable<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
                     sw.Write(outpars);
                     sw.Write(", string name, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTable(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetGlobalTable<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, TArgs fields) where TArgs : struct, ITuple");
                     sw.WriteLine();
                     sw.WriteLine("        {");
                     sw.Write("            LuaPack<");
@@ -517,11 +590,47 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetGlobalTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, TArgs fields) where TArgs : struct, ITuple");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTableHierarchical(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void Require<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
                     sw.Write(outpars);
                     sw.Write(", string name, params string[] fields)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            Require(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void Require<");
+                    sw.Write(gargs);
+                    sw.Write(", TArgs>(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, TArgs fields) where TArgs : struct, ITuple");
                     sw.WriteLine();
                     sw.WriteLine("        {");
                     sw.Write("            LuaPack<");
@@ -820,7 +929,7 @@ namespace Capstones.UnityEditorEx
             TLuaPack pin = default;
             TLuaPack pout = default;
             l.CallGlobal("TestPack", pin, out pout);
-            for (int i = 0; i < pout.ElementCount; ++i)
+            for (int i = 0; i < pout.Length; ++i)
             {
                 PlatDependant.LogError(pout[i]);
             }
@@ -883,7 +992,7 @@ namespace Capstones.UnityEditorEx
                 //var testclass = l.Require("test"); // local testclass = require("test")
                 l.Call(testclass, "new", out LuaStackPos testobj, Pack("testname")); // local testobj = testclass.new("testname")
                 l.Call(testobj, "getinfo", out LuaStackPos info, Pack(testobj)); // local info = testobj:getinfo()
-                l.GetTable(out string name, info, "name"); // local name = info.name
+                l.GetTable(out string name, info, Arr("name")); // local name = info.name
                 Debug.LogError(name); // printe(name)
             }
         }

@@ -56,9 +56,9 @@ namespace Capstones.LuaWrap
                         var oldtop = l.gettop();
                         l.pushcfunction(LuaHub.LuaFuncOnError); // hotfix func error
                         l.insert(-2); // hotfix error func
-                        var argc = args.ElementCount;
+                        var argc = args.Length;
                         args.PushToLua(l); // hotfix error func args
-                        var code = l.pcall(argc, result.ElementCount + 1, oldtop); // hotfix error success results
+                        var code = l.pcall(argc, result.Length + 1, oldtop); // hotfix error success results
                         if (code == 0)
                         {
                             if (l.toboolean(oldtop + 1))
