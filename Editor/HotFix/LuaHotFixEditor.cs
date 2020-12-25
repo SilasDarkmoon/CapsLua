@@ -880,7 +880,8 @@ namespace Capstones.UnityEditorEx
 #endif
                 }
                 IsBuildingPlayer = false;
-                LuaHotFixCodeInjector.LoadAssemblies();
+                //LuaHotFixCodeInjector.LoadAssemblies();
+                LuaHotFixCodeInjector.LoadInternalAssemblies();
                 LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
                 LuaHotFixCodeInjector.UnloadAssemblies();
             };
