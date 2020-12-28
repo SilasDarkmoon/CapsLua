@@ -642,19 +642,19 @@ namespace Capstones.LuaWrap
         {
             SetTable<T>(l, index, val, (string)null);
         }
-        public static TOut GetTable<TOut>(this IntPtr l, int index, string fieldname, params string[] fields)
+        public static TOut GetSubTable<TOut>(this IntPtr l, int index, string fieldname, params string[] fields)
                where TOut : struct, ILuaPack
         {
             TOut result;
-            GetTable(l, index, fieldname, out result, fields);
+            GetSubTable(l, index, fieldname, out result, fields);
             return result;
         }
-        public static TOut GetTable<TOut, TArgs>(this IntPtr l, int index, string fieldname, TArgs fields)
+        public static TOut GetSubTable<TOut, TArgs>(this IntPtr l, int index, string fieldname, TArgs fields)
             where TOut : struct, ILuaPack
             where TArgs : struct, ITuple
         {
             TOut result;
-            GetTable(l, index, fieldname, out result, fields);
+            GetSubTable(l, index, fieldname, out result, fields);
             return result;
         }
         public static T GetSubTable<T>(this IntPtr l, int index, string fieldname, string field)
@@ -669,7 +669,7 @@ namespace Capstones.LuaWrap
             GetSubTable(l, out result, index, fieldname);
             return result;
         }
-        public static void GetTable<TOut>(this IntPtr l, int index, string fieldname, out TOut result, params string[] fields)
+        public static void GetSubTable<TOut>(this IntPtr l, int index, string fieldname, out TOut result, params string[] fields)
             where TOut : struct, ILuaPack
         {
             result = default(TOut);
@@ -689,7 +689,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void GetTable<TOut, TArgs>(this IntPtr l, int index, string fieldname, out TOut result, TArgs fields)
+        public static void GetSubTable<TOut, TArgs>(this IntPtr l, int index, string fieldname, out TOut result, TArgs fields)
             where TOut : struct, ILuaPack
             where TArgs : struct, ITuple
         {
@@ -710,7 +710,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void SetTable<TIn>(this IntPtr l, int index, string fieldname, TIn args, params string[] fields)
+        public static void SetSubTable<TIn>(this IntPtr l, int index, string fieldname, TIn args, params string[] fields)
             where TIn : struct, ILuaPack
         {
             if (string.IsNullOrEmpty(fieldname))
@@ -738,7 +738,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void SetTable<TIn, TArgs>(this IntPtr l, int index, string fieldname, TIn args, TArgs fields)
+        public static void SetSubTable<TIn, TArgs>(this IntPtr l, int index, string fieldname, TIn args, TArgs fields)
             where TIn : struct, ILuaPack
             where TArgs : struct, ITuple
         {
@@ -767,7 +767,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void SetTable<T>(this IntPtr l, int index, string fieldname, T val, string field)
+        public static void SetSubTable<T>(this IntPtr l, int index, string fieldname, T val, string field)
         {
             if (string.IsNullOrEmpty(fieldname))
             {
@@ -794,9 +794,9 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void SetTable<T>(this IntPtr l, int index, string fieldname, T val)
+        public static void SetSubTable<T>(this IntPtr l, int index, string fieldname, T val)
         {
-            SetTable<T>(l, index, fieldname, val, (string)null);
+            SetSubTable<T>(l, index, fieldname, val, (string)null);
         }
         public static TOut GetTableHierarchical<TOut>(this IntPtr l, int index, string fieldname, params string[] fields)
             where TOut : struct, ILuaPack
@@ -6679,13 +6679,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1);
         }
         public static void GetSubTable<T0, T1, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1);
         }
         public static void GetTableHierarchical<T0, T1>(this IntPtr l, out T0 rv0, out T1 rv1, int index, string fieldname, params string[] fields)
@@ -6822,13 +6822,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2);
         }
         public static void GetSubTable<T0, T1, T2, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2);
         }
         public static void GetTableHierarchical<T0, T1, T2>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, int index, string fieldname, params string[] fields)
@@ -6965,13 +6965,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
         }
         public static void GetSubTable<T0, T1, T2, T3, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, int index, string fieldname, params string[] fields)
@@ -7108,13 +7108,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, int index, string fieldname, params string[] fields)
@@ -7251,13 +7251,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, int index, string fieldname, params string[] fields)
@@ -7394,13 +7394,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, int index, string fieldname, params string[] fields)
@@ -7537,13 +7537,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, int index, string fieldname, params string[] fields)
@@ -7680,13 +7680,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, int index, string fieldname, params string[] fields)
@@ -7823,13 +7823,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, int index, string fieldname, params string[] fields)
@@ -7966,13 +7966,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, int index, string fieldname, params string[] fields)
@@ -8109,13 +8109,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, int index, string fieldname, params string[] fields)
@@ -8252,13 +8252,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, int index, string fieldname, params string[] fields)
@@ -8395,13 +8395,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, int index, string fieldname, params string[] fields)
@@ -8538,13 +8538,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, int index, string fieldname, params string[] fields)
@@ -8681,13 +8681,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, int index, string fieldname, params string[] fields)
@@ -8824,13 +8824,13 @@ namespace Capstones.LuaWrap
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, string fieldname, params string[] fields)
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
         }
         public static void GetSubTable<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TArgs>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, string fieldname, TArgs fields) where TArgs : struct, ITuple
         {
             LuaPack<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> pack;
-            GetTable(l, index, fieldname, out pack, fields);
+            GetSubTable(l, index, fieldname, out pack, fields);
             pack.Deconstruct(out rv0, out rv1, out rv2, out rv3, out rv4, out rv5, out rv6, out rv7, out rv8, out rv9, out rv10, out rv11, out rv12, out rv13, out rv14, out rv15, out rv16);
         }
         public static void GetTableHierarchical<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IntPtr l, out T0 rv0, out T1 rv1, out T2 rv2, out T3 rv3, out T4 rv4, out T5 rv5, out T6 rv6, out T7 rv7, out T8 rv8, out T9 rv9, out T10 rv10, out T11 rv11, out T12 rv12, out T13 rv13, out T14 rv14, out T15 rv15, out T16 rv16, int index, string fieldname, params string[] fields)

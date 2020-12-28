@@ -475,7 +475,7 @@ namespace Capstones.UnityEditorEx
                     sw.Write(gargs);
                     sw.Write("> pack;");
                     sw.WriteLine();
-                    sw.WriteLine("            GetTable(l, index, fieldname, out pack, fields);");
+                    sw.WriteLine("            GetSubTable(l, index, fieldname, out pack, fields);");
                     sw.Write("            pack.Deconstruct(");
                     sw.Write(outset);
                     sw.Write(");");
@@ -493,7 +493,7 @@ namespace Capstones.UnityEditorEx
                     sw.Write(gargs);
                     sw.Write("> pack;");
                     sw.WriteLine();
-                    sw.WriteLine("            GetTable(l, index, fieldname, out pack, fields);");
+                    sw.WriteLine("            GetSubTable(l, index, fieldname, out pack, fields);");
                     sw.Write("            pack.Deconstruct(");
                     sw.Write(outset);
                     sw.Write(");");
