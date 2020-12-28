@@ -993,7 +993,7 @@ namespace Capstones.UnityEditorEx
                 //var testclass = l.Require("test"); // local testclass = require("test")
                 l.Call(testclass, "new", out LuaStackPos testobj, Pack("testname")); // local testobj = testclass.new("testname")
                 l.Call(testobj, "getinfo", out LuaStackPos info, Pack(testobj)); // local info = testobj:getinfo()
-                l.GetTable(out string name, info, Arr("name")); // local name = info.name
+                l.GetTable(out string name, info, "name"); // local name = info.name
                 Debug.LogError(name); // printe(name)
             }
         }
