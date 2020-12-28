@@ -604,6 +604,10 @@ namespace Capstones.LuaLib
                     PushCallableRaw(l, kvp.Value);
                     l.rawset(-3);
                 }
+                l.PushString(LuaConst.LS_SP_KEY_NONPUBLIC);
+                l.pushvalue(-5);
+                l.pushcclosure(CapsLuaTypeNonPublicReflector.LuaFuncCreateStaticReflector, 1);
+                l.rawset(-3);
                 l.pushlightuserdata(LuaConst.LRKEY_GETTER); // tobj ttab consts @getter getter #getter
                 l.pushvalue(-2); // tobj ttab consts @getter getter #getter getter
                 l.rawset(-6); // tobj ttab consts @getter getter
@@ -777,6 +781,9 @@ namespace Capstones.LuaLib
                     PushCallableRaw(l, kvp.Value);
                     l.rawset(-3);
                 }
+                l.PushString(LuaConst.LS_SP_KEY_NONPUBLIC);
+                l.pushcfunction(CapsLuaTypeNonPublicReflector.LuaFuncCreateInstanceReflector);
+                l.rawset(-3);
                 l.pushlightuserdata(LuaConst.LRKEY_GETTER); // ttab consts ometa omethods getter #getter
                 l.pushvalue(-2); // ttab consts ometa omethods getter #getter getter
                 l.rawset(-5); // ttab consts ometa omethods getter

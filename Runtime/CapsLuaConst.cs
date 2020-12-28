@@ -40,6 +40,7 @@ namespace Capstones.LuaLib
         public static readonly LuaString LS_SP_KEY_DIV =        new LuaString("@/");
         public static readonly LuaString LS_SP_KEY_EQ =         new LuaString("@==");
         public static readonly LuaString LS_SP_KEY_EXT =        new LuaString("@ext");
+        public static readonly LuaString LS_SP_KEY_NONPUBLIC =  new LuaString("@npub");
 
         public static readonly LuaString LS_LIB_DEBUG =         new LuaString("debug");
         public static readonly LuaString LS_LIB_TRACEBACK =     new LuaString("traceback");
