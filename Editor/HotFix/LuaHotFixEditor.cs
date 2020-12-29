@@ -464,6 +464,24 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTable(l, index, out pack, offset);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void GetSubTable<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
@@ -494,6 +512,24 @@ namespace Capstones.UnityEditorEx
                     sw.Write("> pack;");
                     sw.WriteLine();
                     sw.WriteLine("            GetSubTable(l, index, fieldname, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetSubTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetSubTable(l, index, fieldname, out pack, offset);");
                     sw.Write("            pack.Deconstruct(");
                     sw.Write(outset);
                     sw.Write(");");
@@ -536,6 +572,24 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", int index, string fieldname, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetTableHierarchical(l, index, fieldname, out pack, offset);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void GetGlobalTable<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
@@ -566,6 +620,24 @@ namespace Capstones.UnityEditorEx
                     sw.Write("> pack;");
                     sw.WriteLine();
                     sw.WriteLine("            GetGlobalTable(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void GetGlobalTable<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTable(l, name, out pack, offset);");
                     sw.Write("            pack.Deconstruct(");
                     sw.Write(outset);
                     sw.Write(");");
@@ -608,6 +680,24 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine();
                     sw.WriteLine("        }");
 
+                    sw.Write("        public static void GetGlobalTableHierarchical<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            GetGlobalTableHierarchical(l, name, out pack, offset);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
                     sw.Write("        public static void Require<");
                     sw.Write(gargs);
                     sw.Write(">(this IntPtr l");
@@ -638,6 +728,24 @@ namespace Capstones.UnityEditorEx
                     sw.Write("> pack;");
                     sw.WriteLine();
                     sw.WriteLine("            Require(l, name, out pack, fields);");
+                    sw.Write("            pack.Deconstruct(");
+                    sw.Write(outset);
+                    sw.Write(");");
+                    sw.WriteLine();
+                    sw.WriteLine("        }");
+
+                    sw.Write("        public static void Require<");
+                    sw.Write(gargs);
+                    sw.Write(">(this IntPtr l");
+                    sw.Write(outpars);
+                    sw.Write(", string name, int offset)");
+                    sw.WriteLine();
+                    sw.WriteLine("        {");
+                    sw.Write("            LuaPack<");
+                    sw.Write(gargs);
+                    sw.Write("> pack;");
+                    sw.WriteLine();
+                    sw.WriteLine("            Require(l, name, out pack, offset);");
                     sw.Write("            pack.Deconstruct(");
                     sw.Write(outset);
                     sw.Write(");");
