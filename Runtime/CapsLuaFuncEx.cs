@@ -514,8 +514,8 @@ namespace Capstones.LuaWrap
                     {
                         l.PushLua(field);
                     }
-                    l.PushLua(field);
                     l.gettable(rindex);
+                    l.GetLua(-1, out result);
                     l.remove(rindex);
                     if (!typeof(T).IsOnStack())
                     {
