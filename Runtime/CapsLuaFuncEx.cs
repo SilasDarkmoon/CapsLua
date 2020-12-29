@@ -317,10 +317,10 @@ namespace Capstones.LuaWrap
             GetTable(l, out result, index, field);
             return result;
         }
-        public static T GetTable<T>(this IntPtr l, int index)
+        public static T GetTable<T>(this IntPtr l, int index, int offset)
         {
             T result;
-            GetTable(l, out result, index);
+            GetTable(l, out result, index, offset);
             return result;
         }
         public static void GetTable<TOut>(this IntPtr l, int index, out TOut result, params string[] fields)
@@ -402,6 +402,28 @@ namespace Capstones.LuaWrap
                         }
                         result.GetFromLua(l);
                     }
+                    l.settop(oldtop + result.OnStackCount());
+                }
+            }
+        }
+        public static void GetTable<TOut>(this IntPtr l, int index, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    var oldtop = l.gettop();
+                    l.checkstack(result.Length + 1);
+                    // array.
+                    for (int i = 0; i < result.Length; ++i)
+                    {
+                        l.pushnumber(i + 1 + offset);
+                        l.gettable(rindex);
+                    }
+                    result.GetFromLua(l);
                     l.settop(oldtop + result.OnStackCount());
                 }
             }
@@ -497,6 +519,33 @@ namespace Capstones.LuaWrap
                 }
             }
         }
+        public static void GetTableAndRemove<TOut>(this IntPtr l, int index, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    var oldtop = l.gettop();
+                    l.checkstack(result.Length + 1);
+                    // array.
+                    for (int i = 0; i < result.Length; ++i)
+                    {
+                        l.pushnumber(i + 1 + offset);
+                        l.gettable(rindex);
+                    }
+                    l.remove(rindex);
+                    result.GetFromLua(l);
+                    l.settop(oldtop + result.OnStackCount() - 1);
+                }
+                else
+                {
+                    l.remove(index);
+                }
+            }
+        }
         public static void GetTableAndRemove<T>(this IntPtr l, out T result, int index, string field)
         {
             result = default(T);
@@ -528,9 +577,29 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void GetTableAndRemove<T>(this IntPtr l, out T result, int index)
+        public static void GetTableAndRemove<T>(this IntPtr l, out T result, int index, int offset)
         {
-            GetTableAndRemove<T>(l, out result, index, (string)null);
+            result = default(T);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    l.checkstack(2);
+                    l.pushnumber(1 + offset);
+                    l.gettable(rindex);
+                    l.GetLua(-1, out result);
+                    l.remove(rindex);
+                    if (!typeof(T).IsOnStack())
+                    {
+                        l.pop(1);
+                    }
+                }
+                else
+                {
+                    l.remove(index);
+                }
+            }
         }
         public static void SetTable<TIn>(this IntPtr l, int index, TIn args, params string[] fields)
             where TIn : struct, ILuaPack
@@ -617,6 +686,29 @@ namespace Capstones.LuaWrap
                 }
             }
         }
+        public static void SetTable<TIn>(this IntPtr l, int index, TIn args, int offset)
+            where TIn : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    using (var lr = l.CreateStackRecover())
+                    {
+                        l.checkstack(args.Length + 2);
+                        args.PushToLua(l);
+                        // array.
+                        for (int i = 0; i < args.Length; ++i)
+                        {
+                            l.pushnumber(i + 1 + offset);
+                            l.pushvalue(i - args.Length - 1);
+                            l.settable(rindex);
+                        }
+                    }
+                }
+            }
+        }
         public static void SetTable<T>(this IntPtr l, int index, string field, T val)
         {
             if (l != IntPtr.Zero && field != null)
@@ -666,10 +758,10 @@ namespace Capstones.LuaWrap
             GetSubTable(l, out result, index, fieldname, field);
             return result;
         }
-        public static T GetSubTable<T>(this IntPtr l, int index, string fieldname)
+        public static T GetSubTable<T>(this IntPtr l, int index, string fieldname, int offset)
         {
             T result;
-            GetSubTable(l, out result, index, fieldname);
+            GetSubTable(l, out result, index, fieldname, offset);
             return result;
         }
         public static void GetSubTable<TOut>(this IntPtr l, int index, string fieldname, out TOut result, params string[] fields)
@@ -709,6 +801,26 @@ namespace Capstones.LuaWrap
                     {
                         l.GetField(index, fieldname);
                         GetTableAndRemove(l, -1, out result, fields);
+                    }
+                }
+            }
+        }
+        public static void GetSubTable<TOut>(this IntPtr l, int index, string fieldname, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetTable(l, index, out result, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        GetTableAndRemove(l, -1, out result, offset);
                     }
                 }
             }
@@ -765,6 +877,34 @@ namespace Capstones.LuaWrap
                             l.SetField(rindex, fieldname);
                         }
                         SetTable(l, -1, args, fields);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void SetSubTable<TIn>(this IntPtr l, int index, string fieldname, TIn args, int offset)
+            where TIn : struct, ILuaPack
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetTable(l, index, args, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        if (l.isnoneornil(-1))
+                        {
+                            l.pop(1);
+                            var rindex = l.NormalizeIndex(index);
+                            l.newtable();
+                            l.pushvalue(-1);
+                            l.SetField(rindex, fieldname);
+                        }
+                        SetTable(l, -1, args, offset);
                         l.pop(1);
                     }
                 }
@@ -845,10 +985,10 @@ namespace Capstones.LuaWrap
             GetTableHierarchical(l, out result, index, fieldname, field);
             return result;
         }
-        public static T GetTableHierarchical<T>(this IntPtr l, int index, string fieldname)
+        public static T GetTableHierarchical<T>(this IntPtr l, int index, string fieldname, int offset)
         {
             T result;
-            GetTableHierarchical(l, out result, index, fieldname);
+            GetTableHierarchical(l, out result, index, fieldname, offset);
             return result;
         }
         public static void GetTableHierarchical<TOut>(this IntPtr l, int index, string fieldname, out TOut result, params string[] fields)
@@ -891,6 +1031,28 @@ namespace Capstones.LuaWrap
                         if (l.GetHierarchicalRaw(index, fieldname))
                         {
                             GetTableAndRemove(l, -1, out result, fields);
+                        }
+                    }
+                }
+            }
+        }
+        public static void GetTableHierarchical<TOut>(this IntPtr l, int index, string fieldname, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            result = default(TOut);
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetTable(l, index, out result, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            GetTableAndRemove(l, -1, out result, offset);
                         }
                     }
                 }
@@ -949,6 +1111,35 @@ namespace Capstones.LuaWrap
                                 l.SetHierarchicalRaw(rindex, fieldname, -1);
                             }
                             SetTable(l, -1, args, fields);
+                            l.pop(1);
+                        }
+                    }
+                }
+            }
+        }
+        public static void SetTableHierarchical<TIn>(this IntPtr l, int index, string fieldname, TIn args, int offset)
+            where TIn : struct, ILuaPack
+        {
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                SetTable(l, index, args, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            if (l.isnoneornil(-1))
+                            {
+                                l.pop(1);
+                                var rindex = l.NormalizeIndex(index);
+                                l.newtable();
+                                l.SetHierarchicalRaw(rindex, fieldname, -1);
+                            }
+                            SetTable(l, -1, args, offset);
                             l.pop(1);
                         }
                     }
@@ -1032,10 +1223,10 @@ namespace Capstones.LuaWrap
             GetGlobalTable(l, out result, name, field);
             return result;
         }
-        public static T GetGlobalTable<T>(this IntPtr l, string name)
+        public static T GetGlobalTable<T>(this IntPtr l, string name, int offset)
         {
             T result;
-            GetGlobalTable(l, out result, name);
+            GetGlobalTable(l, out result, name, offset);
             return result;
         }
         public static void GetGlobalTable<TOut>(this IntPtr l, string name, out TOut result, params string[] fields)
@@ -1059,6 +1250,19 @@ namespace Capstones.LuaWrap
             {
                 l.GetGlobal(name);
                 GetTableAndRemove(l, -1, out result, fields);
+            }
+            else
+            {
+                result = default(TOut);
+            }
+        }
+        public static void GetGlobalTable<TOut>(this IntPtr l, string name, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                GetTableAndRemove(l, -1, out result, offset);
             }
             else
             {
@@ -1097,6 +1301,23 @@ namespace Capstones.LuaWrap
                     l.SetGlobal(name);
                 }
                 SetTable(l, -1, args, fields);
+                l.pop(1);
+            }
+        }
+        public static void SetGlobalTable<TIn>(this IntPtr l, string name, TIn args, int offset)
+            where TIn : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                if (l.isnoneornil(-1))
+                {
+                    l.pop(1);
+                    l.newtable();
+                    l.pushvalue(-1);
+                    l.SetGlobal(name);
+                }
+                SetTable(l, -1, args, offset);
                 l.pop(1);
             }
         }
@@ -1153,10 +1374,10 @@ namespace Capstones.LuaWrap
             GetGlobalTableHierarchical(l, out result, name, field);
             return result;
         }
-        public static T GetGlobalTableHierarchical<T>(this IntPtr l, string name)
+        public static T GetGlobalTableHierarchical<T>(this IntPtr l, string name, int offset)
         {
             T result;
-            GetGlobalTableHierarchical(l, out result, name);
+            GetGlobalTableHierarchical(l, out result, name, offset);
             return result;
         }
         public static void GetGlobalTableHierarchical<TOut>(this IntPtr l, string name, out TOut result, params string[] fields)
@@ -1181,6 +1402,19 @@ namespace Capstones.LuaWrap
                 if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
                 {
                     GetTableAndRemove(l, -1, out result, fields);
+                    return;
+                }
+            }
+            result = default(TOut);
+        }
+        public static void GetGlobalTableHierarchical<TOut>(this IntPtr l, string name, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    GetTableAndRemove(l, -1, out result, offset);
                     return;
                 }
             }
@@ -1219,6 +1453,24 @@ namespace Capstones.LuaWrap
                         l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
                     }
                     SetTable(l, -1, args, fields);
+                    l.pop(1);
+                }
+            }
+        }
+        public static void SetGlobalTableHierarchical<TIn>(this IntPtr l, string name, TIn args, int offset)
+            where TIn : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    if (l.isnoneornil(-1))
+                    {
+                        l.pop(1);
+                        l.newtable();
+                        l.SetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name, -1);
+                    }
+                    SetTable(l, -1, args, offset);
                     l.pop(1);
                 }
             }
@@ -2208,10 +2460,10 @@ namespace Capstones.LuaWrap
             Require(l, out result, name, field);
             return result;
         }
-        public static T Require<T>(this IntPtr l, string name)
+        public static T Require<T>(this IntPtr l, string name, int offset)
         {
             T result;
-            Require(l, out result, name);
+            Require(l, out result, name, offset);
             return result;
         }
         public static void Require<TOut>(this IntPtr l, string name, out TOut result, params string[] fields)
@@ -2235,6 +2487,19 @@ namespace Capstones.LuaWrap
             {
                 l.Require(name);
                 GetTableAndRemove(l, -1, out result, fields);
+            }
+            else
+            {
+                result = default(TOut);
+            }
+        }
+        public static void Require<TOut>(this IntPtr l, string name, out TOut result, int offset)
+            where TOut : struct, ILuaPack
+        {
+            if (l != IntPtr.Zero)
+            {
+                l.Require(name);
+                GetTableAndRemove(l, -1, out result, offset);
             }
             else
             {
@@ -6508,9 +6773,24 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void GetTable<T>(this IntPtr l, out T result, int index)
+        public static void GetTable<T>(this IntPtr l, out T result, int index, int offset)
         {
-            GetTable<T>(l, out result, index, (string)null);
+            result = default(T);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    var rindex = l.NormalizeIndex(index);
+                    l.checkstack(2);
+                    l.pushnumber(1 + offset);
+                    l.gettable(rindex);
+                    l.GetLua(-1, out result);
+                    if (!typeof(T).IsOnStack())
+                    {
+                        l.pop(1);
+                    }
+                }
+            }
         }
         //public static void GetSubTable<T0>(this IntPtr l, out T0 rv0, int index, string fieldname, params string[] fields)
         //{
@@ -6543,9 +6823,24 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void GetSubTable<T>(this IntPtr l, out T result, int index, string fieldname)
+        public static void GetSubTable<T>(this IntPtr l, out T result, int index, string fieldname, int offset)
         {
-            GetSubTable<T>(l, out result, index, fieldname, (string)null);
+            result = default(T);
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetTable(l, out result, index, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        l.GetField(index, fieldname);
+                        GetTableAndRemove(l, out result, -1, offset);
+                    }
+                }
+            }
         }
         //public static void GetTableHierarchical<T0>(this IntPtr l, out T0 rv0, int index, string fieldname, params string[] fields)
         //{
@@ -6580,9 +6875,26 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public static void GetTableHierarchical<T>(this IntPtr l, out T result, int index, string fieldname)
+        public static void GetTableHierarchical<T>(this IntPtr l, out T result, int index, string fieldname, int offset)
         {
-            GetTableHierarchical<T>(l, out result, index, fieldname, (string)null);
+            result = default(T);
+            if (string.IsNullOrEmpty(fieldname))
+            {
+                GetTable(l, out result, index, offset);
+            }
+            else
+            {
+                if (l != IntPtr.Zero)
+                {
+                    if (l.istable(index) || l.IsUserData(index))
+                    {
+                        if (l.GetHierarchicalRaw(index, fieldname))
+                        {
+                            GetTableAndRemove(l, out result, -1, offset);
+                        }
+                    }
+                }
+            }
         }
         //public static void GetGlobalTable<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
         //{
@@ -6608,9 +6920,17 @@ namespace Capstones.LuaWrap
                 result = default(T);
             }
         }
-        public static void GetGlobalTable<T>(this IntPtr l, out T result, string name)
+        public static void GetGlobalTable<T>(this IntPtr l, out T result, string name, int offset)
         {
-            GetGlobalTable<T>(l, out result, name, (string)null);
+            if (l != IntPtr.Zero)
+            {
+                l.GetGlobal(name);
+                GetTableAndRemove(l, out result, -1, offset);
+            }
+            else
+            {
+                result = default(T);
+            }
         }
         //public static void GetGlobalTableHierarchical<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
         //{
@@ -6636,9 +6956,17 @@ namespace Capstones.LuaWrap
             }
             result = default(T);
         }
-        public static void GetGlobalTableHierarchical<T>(this IntPtr l, out T result, string name)
+        public static void GetGlobalTableHierarchical<T>(this IntPtr l, out T result, string name, int offset)
         {
-            GetGlobalTableHierarchical<T>(l, out result, name, (string)null);
+            if (l != IntPtr.Zero)
+            {
+                if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
+                {
+                    GetTableAndRemove(l, out result, -1, offset);
+                    return;
+                }
+            }
+            result = default(T);
         }
         //public static void Require<T0>(this IntPtr l, out T0 rv0, string name, params string[] fields)
         //{
@@ -6664,9 +6992,17 @@ namespace Capstones.LuaWrap
                 result = default(T);
             }
         }
-        public static void Require<T>(this IntPtr l, out T result, string name)
+        public static void Require<T>(this IntPtr l, out T result, string name, int offset)
         {
-            Require<T>(l, out result, name, (string)null);
+            if (l != IntPtr.Zero)
+            {
+                l.Require(name);
+                GetTableAndRemove(l, out result, -1, offset);
+            }
+            else
+            {
+                result = default(T);
+            }
         }
         public static void Call<TIn, T0>(this IntPtr l, int index, string func, out T0 rv0, TIn args)
             where TIn : struct, ILuaPack
