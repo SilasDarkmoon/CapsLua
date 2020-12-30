@@ -23,6 +23,8 @@ namespace Capstones.LuaLib
             get { return _Pos; }
             internal set { _Pos = value; }
         }
+        public bool IsValid { get { return _Pos != 0; } }
+        public bool IsAbsolute { get { return _Pos > 0; } }
 
         public static implicit operator int(LuaStackPos stackpos)
         {

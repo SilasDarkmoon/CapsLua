@@ -47,24 +47,26 @@ namespace Capstones.LuaWrap
             var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())
             {
-                l.Require("hotfix");
-                if (l.istable(-1))
+                if (l.TryRequire("hotfix").IsValid)
                 {
-                    l.GetField(-1, token); // hotfix func
-                    if (l.isfunction(-1))
+                    if (l.istable(-1))
                     {
-                        var oldtop = l.gettop();
-                        l.pushcfunction(LuaHub.LuaFuncOnError); // hotfix func error
-                        l.insert(-2); // hotfix error func
-                        var argc = args.Length;
-                        args.PushToLua(l); // hotfix error func args
-                        var code = l.pcall(argc, result.Length + 1, oldtop); // hotfix error success results
-                        if (code == 0)
+                        l.GetField(-1, token); // hotfix func
+                        if (l.isfunction(-1))
                         {
-                            if (l.toboolean(oldtop + 1))
+                            var oldtop = l.gettop();
+                            l.pushcfunction(LuaHub.LuaFuncOnError); // hotfix func error
+                            l.insert(-2); // hotfix error func
+                            var argc = args.Length;
+                            args.PushToLua(l); // hotfix error func args
+                            var code = l.pcall(argc, result.Length + 1, oldtop); // hotfix error success results
+                            if (code == 0)
                             {
-                                result.GetFromLua(l);
-                                return true;
+                                if (l.toboolean(oldtop + 1))
+                                {
+                                    result.GetFromLua(l);
+                                    return true;
+                                }
                             }
                         }
                     }

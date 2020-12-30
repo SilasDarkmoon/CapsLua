@@ -2439,6 +2439,20 @@ namespace Capstones.LuaWrap
             l.PushArgsAndCallRawSingleReturn(lib);
             return l.OnStackTop();
         }
+        public static LuaStackPos TryRequire(this IntPtr l, string lib)
+        {
+            l.GetGlobal("require"); // require
+            l.PushString(lib); // require "lib"
+            if (l.pcall(1, 1, 0) == 0)
+            {
+                return l.OnStackTop();
+            }
+            else
+            {
+                l.pop(1);
+                return default(LuaStackPos);
+            }
+        }
         public static TOut Require<TOut>(this IntPtr l, string name, params string[] fields)
             where TOut : struct, ILuaPack
         {
