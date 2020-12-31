@@ -2433,6 +2433,24 @@ namespace Capstones.LuaWrap
         }
 #endif
 
+        public static void GetGlobal<T>(this IntPtr l, string name, out T val)
+        {
+            l.GetField(lua.LUA_GLOBALSINDEX, name);
+            l.GetLua(-1, out val);
+            l.pop(1);
+        }
+        public static T GetGlobal<T>(this IntPtr l, string name)
+        {
+            T val;
+            l.GetGlobal(name, out val);
+            return val;
+        }
+        public static void SetGlobal<T>(this IntPtr l, string name, T val)
+        {
+            l.PushLua(val);
+            l.SetField(lua.LUA_GLOBALSINDEX, name);
+        }
+
         public static LuaStackPos Require(this IntPtr l, string lib)
         {
             l.GetGlobal("require");

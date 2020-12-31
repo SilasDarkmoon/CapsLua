@@ -14,6 +14,7 @@ namespace Capstones.LuaWrap
     public static class HotFixCaller
     {
         [ThreadStatic] private static IntPtr _LuaState;
+        private static volatile int _PackageVer = -1;
         public static IntPtr GetLuaStateForHotFix()
         {
             if (_LuaState == IntPtr.Zero)
@@ -21,6 +22,16 @@ namespace Capstones.LuaWrap
                 if (ThreadSafeValues.IsMainThread)
                 {
                     _LuaState = GlobalLua.L;
+#if UNITY_EDITOR
+#if DEBUG_LUA_HOTFIX_IN_EDITOR
+                    _PackageVer = 0;
+#else
+#endif
+#else
+                    int packageVer;
+                    _LuaState.GetGlobalTable(out packageVer, "___resver", "package");
+                    _PackageVer = packageVer;
+#endif
                 }
                 else
                 {
@@ -32,6 +43,7 @@ namespace Capstones.LuaWrap
                     // currently these are enough.
                     // and calling a func with hotfix in non-main thread rarely happens.
                 }
+                _LuaState.SetGlobal("hotfixver", _PackageVer);
             }
             return _LuaState;
         }
