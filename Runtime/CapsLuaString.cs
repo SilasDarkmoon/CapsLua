@@ -624,50 +624,14 @@ namespace Capstones.LuaLib
 
         public static void PushString(this IntPtr l, string str)
         {
-#if DEBUG_LUA_PERFORMANCE
-            PushOrGetStringTimingWatch.Restart();
-            try
+            if (str == null)
             {
-#endif
-            l.pushstring(str);
-            return; // test result shows it is faster to NOT use the cache.
-#pragma warning disable CS0162 // 检测到无法访问的代码
-            LuaString predefined = LuaString.GetString(str);
-            if (predefined != null)
-            {
-                predefined.PushString(l);
-                return;
-            }
-
-            var cache = LuaStateAttachmentManager.GetOrCreateAttachmentManager(l).StrCache;
-            cache.L = l;
-
-            var info = cache.PutIntoCache(str);
-            if (info == null)
-            {
-                l.pushstring(str); // str
+                l.pushnil();
             }
             else
             {
-                if (!PushString(l, info.Id))
-                {
-                    // this should not happen
-                    l.pop(3); // X
-                    l.pushstring(str); // str
-                }
+                l.pushstring(str);
             }
-#pragma warning restore CS0162 // 检测到无法访问的代码
-#if DEBUG_LUA_PERFORMANCE
-            }
-            finally
-            {
-                PushOrGetStringTimingWatch.Stop();
-                long delta = PushOrGetStringTimingWatch.ElapsedTicks;
-                var cnt = System.Threading.Interlocked.Increment(ref PushOrGetStringCallCount);
-                var time = System.Threading.Interlocked.Add(ref PushOrGetStringCallTotalTime, delta);
-                UnityEngine.Debug.Log(((double)time) / (double)System.Diagnostics.Stopwatch.Frequency * 1000.0 / cnt);
-            }
-#endif
         }
 
         public static void PushString(this IntPtr l, LuaString str)
@@ -677,71 +641,17 @@ namespace Capstones.LuaLib
 
         public static string GetString(this IntPtr l, int index)
         {
-#if DEBUG_LUA_PERFORMANCE
-            PushOrGetStringTimingWatch.Restart();
-            try
+            if (l.isnoneornil(index))
             {
-#endif
-            return l.tostring(index); // test result shows it is faster to NOT use the cache.
-#pragma warning disable CS0162 // 检测到无法访问的代码
-            int id = GetStringRegId(l, index);
-            if (id != 0)
-            {
-                if (id < 0)
-                {
-                    LuaString predefined = LuaString.GetString(id);
-                    if (predefined != null)
-                    {
-                        return predefined.Str;
-                    }
-                    else
-                    {
-                        // this should not happen.
-                        return l.tostring(index);
-                    }
-                }
-                else
-                {
-                    LuaStringCache cache = LuaStateAttachmentManager.GetOrCreateAttachmentManager(l).StrCache;
-                    cache.L = l;
-                    LuaStringCache.LuaCachedStringInfo info;
-                    if (cache.TryGetCacheInfo(id, out info))
-                    {
-                        return info.Str;
-                    }
-                    else
-                    {
-                        // this should not happen.
-                        var str = l.tostring(index);
-                        cache.PutIntoCache(str);
-                        return str;
-                    }
-                }
+                return null;
             }
             else
             {
-                // Not cached.
-                var str = l.tostring(index);
-                if (str != null && str.Length >= LuaStringCache.CachedStringMinLen && str.Length <= LuaStringCache.CachedStringMaxLen)
-                {
-                    var cache = LuaStateAttachmentManager.GetOrCreateAttachmentManager(l).StrCache;
-                    cache.L = l;
-                    cache.PutIntoCache(str);
-                }
+                l.pushvalue(index);
+                var str = l.tostring(-1);
+                l.pop(1);
                 return str;
             }
-#pragma warning restore CS0162 // 检测到无法访问的代码
-#if DEBUG_LUA_PERFORMANCE
-            }
-            finally
-            {
-                PushOrGetStringTimingWatch.Stop();
-                long delta = PushOrGetStringTimingWatch.ElapsedTicks;
-                var cnt = System.Threading.Interlocked.Increment(ref PushOrGetStringCallCount);
-                var time = System.Threading.Interlocked.Add(ref PushOrGetStringCallTotalTime, delta);
-                UnityEngine.Debug.Log(((double)time) / (double)System.Diagnostics.Stopwatch.Frequency * 1000.0 / cnt);
-            }
-#endif
         }
 
         public static void GetField(this IntPtr l, int index, string key)
