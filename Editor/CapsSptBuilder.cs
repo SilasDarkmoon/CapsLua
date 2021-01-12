@@ -1089,6 +1089,10 @@ namespace Capstones.UnityEditorEx
                 logger.Log("(Phase) Delete old scripts in Streaming Assets.");
                 if (System.IO.Directory.Exists("Assets/StreamingAssets/spt/"))
                 {
+                    if (System.IO.Directory.Exists("Assets/StreamingAssets/spt_temp/"))
+                    { // the editor crashed when doing last build
+                        System.IO.Directory.Delete("Assets/StreamingAssets/spt_temp/", true);
+                    }
                     System.IO.Directory.Move("Assets/StreamingAssets/spt", "Assets/StreamingAssets/spt_temp");
                     System.IO.Directory.Delete("Assets/StreamingAssets/spt_temp/", true);
                     PlatDependant.CreateFolder("Assets/StreamingAssets/spt/");
