@@ -13,9 +13,10 @@ namespace Capstones.UnityEditorEx
     {
         public enum BuildScriptResult
         {
-            Fail = 0,
-            Success = 1,
-            UpToDate = 2,
+            Unknown = 0,
+            Fail = 1,
+            Success = 2,
+            UpToDate = 3,
         }
         public static BuildScriptResult BuildScript(string file, string dest, int arch)
         {
@@ -265,8 +266,8 @@ namespace Capstones.UnityEditorEx
             public Action OnDone = null;
 
             private int NextFileIndex = 0;
-            private volatile int DoneCount = 0;
-            private BuildScriptResult?[] Results;
+            private int DoneCount = 0;
+            private BuildScriptResult[] Results;
             private System.Threading.AutoResetEvent BuildDone = new System.Threading.AutoResetEvent(false);
 
             public bool IsMultiArchBuild
@@ -293,7 +294,7 @@ namespace Capstones.UnityEditorEx
             public void StartWork()
             {
                 PlatDependant.LogInfo("Start Build Work");
-                Results = new BuildScriptResult?[Files.Count];
+                Results = new BuildScriptResult[Files.Count];
                 int cpucnt = System.Environment.ProcessorCount;
                 for (int i = 0; i < cpucnt; ++i)
                 {
@@ -308,32 +309,23 @@ namespace Capstones.UnityEditorEx
                     int donecnt = 0;
                     while (doneindex < Results.Length)
                     {
-                        if (donecnt < DoneCount || BuildDone.WaitOne())
+                        BuildDone.WaitOne(1000);
+                        while (doneindex < Results.Length && Results[doneindex] != BuildScriptResult.Unknown)
                         {
-                            while (doneindex < Results.Length && Results[doneindex] != null)
+                            var result = Results[doneindex];
+                            var file = Files[doneindex];
+                            var mess = file.GetDest() + " : " + result.ToString();
+                            if (result == BuildScriptResult.Fail)
                             {
-                                var result = Results[doneindex] ?? BuildScriptResult.Fail;
-                                var file = Files[doneindex];
-                                var mess = file.GetDest() + " : " + result.ToString();
-                                if (result == BuildScriptResult.Fail)
-                                {
-                                    Debug.LogError(mess);
-                                }
-                                else
-                                {
-                                    Debug.Log(mess);
-                                }
-                                ++doneindex;
+                                Debug.LogError(mess);
                             }
-                            donecnt = doneindex;
-                            for (int i = doneindex + 1; i < Results.Length; ++i)
+                            else
                             {
-                                if (Results[i] != null)
-                                {
-                                    ++donecnt;
-                                }
+                                Debug.Log(mess);
                             }
+                            ++doneindex;
                         }
+                        donecnt = doneindex;
                     }
                 }
                 else
@@ -342,40 +334,26 @@ namespace Capstones.UnityEditorEx
                     int donecnt = 0;
                     while (doneindex < Results.Length)
                     {
-                        if (donecnt < DoneCount || BuildDone.WaitOne(0))
+                        while (doneindex < Results.Length && Results[doneindex] != BuildScriptResult.Unknown)
                         {
-                            while (doneindex < Results.Length && Results[doneindex] != null)
+                            var result = Results[doneindex];
+                            var file = Files[doneindex];
+                            var mess = file.GetDest() + " : " + result.ToString();
+                            if (result == BuildScriptResult.Fail)
                             {
-                                var result = Results[doneindex] ?? BuildScriptResult.Fail;
-                                var file = Files[doneindex];
-                                var mess = file.GetDest() + " : " + result.ToString();
-                                if (result == BuildScriptResult.Fail)
-                                {
-                                    win.Message = mess;
-                                    Debug.LogError(mess);
-                                }
-                                else
-                                {
-                                    win.Message = mess;
-                                    Debug.Log(mess);
-                                }
-                                ++doneindex;
-                                if (AsyncWorkTimer.Check()) yield return null;
+                                win.Message = mess;
+                                Debug.LogError(mess);
                             }
-                            donecnt = doneindex;
-                            for (int i = doneindex + 1; i < Results.Length; ++i)
+                            else
                             {
-                                if (Results[i] != null)
-                                {
-                                    ++donecnt;
-                                }
+                                win.Message = mess;
+                                Debug.Log(mess);
                             }
+                            ++doneindex;
                             if (AsyncWorkTimer.Check()) yield return null;
                         }
-                        else
-                        {
-                            yield return null;
-                        }
+                        donecnt = doneindex;
+                        yield return null;
                     }
                 }
             }
@@ -465,7 +443,7 @@ namespace Capstones.UnityEditorEx
                     finally
                     {
                         Results[index] = result;
-                        ++DoneCount;
+                        System.Threading.Interlocked.Increment(ref DoneCount);
                         BuildDone.Set();
                     }
                 }
@@ -826,14 +804,46 @@ namespace Capstones.UnityEditorEx
                 Debug.Log(e);
             }
 
+            System.Collections.Concurrent.ConcurrentQueue<string> threadedLogs = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            int mainThreadLogScheduled = 0;
             Application.LogCallback LogToFile = (message, stack, logtype) =>
             {
-                swlog.WriteLine(message);
-                swlog.Flush();
+                if (ThreadSafeValues.IsMainThread)
+                {
+                    swlog.WriteLine(message);
+                    swlog.Flush();
+                    string mess;
+                    while (threadedLogs.TryDequeue(out mess))
+                    {
+                        swlog.WriteLine(mess);
+                        swlog.Flush();
+                    }
+                }
+                else
+                {
+                    threadedLogs.Enqueue(message);
+                    if (System.Threading.Interlocked.Increment(ref mainThreadLogScheduled) == 1)
+                    {
+                        UnityThreadDispatcher.RunInUnityThread(() =>
+                        {
+                            string mess;
+                            while (threadedLogs.TryDequeue(out mess))
+                            {
+                                swlog.WriteLine(mess);
+                                swlog.Flush();
+                            }
+                            System.Threading.Interlocked.Decrement(ref mainThreadLogScheduled);
+                        });
+                    }
+                    else
+                    {
+                        System.Threading.Interlocked.Decrement(ref mainThreadLogScheduled);
+                    }
+                }
             };
             if (swlog != null)
             {
-                Application.logMessageReceived += LogToFile;
+                Application.logMessageReceivedThreaded += LogToFile;
             }
             bool cleanupDone = false;
             Action BuilderCleanup = () =>
@@ -845,7 +855,7 @@ namespace Capstones.UnityEditorEx
                     logger.Log("(Done) Build Spt Cleaup.");
                     if (swlog != null)
                     {
-                        Application.logMessageReceived -= LogToFile;
+                        Application.logMessageReceivedThreaded -= LogToFile;
                         swlog.Flush();
                         swlog.Dispose();
 
