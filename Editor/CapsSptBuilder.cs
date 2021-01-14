@@ -1143,7 +1143,7 @@ namespace Capstones.UnityEditorEx
                 if (isDefaultBuild && makezip)
                 {
                     logger.Log("(Phase) Zip.");
-                    List<Pack<string, string, IList<string>>> zips = new List<Pack<string, string, IList<string>>>();
+                    Dictionary<string, Pack<string, string, IList<string>>> zips = new Dictionary<string, Pack<string, string, IList<string>>>();
                     var outzipdir = "EditorOutput/Build/" + timetoken + "/whole/spt/";
                     System.IO.Directory.CreateDirectory(outzipdir);
                     Dictionary<string, HashSet<string>> builtModsAndDists = new Dictionary<string, HashSet<string>>();
@@ -1237,7 +1237,7 @@ namespace Capstones.UnityEditorEx
                                             if (file.EndsWith(".lua"))
                                             {
                                                 var raw = file.Substring(sptFolder.Length).Replace('\\', '/');
-                                                if (!(exmod == "" && raw.StartsWith("/mod/") || dist == "" && raw.StartsWith("/dist/")))
+                                                if (!(exmod == "" && raw.StartsWith("mod/") || dist == "" && raw.StartsWith("dist/")))
                                                 {
                                                     var entry = file.Substring(outputDir.Length + 1);
                                                     entries.Add(entry);
@@ -1274,7 +1274,16 @@ namespace Capstones.UnityEditorEx
                                         var sub = dstsptRoots[j].Substring("/spt/".Length, dstsptRoots[j].Length - "/spt/".Length - 1);
                                         zipfile = outzipdir + "m-" + mod + "-d-" + dist + "." + sub + ".zip";
                                     }
-                                    zips.Add(new Pack<string, string, IList<string>>(zipfile, outputDir, entries));
+
+                                    if (zips.ContainsKey(zipfile))
+                                    {
+                                        entries.AddRange(zips[zipfile].t3);
+                                        zips[zipfile] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                                    }
+                                    else
+                                    {
+                                        zips[zipfile] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                                    }
                                     //var workz = CapsResBuilder.MakeZipAsync(zipfile, outputDir, entries, winprog);
                                     //while (workz.MoveNext())
                                     //{
@@ -1289,7 +1298,7 @@ namespace Capstones.UnityEditorEx
                     }
                     if (zips.Count > 0)
                     {
-                        var workz = CapsResBuilder.MakeZipsBackground(zips, winprog);
+                        var workz = CapsResBuilder.MakeZipsBackground(zips.Values.ToArray(), winprog);
                         while (workz.MoveNext())
                         {
                             if (winprog != null)
