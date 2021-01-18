@@ -61,6 +61,9 @@ namespace Capstones.UnityEngineEx
 #if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
             Init();
 #endif
+#if UNITY_EDITOR || ENABLE_EX_STACK_TRACE_LUA
+            PlatDependant.OnExStackTrace = ExStackTraceLua;
+#endif
         }
 
         public static void Init()
@@ -273,6 +276,36 @@ namespace Capstones.UnityEngineEx
             }
         }
 #endif
+
+        public static string ExStackTraceLua(string existing_stack)
+        {
+            if (!ThreadSafeValues.IsMainThread || LuaHub.ForbidLuaStackTrace)
+            {
+                return existing_stack;
+            }
+            else if (existing_stack == null
+                || existing_stack.Contains(".LuaCoreLib:")
+                || existing_stack.Contains(".LuaAuxLib:")
+                )
+            {
+                var l = GlobalLua.L.L;
+                LuaHub.PushLuaStackTrace(l);
+                var lstack = l.tostring(-1);
+                l.pop(1);
+                if (existing_stack == null)
+                {
+                    return lstack;
+                }
+                else
+                {
+                    return lstack + "\n" + existing_stack;
+                }
+            }
+            else
+            {
+                return existing_stack;
+            }
+        }
 
         public static IEnumerator DeepGC()
         {

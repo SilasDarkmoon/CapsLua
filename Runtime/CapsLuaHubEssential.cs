@@ -384,7 +384,7 @@ namespace Capstones.LuaLib
             return l.topointer(lua.LUA_REGISTRYINDEX);
         }
 
-        private static void PushLuaStackTrace(this IntPtr l)
+        internal static void PushLuaStackTrace(this IntPtr l)
         {
             l.checkstack(4);
             l.GetGlobal(LuaConst.LS_LIB_DEBUG); // debug
@@ -400,7 +400,9 @@ namespace Capstones.LuaLib
             var lstack = l.tostring(-1);
             l.pop(1);
             var m = (message ?? "nullptr").ToString() + "\n" + lstack;
+            ForbidLuaStackTrace = true;
             PlatDependant.LogInfo(m);
+            ForbidLuaStackTrace = false;
         }
         public static void LogWarning(this IntPtr l, object message)
         {
@@ -408,7 +410,9 @@ namespace Capstones.LuaLib
             var lstack = l.tostring(-1);
             l.pop(1);
             var m = (message ?? "nullptr").ToString() + "\n" + lstack;
+            ForbidLuaStackTrace = true;
             PlatDependant.LogWarning(m);
+            ForbidLuaStackTrace = false;
         }
         public static void LogError(this IntPtr l, object message)
         {
@@ -416,8 +420,11 @@ namespace Capstones.LuaLib
             var lstack = l.tostring(-1);
             l.pop(1);
             var m = (message ?? "nullptr").ToString() + "\n" + lstack;
+            ForbidLuaStackTrace = true;
             PlatDependant.LogError(m);
+            ForbidLuaStackTrace = false;
         }
+        [ThreadStatic] internal static bool ForbidLuaStackTrace;
 
         public static readonly lua.CFunction LuaFuncOnInfo = new lua.CFunction(LuaOnInfo);
         public static readonly lua.CFunction LuaFuncOnWarning = new lua.CFunction(LuaOnWarning);
