@@ -1254,35 +1254,40 @@ namespace Capstones.UnityEditorEx
                                 }
                                 if (entries.Count > 0)
                                 {
-                                    //// mani
-                                    //var mani = "m-" + mod.ToLower() + "-d-" + dist.ToLower() + ".m.ab";
-                                    //mani = "res/mani/" + mani;
-                                    //entries.Add(mani);
-                                    //entries.Add(mani + ".manifest");
-                                    //entries.Add("res/mani/mani");
-                                    //entries.Add("res/mani/mani.manifest");
-                                    // version
-                                    entries.Add("spt/version.txt");
-
-                                    string zipfile;
+                                    var sptkey = "m-" + mod.ToLower() + "-d-" + dist.ToLower();
+                                    string filename;
                                     if (dstsptRoots[j] == "/spt/")
                                     {
-                                        zipfile = outzipdir + "m-" + mod + "-d-" + dist + ".zip";
+                                        filename = sptkey;
                                     }
                                     else
                                     {
                                         var sub = dstsptRoots[j].Substring("/spt/".Length, dstsptRoots[j].Length - "/spt/".Length - 1);
-                                        zipfile = outzipdir + "m-" + mod + "-d-" + dist + "." + sub + ".zip";
+                                        filename = sptkey + "." + sub;
                                     }
+                                    string zipfile = outzipdir + filename + ".zip";
 
-                                    if (zips.ContainsKey(zipfile))
+                                    if (zips.ContainsKey(filename))
                                     {
-                                        entries.AddRange(zips[zipfile].t3);
-                                        zips[zipfile] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                                        entries.AddRange(zips[filename].t3);
+                                        zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
                                     }
                                     else
                                     {
-                                        zips[zipfile] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                                        //// mani
+                                        //var mani = "m-" + mod.ToLower() + "-d-" + dist.ToLower() + ".m.ab";
+                                        //mani = "res/mani/" + mani;
+                                        //entries.Add(mani);
+                                        //entries.Add(mani + ".manifest");
+                                        //entries.Add("res/mani/mani");
+                                        //entries.Add("res/mani/mani.manifest");
+                                        // version
+                                        entries.Add("spt/version.txt");
+                                        var dversion = "spt/version/" + sptkey + ".txt";
+                                        PlatDependant.CopyFile(outputDir + "/spt/version.txt", outputDir + "/" + dversion);
+                                        entries.Add(dversion);
+
+                                        zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
                                     }
                                     //var workz = CapsResBuilder.MakeZipAsync(zipfile, outputDir, entries, winprog);
                                     //while (workz.MoveNext())

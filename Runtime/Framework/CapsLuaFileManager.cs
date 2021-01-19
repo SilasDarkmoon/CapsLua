@@ -238,10 +238,7 @@ namespace Capstones.LuaLib
             return mani;
         }
 
-        private static System.Threading.ManualResetEvent _RuntimeManifestTaskIdle = new System.Threading.ManualResetEvent(true);
         private static System.Threading.ManualResetEvent _RuntimeManifestReady = new System.Threading.ManualResetEvent(true);
-        public static System.Threading.ManualResetEvent RuntimeManifestTaskIdle { get { return _RuntimeManifestTaskIdle; } }
-        public static System.Threading.ManualResetEvent RuntimeManifestReady { get { return _RuntimeManifestReady; } }
 
         private static CapsResManifest _RuntimeRawManifest;
         private static CapsResManifest _RuntimeManifest;
@@ -450,7 +447,6 @@ namespace Capstones.LuaLib
             finally
             {
                 _RuntimeManifestReady.Set();
-                _RuntimeManifestTaskIdle.Set();
             }
         }
         // This will judge whether a mod is optional, so this should be called in UnityMain thread.
@@ -568,18 +564,17 @@ namespace Capstones.LuaLib
         }
         public static void StartLoadRuntimeManifest()
         {
+            _RuntimeManifestReady.WaitOne();
             _RuntimeRawManifest = null;
             _RuntimeManifest = null;
             _RuntimeManifestReady.Reset();
-            _RuntimeManifestTaskIdle.Reset();
             PlatDependant.RunBackground(LoadRuntimeManifest);
         }
         public static void ResetRuntimeManifest()
         {
-            _RuntimeManifestTaskIdle.WaitOne();
+            _RuntimeManifestReady.WaitOne();
             var filePath = ThreadSafeValues.UpdatePath + "/spt/manifest.m.txt";
             PlatDependant.DeleteFile(filePath);
-            StartLoadRuntimeManifest();
         }
         public static void CheckRuntimeManifest()
         {
@@ -1068,7 +1063,7 @@ namespace Capstones.LuaLib
         {
 #if !UNITY_EDITOR
 #if MOD_CAPSUPDATE
-            ResManager.AddInitItem(ResManager.LifetimeOrders.CrossEvent + 10, RegCrossEvents);
+            ResManager.AddInitItem(new ResManager.ActionInitItem(ResManager.LifetimeOrders.CrossEvent + 10, RegCrossEvents, null));
 #else
             ResManager.AddInitItem(new ResManager.ActionInitItem(ResManager.LifetimeOrders.ABLoader + 5, PrepareRuntimeManifest, null));
 #endif
@@ -1081,11 +1076,6 @@ namespace Capstones.LuaLib
         public static Dictionary<string, int> RecordedResVersions;
         private static void RegCrossEvents()
         {
-            CrossEvent.RegHandler("LockSptManifest", cate =>
-            {
-                RuntimeManifestReady.Reset();
-                RuntimeManifestTaskIdle.Reset();
-            });
             CrossEvent.RegHandler("SptManifestReady", cate =>
             {
                 CrossEvent.GetParam(CrossEvent.TOKEN_ARGS, 0);
@@ -1097,6 +1087,10 @@ namespace Capstones.LuaLib
                 }
 
                 StartLoadRuntimeManifest();
+            });
+            CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
+            {
+                ResetRuntimeManifest();
             });
         }
 
