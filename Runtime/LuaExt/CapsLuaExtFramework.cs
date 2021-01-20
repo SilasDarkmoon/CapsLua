@@ -31,8 +31,6 @@ namespace Capstones.LuaExt
             {
                 L.atpanic(ClrDelPanic);
 
-                ClrFuncReset(L);
-
                 //using (var lr = new LuaStateRecover(L))
                 {
                     // Capstones.UnityFramework.UnityLua.StartLuaCoroutine
@@ -81,14 +79,7 @@ namespace Capstones.LuaExt
                     L.SetGlobal("printe"); // (empty)
                 }
 
-                for (int i = 0; i < FurtherInitFuncs.Count; ++i)
-                {
-                    var init = FurtherInitFuncs[i];
-                    if (init != null)
-                    {
-                        init(L);
-                    }
-                }
+                ClrFuncReset(L);
             }
         }
 
@@ -291,6 +282,16 @@ namespace Capstones.LuaExt
             // res version
             l.pushnil();
             l.SetGlobal("___resver");
+
+            // ex init
+            for (int i = 0; i < FurtherInitFuncs.Count; ++i)
+            {
+                var init = FurtherInitFuncs[i];
+                if (init != null)
+                {
+                    init(l);
+                }
+            }
 
             return 0;
         }

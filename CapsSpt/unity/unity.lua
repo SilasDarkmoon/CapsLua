@@ -171,9 +171,6 @@ function unity.restart()
         package.loaded[k] = nil
     end
 
-    if clr.UnityEngine.Application.isEditor then
-        clr.Capstones.LuaExt.LuaFramework.InitLua(clr.thislua())
-    end
     Application.LoadLevel(0)
     Time.timeScale = 1
 end
@@ -198,9 +195,6 @@ function unity.changeServerTo(url, onModifyConfig)
         onModifyConfig()
     end
 
-    if clr.UnityEngine.Application.isEditor then
-        clr.Capstones.LuaExt.LuaFramework.InitLua(clr.thislua())
-    end
     Application.LoadLevel(0)
     Time.timeScale = 1
 end

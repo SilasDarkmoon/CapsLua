@@ -91,6 +91,10 @@ namespace Capstones.UnityEngineEx
                     }
                 }
             }
+            else
+            {
+                LuaFramework.ClrFuncReset(L.L);
+            }
 #if UNITY_EDITOR
             }
             catch (DllNotFoundException e)

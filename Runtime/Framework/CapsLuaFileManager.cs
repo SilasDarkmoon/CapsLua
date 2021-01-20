@@ -1088,10 +1088,10 @@ namespace Capstones.LuaLib
 
                 StartLoadRuntimeManifest();
             });
-            CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
-            {
-                ResetRuntimeManifest();
-            });
+            //CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
+            //{
+            //    ResetRuntimeManifest();
+            //});
         }
 
         public static void PushVersionToLua(IntPtr l)
@@ -1114,7 +1114,15 @@ namespace Capstones.LuaLib
             l.SetGlobal("___resver");
         }
 
-        private static LuaExt.LuaExLibs.LuaExLibItem _LuaExLib_UpdateVersion_Instance = new LuaExt.LuaExLibs.LuaExLibItem(PushVersionToLua, 500);
+        //private static LuaExt.LuaExLibs.LuaExLibItem _LuaExLib_UpdateVersion_Instance = new LuaExt.LuaExLibs.LuaExLibItem(PushVersionToLua, 500);
 #endif
+    }
+}
+
+namespace Capstones.LuaExt
+{
+    public static partial class LuaExLibs
+    {
+        private static LuaExt.LuaFramework.FurtherInit _InitLuaPushResVersion = new LuaExt.LuaFramework.FurtherInit(LuaLib.CapsLuaFileManager.PushVersionToLua);
     }
 }
