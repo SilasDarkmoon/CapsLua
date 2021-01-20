@@ -1059,11 +1059,19 @@ namespace Capstones.LuaLib
                 val = l.tothread(index);
                 return;
             }
+            else if (l.IsObject(index))
+            {
+                var obj = GetLuaObject(l, index);
+                if (obj is IntPtr)
+                {
+                    val = (IntPtr)obj;
+                }
+            }
             val = IntPtr.Zero;
             return;
         }
         public static void GetLua(this IntPtr l, int index, out bool val)
-        {
+        { // TODO: should we check the index IsObject of bool type?
             val = l.toboolean(index);
         }
         public static void GetLua(this IntPtr l, int index, out byte val)

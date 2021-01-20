@@ -281,7 +281,7 @@ namespace Capstones.UnityEngineEx
         {
             if (!ThreadSafeValues.IsMainThread || LuaHub.ForbidLuaStackTrace)
             {
-                return existing_stack;
+                return null;
             }
             else if (existing_stack == null
                 || existing_stack.Contains(".LuaCoreLib:")
@@ -292,18 +292,11 @@ namespace Capstones.UnityEngineEx
                 LuaHub.PushLuaStackTrace(l);
                 var lstack = l.tostring(-1);
                 l.pop(1);
-                if (existing_stack == null)
-                {
-                    return lstack;
-                }
-                else
-                {
-                    return lstack + "\n" + existing_stack;
-                }
+                return lstack;
             }
             else
             {
-                return existing_stack;
+                return null;
             }
         }
 
