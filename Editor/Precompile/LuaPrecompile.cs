@@ -5127,7 +5127,7 @@ namespace Capstones.UnityEditorEx
             sb.AppendLine("}"); // }
             if (pexinfo.ArgTypes.Count >= cnt)
             {
-                if (pexinfo.ArgTypes[cnt - 1].IsValueType)
+                if (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueType)
                 {
                     context.DoneMethods.Add(method);
                 }
