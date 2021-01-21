@@ -299,8 +299,7 @@ namespace Capstones.LuaExt
         {
             public object GetGlobal(string name)
             {
-                var tid = ThreadLocalObj.GetThreadId();
-                if (tid == ThreadSafeValues.UnityThreadID)
+                if (ThreadSafeValues.IsMainThread)
                 {
                     var l = GlobalLua.L.L;
                     if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
@@ -323,8 +322,7 @@ namespace Capstones.LuaExt
 
             public void HandleEvent(string cate, int refid)
             {
-                var tid = ThreadLocalObj.GetThreadId();
-                if (tid == ThreadSafeValues.UnityThreadID)
+                if (ThreadSafeValues.IsMainThread)
                 {
                     var pars = CrossEvent.CurrentContext._P[CrossEvent.TOKEN_ARGS];
                     var rvs = CrossEvent.CurrentContext._P[CrossEvent.TOKEN_RETS];
@@ -402,8 +400,7 @@ namespace Capstones.LuaExt
 
             public void Reset()
             {
-                var tid = ThreadLocalObj.GetThreadId();
-                if (tid == ThreadSafeValues.UnityThreadID)
+                if (ThreadSafeValues.IsMainThread)
                 {
                     ResetRaw();
                 }
@@ -424,8 +421,7 @@ namespace Capstones.LuaExt
 
             public void SetGlobal(string name, object val)
             {
-                var tid = ThreadLocalObj.GetThreadId();
-                if (tid == ThreadSafeValues.UnityThreadID)
+                if (ThreadSafeValues.IsMainThread)
                 {
                     SetGlobalRaw(name, val);
                 }
@@ -456,8 +452,7 @@ namespace Capstones.LuaExt
             {
                 if (cate != null)
                 {
-                    var tid = ThreadLocalObj.GetThreadId();
-                    if (tid == ThreadSafeValues.UnityThreadID)
+                    if (ThreadSafeValues.IsMainThread)
                     {
                         UnregHandlerRaw(cate, refid);
                     }

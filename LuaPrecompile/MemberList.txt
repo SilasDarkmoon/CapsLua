@@ -72,3 +72,9 @@ type System.UInt32
 type System.UInt64
 
 type System.Type
+
+--type Capstones.LuaLib.BaseDynamic
+--type Capstones.LuaLib.ScriptDynamic
+--type Capstones.LuaWrap.BaseLua
+--type Capstones.LuaWrap.BaseLuaWrapper
+--type Capstones.LuaWrap.LuaTable
