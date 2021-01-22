@@ -167,6 +167,14 @@ namespace Capstones.UnityEditorEx
                     {
                         continue;
                     }
+                    if (type.IsSubclassOf(typeof(Delegate)))
+                    {
+                        continue;
+                    }
+                    if (type.IsSubclassOf(typeof(LuaLib.BaseDynamic)))
+                    {
+                        continue;
+                    }
 
                     var exsitinghubtype = LuaLib.LuaTypeHub.GetCachedTypeHubType(type);
                     if (exsitinghubtype != null)
