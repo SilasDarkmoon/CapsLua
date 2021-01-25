@@ -204,9 +204,16 @@ namespace Capstones.LuaLib
             {
                 return true;
             }
-            if (curtype.IsSubclassOf(typeof(BaseDynamic)) && totype.IsSubclassOf(typeof(Delegate)))
+            if (curtype.IsSubclassOf(typeof(BaseDynamic)))
             {
-                return true;
+                if (totype.IsSubclassOf(typeof(Delegate)))
+                {
+                    return true;
+                }
+                else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(totype))
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -216,9 +223,17 @@ namespace Capstones.LuaLib
                 return null;
             if (obj == null)
                 return null;
-            if (obj is LuaWrap.BaseLua && type.IsSubclassOf(typeof(Delegate)))
+            if (obj is LuaWrap.BaseLua)
             {
-                return Capstones.LuaLib.CapsLuaDelegateGenerator.CreateDelegate(type, obj as LuaWrap.BaseLua);
+                if (type.IsSubclassOf(typeof(Delegate)))
+                {
+                    return Capstones.LuaLib.CapsLuaDelegateGenerator.CreateDelegate(type, (LuaWrap.BaseLua)obj);
+                }
+                else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
+                {
+                    LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
+                    wrapper.Binding = (LuaWrap.BaseLua)obj;
+                }
             }
             if (type.IsAssignableFrom(obj.GetType()))
                 return obj;
