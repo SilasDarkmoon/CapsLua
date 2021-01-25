@@ -841,6 +841,32 @@ namespace Capstones.LuaWrap
         {
             result = o.GetWrapper<T>();
         }
+
+        public static string GetLuaTypeName(this BaseLua lua)
+        {
+            if (ReferenceEquals(lua, null) || lua.IsClosed || lua.L == IntPtr.Zero)
+            {
+                return null;
+            }
+            var l = lua.L;
+            using (var lr = l.CreateStackRecover())
+            {
+                lua.PushToLua(l);
+                var cname = l.GetTable<string>(-1, "__cname");
+                return cname;
+            }
+        }
+        public static string GetLuaTypeName(this ILuaWrapper thiz)
+        {
+            if (thiz == null)
+            {
+                return null;
+            }
+            else
+            {
+                return GetLuaTypeName(thiz.Binding);
+            }
+        }
     }
 }
 
