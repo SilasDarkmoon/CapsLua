@@ -865,8 +865,7 @@ namespace Capstones.LuaLib
                 }
                 if (typeof(T).IsEnum())
                 {
-                    var ltype = l.type(index);
-                    if (ltype == lua.LUA_TNUMBER || ltype == lua.LUA_TSTRING)
+                    if (luatype == lua.LUA_TNUMBER || luatype == lua.LUA_TSTRING)
                     {
                         var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubEnumPrecompiled<T>;
                         if (hub != null)
@@ -874,7 +873,7 @@ namespace Capstones.LuaLib
                             val = hub.GetLuaChecked(l, index);
                             return;
                         }
-                        if (ltype == lua.LUA_TNUMBER)
+                        if (luatype == lua.LUA_TNUMBER)
                         {
                             var num = l.tonumber(index);
                             val = (T)Enum.ToObject(typeof(T), (ulong)num);
@@ -886,6 +885,20 @@ namespace Capstones.LuaLib
                             val = (T)Enum.Parse(typeof(T), str);
                             return;
                         }
+                    }
+                }
+                else if (luatype == lua.LUA_TTABLE && typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
+                { // the BaseLuaWrapper is not initialized?
+                    try
+                    {
+                        val = Activator.CreateInstance<T>();
+                        var wrapper = (LuaWrap.ILuaWrapper)(object)val;
+                        wrapper.Binding = new LuaWrap.LuaTable(l, index);
+                        return;
+                    }
+                    catch (Exception e)
+                    { // we can not create instance of wrapper?
+                        PlatDependant.LogError(e);
                     }
                 }
             }
@@ -947,20 +960,20 @@ namespace Capstones.LuaLib
                             val = (T)(object)CapsLuaDelegateGenerator.CreateDelegate(typeof(T), raw as LuaWrap.BaseLua);
                             return;
                         }
-                        else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
-                        { // the BaseLuaWrapper is not initialized?
-                            try
-                            {
-                                val = Activator.CreateInstance<T>();
-                                var wrapper = (LuaWrap.ILuaWrapper)(object)val;
-                                wrapper.Binding = raw as LuaWrap.BaseLua;
-                                return;
-                            }
-                            catch (Exception e)
-                            { // we can not create instance of wrapper?
-                                PlatDependant.LogError(e);
-                            }
-                        }
+                        //else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
+                        //{ // the BaseLuaWrapper is not initialized?
+                        //    try
+                        //    {
+                        //        val = Activator.CreateInstance<T>();
+                        //        var wrapper = (LuaWrap.ILuaWrapper)(object)val;
+                        //        wrapper.Binding = raw as LuaWrap.BaseLua;
+                        //        return;
+                        //    }
+                        //    catch (Exception e)
+                        //    { // we can not create instance of wrapper?
+                        //        PlatDependant.LogError(e);
+                        //    }
+                        //}
                     }
                 }
 
