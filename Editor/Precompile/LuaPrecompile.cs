@@ -175,6 +175,10 @@ namespace Capstones.UnityEditorEx
                     {
                         continue;
                     }
+                    if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
 
                     var exsitinghubtype = LuaLib.LuaTypeHub.GetCachedTypeHubType(type);
                     if (exsitinghubtype != null)

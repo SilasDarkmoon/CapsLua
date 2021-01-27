@@ -867,6 +867,22 @@ namespace Capstones.LuaWrap
                 return GetLuaTypeName(thiz.Binding);
             }
         }
+
+        public static T Clone<T>(this T lua) where T : BaseLua
+        {
+            if (ReferenceEquals(lua, null) || lua.IsClosed || lua.L == IntPtr.Zero)
+            {
+                return default(T);
+            }
+            var l = lua.L;
+            using (var lr = l.CreateStackRecover())
+            {
+                T cloned;
+                lua.PushToLua(l);
+                l.CallGlobal(out cloned, "clone", Pack(l.OnStackTop()));
+                return cloned;
+            }
+        }
     }
 }
 
