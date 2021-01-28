@@ -4373,8 +4373,8 @@ namespace Capstones.UnityEditorEx
                     if (ot == type)
                         continue;
                     string otluatype, tluatype;
-                    if (TryGetLuaType(ot, out otluatype) && TryGetLuaType(type, out tluatype) && otluatype == tluatype)
-                    {
+                    if (nativeTypeMap.TryGetValue(ot, out otluatype) && nativeTypeMap.TryGetValue(type, out tluatype) && otluatype == tluatype)
+                    { // Numeric. but not Enums
                         kvp.Value.UnionWith(list);
                         list.UnionWith(kvp.Value);
                     }
