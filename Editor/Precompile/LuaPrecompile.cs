@@ -4053,6 +4053,20 @@ namespace Capstones.UnityEditorEx
             { typeof(uint), "LUA_TNUMBER" },
             { typeof(ulong), "LUA_TNUMBER" },
         };
+        public static bool TryGetLuaType(Type type, out string luatype)
+        {
+            if (type == null)
+            {
+                luatype = null;
+                return false;
+            }
+            if (type.IsEnum)
+            {
+                luatype = "LUA_TNUMBER";
+                return true;
+            }
+            return nativeTypeMap.TryGetValue(type, out luatype);
+        }
         public static Dictionary<string, Type> nativeRevMap = new Dictionary<string, Type>()
         {
             { "LUA_TBOOLEAN", typeof(bool) },
@@ -4358,8 +4372,8 @@ namespace Capstones.UnityEditorEx
                     var ot = kvp.Key;
                     if (ot == type)
                         continue;
-
-                    if (nativeTypeMap.ContainsKey(ot) && nativeTypeMap.ContainsKey(type) && nativeTypeMap[ot] == nativeTypeMap[type])
+                    string otluatype, tluatype;
+                    if (TryGetLuaType(ot, out otluatype) && TryGetLuaType(type, out tluatype) && otluatype == tluatype)
                     {
                         kvp.Value.UnionWith(list);
                         list.UnionWith(kvp.Value);
@@ -5550,7 +5564,7 @@ namespace Capstones.UnityEditorEx
                         }
                     }
                     string LuaType;
-                    if (nativeTypeMap.TryGetValue(parType, out LuaType))
+                    if (TryGetLuaType(parType, out LuaType))
                     {
                         List<MethodBase> group;
                         if (!ByLuaType[i].TryGetValue(LuaType, out group))
@@ -5666,14 +5680,15 @@ namespace Capstones.UnityEditorEx
                 sb.Append(index + 1);
                 sb.AppendLine(");");
             }
-            if (type.IsValueType || type.IsEnum || type.IsSealed)
+            if (type.IsValueType || type.IsSealed)
             {
                 sb.Append("if (___ot");
                 sb.Append(index);
                 sb.Append(" == typeof(");
-                if (nativeTypeMap.ContainsKey(type))
+                string luatypestr;
+                if (TryGetLuaType(type, out luatypestr))
                 {
-                    var ltype = nativeRevMap[nativeTypeMap[type]];
+                    var ltype = nativeRevMap[luatypestr];
                     if (ltype != type)
                     {
                         sb.WriteType(ltype);
