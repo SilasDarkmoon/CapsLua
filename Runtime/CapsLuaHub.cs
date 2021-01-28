@@ -522,9 +522,9 @@ namespace Capstones.LuaLib
             }
             return null;
         }
-        public static Type GetType(this IntPtr l, int index)
+        public static Type GetType(this IntPtr l, int index, out int typecode)
         {
-            var typecode = l.type(index);
+            typecode = l.type(index);
             switch (typecode)
             {
                 case lua.LUA_TUSERDATA:
@@ -553,6 +553,11 @@ namespace Capstones.LuaLib
                     return typeof(Capstones.LuaWrap.LuaOnStackThread);
             }
             return null;
+        }
+        public static Type GetType(this IntPtr l, int index)
+        {
+            int typecode;
+            return GetType(l, index, out typecode);
         }
         public static object GetLuaLightObject(this IntPtr l, int index)
         {

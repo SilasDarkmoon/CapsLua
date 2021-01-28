@@ -325,40 +325,40 @@ namespace Capstones.LuaLib
             }
             if (type.IsEnum())
             {
-                return 11;
+                return 14;
             }
             switch (type.GetTypeCode())
             {
                 case TypeCode.Boolean:
-                    return 0;
-                case TypeCode.Byte:
-                    return 1;
-                case TypeCode.Char:
-                    return 1;
-                case TypeCode.DateTime:
-                    return 9;
-                case TypeCode.Decimal:
-                    return 16;
-                case TypeCode.Double:
                     return 10;
+                case TypeCode.Byte:
+                    return 34;
+                case TypeCode.Char:
+                    return 20;
+                case TypeCode.DateTime:
+                    return 24;
+                case TypeCode.Decimal:
+                    return 70;
+                case TypeCode.Double:
+                    return 68;
                 case TypeCode.Int16:
-                    return 2;
+                    return 40;
                 case TypeCode.Int32:
-                    return 4;
+                    return 50;
                 case TypeCode.Int64:
-                    return 8;
+                    return 60;
                 case TypeCode.SByte:
-                    return 1;
+                    return 30;
                 case TypeCode.Single:
-                    return 5;
+                    return 58;
                 case TypeCode.UInt16:
-                    return 2;
+                    return 44;
                 case TypeCode.UInt32:
-                    return 4;
+                    return 54;
                 case TypeCode.UInt64:
-                    return 8;
+                    return 64;
             }
-            return 17;
+            return 80;
         }
         public static int GetParamsCode(IList<Type> types)
         {

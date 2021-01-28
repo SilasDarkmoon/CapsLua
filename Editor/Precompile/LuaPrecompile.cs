@@ -5674,10 +5674,15 @@ namespace Capstones.UnityEditorEx
 
             if (!WriteMethodBody_30_ByObjType_HasProcessed(processed, index))
             {
+                sb.Append("int ___lt");
+                sb.Append(index);
+                sb.AppendLine(";");
                 sb.Append("var ___ot");
                 sb.Append(index);
                 sb.Append(" = l.GetType(");
                 sb.Append(index + 1);
+                sb.Append(", out ___lt");
+                sb.Append(index);
                 sb.AppendLine(");");
             }
             if (type.IsValueType || type.IsSealed)
@@ -5685,20 +5690,21 @@ namespace Capstones.UnityEditorEx
                 sb.Append("if (___ot");
                 sb.Append(index);
                 sb.Append(" == typeof(");
+                sb.WriteType(type);
+                sb.Append(")");
                 string luatypestr;
                 if (TryGetLuaType(type, out luatypestr))
                 {
                     var ltype = nativeRevMap[luatypestr];
                     if (ltype != type)
                     {
-                        sb.WriteType(ltype);
-                        sb.Append(") || ___ot");
+                        sb.Append(" || ___lt");
                         sb.Append(index);
-                        sb.Append(" == typeof(");
+                        sb.Append(" == lua.");
+                        sb.Append(luatypestr);
                     }
                 }
-                sb.WriteType(type);
-                sb.AppendLine("))");
+                sb.AppendLine(")");
             }
             else
             {
