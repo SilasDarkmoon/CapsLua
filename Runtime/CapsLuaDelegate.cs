@@ -20,9 +20,6 @@ namespace Capstones.LuaLib
         }
         public abstract class BaseDelegateLuaWrapper : IDelegateLuaWrapper
         {
-#if NETFX_CORE
-            private Dictionary<Type, Delegate> _Cache = new Dictionary<Type, Delegate>();
-#endif
             protected BaseLua _Target;
             internal LuaThreadRefMan _TargetMan;
 
@@ -55,31 +52,7 @@ namespace Capstones.LuaLib
             public Delegate MakeDelegate(Type deltype)
             {
 #if NETFX_CORE
-                Delegate rv = null;
-                if (_Cache.TryGetValue(deltype, out rv))
-                {
-                    return rv;
-                }
-
-                System.Linq.Expressions.ParameterExpression[] expars = new System.Linq.Expressions.ParameterExpression[0];
-                var pars = deltype.GetMethod("Invoke").GetParameters();
-                if (pars != null)
-                {
-                    expars = new System.Linq.Expressions.ParameterExpression[pars.Length];
-                    for (int i = 0; i < pars.Length; ++i)
-                    {
-                        expars[i] = System.Linq.Expressions.Expression.Parameter(pars[i].ParameterType, pars[i].Name);
-                    }
-                }
-                System.Linq.Expressions.ConstantExpression extar = System.Linq.Expressions.Expression.Constant(this);
-                rv = System.Linq.Expressions.Expression.Lambda(
-                    deltype,
-                    System.Linq.Expressions.Expression.Call(extar, "Call", null, expars),
-                    true,
-                    expars
-                    ).Compile();
-                _Cache[deltype] = rv;
-                return rv;
+                return this.GetType().GetMethod("Call").CreateDelegate(deltype, this);
 #else
                 return Delegate.CreateDelegate(deltype, this, "Call");
 #endif
