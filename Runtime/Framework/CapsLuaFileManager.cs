@@ -1119,6 +1119,7 @@ namespace Capstones.LuaLib
     }
 }
 
+#if MOD_CAPSUPDATE
 namespace Capstones.LuaExt
 {
     public static partial class LuaExLibs
@@ -1126,3 +1127,4 @@ namespace Capstones.LuaExt
         private static LuaExt.LuaFramework.FurtherInit _InitLuaPushResVersion = new LuaExt.LuaFramework.FurtherInit(LuaLib.CapsLuaFileManager.PushVersionToLua);
     }
 }
+#endif

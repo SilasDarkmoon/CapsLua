@@ -2310,6 +2310,7 @@ namespace Capstones.LuaWrap
 
             public Enumerator(LuaDictionary<TK, TV> thiz)
             {
+                Current = default(KeyValuePair<TK, TV>);
                 CurrentKey = null;
                 Binding = thiz.Binding;
             }
