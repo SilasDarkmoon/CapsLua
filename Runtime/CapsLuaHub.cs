@@ -1089,56 +1089,147 @@ namespace Capstones.LuaLib
             return;
         }
         public static void GetLua(this IntPtr l, int index, out bool val)
-        { // TODO: should we check the index IsObject of bool type?
-            val = l.toboolean(index);
+        {
+            if (l.isboolean(index))
+            {
+                val = l.toboolean(index);
+            }
+            else
+            {
+                val = l.GetLua<bool>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out byte val)
         {
-            val = (byte)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (byte)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<byte>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out char val)
         {
-            val = (char)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (char)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<char>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out decimal val)
         {
-            val = (decimal)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (decimal)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<decimal>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out double val)
         {
-            val = l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<double>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out short val)
         {
-            val = (short)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (short)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<short>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out int val)
         {
-            val = (int)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (int)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<int>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out long val)
         {
-            val = (long)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (long)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<long>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out sbyte val)
         {
-            val = (sbyte)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (sbyte)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<sbyte>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out float val)
         {
-            val = (float)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (float)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<float>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out ushort val)
         {
-            val = (ushort)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (ushort)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<ushort>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out uint val)
         {
-            val = (uint)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (uint)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<uint>(index);
+            }
         }
         public static void GetLua(this IntPtr l, int index, out ulong val)
         {
-            val = (ulong)l.tonumber(index);
+            if (l.IsNumber(index))
+            {
+                val = (ulong)l.tonumber(index);
+            }
+            else
+            {
+                val = l.GetLua<ulong>(index);
+            }
         }
 #endregion
     }
