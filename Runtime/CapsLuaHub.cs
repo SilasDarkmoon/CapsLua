@@ -698,7 +698,7 @@ namespace Capstones.LuaLib
                         IntPtr lthd = l.tothread(index);
                         l.pushvalue(index);
                         int refid = l.refer();
-                        return new Capstones.LuaWrap.LuaOnStackThread(lthd, refid);
+                        return new Capstones.LuaWrap.LuaOnStackThread(refid, lthd);
                 }
             }
             return null;
@@ -738,7 +738,7 @@ namespace Capstones.LuaLib
                         IntPtr lthd = l.tothread(index);
                         l.pushvalue(index);
                         int refid = l.refer();
-                        return new Capstones.LuaWrap.LuaOnStackThread(lthd, refid);
+                        return new Capstones.LuaWrap.LuaOnStackThread(refid, lthd);
                 }
             }
             return null;

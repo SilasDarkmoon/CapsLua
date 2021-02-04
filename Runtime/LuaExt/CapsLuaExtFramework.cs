@@ -204,7 +204,7 @@ namespace Capstones.LuaExt
             }
             else if (l.isthread(1))
             {
-                var lthd = new LuaOnStackThread(l, 1, 0);
+                var lthd = new LuaOnStackThread(l, 1);
                 var co = GlobalLua.StartLuaCoroutine(lthd);
                 l.settop(oldtop);
                 l.PushLua(co);
@@ -229,7 +229,7 @@ namespace Capstones.LuaExt
                 }
                 else if (l.isthread(2))
                 {
-                    var lthd = new LuaOnStackThread(l, 2, 0);
+                    var lthd = new LuaOnStackThread(l, 2);
                     var co = GlobalLua.StartLuaCoroutineForBehav(behav, lthd);
                     l.settop(oldtop);
                     l.PushLua(co);

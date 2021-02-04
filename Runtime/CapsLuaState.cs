@@ -230,12 +230,12 @@ namespace Capstones.LuaWrap
             L = l;
         }
 
-        protected internal LuaOnStackThread(IntPtr l, int refid) : base(IntPtr.Zero)
+        protected internal LuaOnStackThread(int refid, IntPtr l) : base(IntPtr.Zero)
         {
             L = l;
             Refid = refid;
         }
-        protected internal LuaOnStackThread(IntPtr parentl, int stackpos, int reserved)
+        protected internal LuaOnStackThread(IntPtr parentl, int stackpos)
         {
             L = parentl.tothread(stackpos);
             parentl.pushvalue(stackpos);
@@ -249,54 +249,43 @@ namespace Capstones.LuaWrap
         }
         public object[] Resume(params object[] args)
         {
-            if (L != IntPtr.Zero)
+            var l = L;
+            if (l != IntPtr.Zero)
             {
+                var oldtop = l.gettop();
                 if (args != null)
                 {
                     for (int i = 0; i < args.Length; ++i)
                     {
-                        L.PushLua(args[i]);
+                        l.PushLua(args[i]);
                     }
                 }
-                DoResume();
-                object[] rv = ObjectPool.GetReturnValueFromPool(L.gettop());
+                DoResume(oldtop);
+                object[] rv = ObjectPool.GetReturnValueFromPool(l.gettop());
                 for (int i = 0; i < rv.Length; ++i)
                 {
-                    rv[i] = L.GetLua(i + 1);
+                    rv[i] = l.GetLua(i + 1);
                 }
-                L.settop(0);
+                l.settop(0);
                 return rv;
             }
             return null;
         }
-        public Pack<T1, T2> Resume<T1, T2>()
-        {
-            Pack<T1, T2> rv = new Pack<T1, T2>();
-            if (L != IntPtr.Zero)
-            {
-                DoResume();
-                var rvc = L.gettop();
-                if (rvc >= 1)
-                {
-                    L.GetLua(1, out rv.t1);
-                }
-                if (rvc >= 2)
-                {
-                    L.GetLua(2, out rv.t2);
-                }
-                L.settop(0);
-                return rv;
-            }
-            return rv;
-        }
 
-        protected internal virtual void DoResume()
+        protected internal void DoResume()
+        {
+            DoResume(-1);
+        }
+        protected internal virtual void DoResume(int oldtop)
         {
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
             string simpleStack = L.GetSimpleStackInfo(8);
             using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaCoroutine: " + simpleStack))
 #endif
-            var oldtop = L.gettop();
+            if (oldtop < 0)
+            {
+                oldtop = L.gettop();
+            }
             ResumeRaw(oldtop);
         }
         protected internal void ResumeRaw(int oldtop)
@@ -405,10 +394,14 @@ namespace Capstones.LuaWrap
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
         protected string _ProfilerShownName;
 #endif
-        protected internal override void DoResume()
+        protected internal override void DoResume(int oldtop)
         {
             if (!ReferenceEquals(_Func, null) && L != IntPtr.Zero)
             {
+                if (oldtop < 0)
+                {
+                    oldtop = L.gettop();
+                }
                 if (_NeedRestart)
                 {
                     _NeedRestart = false;
@@ -420,8 +413,13 @@ namespace Capstones.LuaWrap
                     L.pushnumber(Refid);
                     var l = L.newthread();
                     L.settable(lua.LUA_REGISTRYINDEX);
-                    _L = l;
                     l.PushLua(_Func);
+                    var newtop = L.gettop();
+                    if (newtop > oldtop)
+                    {
+                        L.xmove(l, newtop - oldtop);
+                    }
+                    _L = l;
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     if (_ProfilerShownName == null)
                     {
@@ -438,7 +436,6 @@ namespace Capstones.LuaWrap
                     using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
                     using (var pconi = new Capstones.UnityFramework.ProfilerContext("at start"))
 #endif
-                    var oldtop = l.gettop();
                     ResumeRaw(oldtop);
                 }
                 else if (IsRunning)
@@ -448,7 +445,6 @@ namespace Capstones.LuaWrap
                     using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
                     using (var pconi = new Capstones.UnityFramework.ProfilerContext(simpleStack))
 #endif
-                    var oldtop = L.gettop();
                     ResumeRaw(oldtop);
                 }
             }
@@ -907,7 +903,7 @@ namespace Capstones.LuaLib
                 IntPtr lthd = l.tothread(index);
                 l.pushvalue(index);
                 int refid = l.refer();
-                return new Capstones.LuaWrap.LuaOnStackThread(lthd, refid);
+                return new Capstones.LuaWrap.LuaOnStackThread(refid, lthd);
             }
             public override IntPtr PushLua(IntPtr l, LuaWrap.LuaOnStackThread val)
             {
