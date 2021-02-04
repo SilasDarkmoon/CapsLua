@@ -235,6 +235,12 @@ namespace Capstones.LuaWrap
             L = l;
             Refid = refid;
         }
+        protected internal LuaOnStackThread(IntPtr parentl, int stackpos, int reserved)
+        {
+            L = parentl.tothread(stackpos);
+            parentl.pushvalue(stackpos);
+            Refid = parentl.refer();
+        }
 
         public void Resume()
         {
@@ -290,7 +296,8 @@ namespace Capstones.LuaWrap
             string simpleStack = L.GetSimpleStackInfo(8);
             using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaCoroutine: " + simpleStack))
 #endif
-            ResumeRaw(0);
+            var oldtop = L.gettop();
+            ResumeRaw(oldtop);
         }
         protected internal void ResumeRaw(int oldtop)
         {
@@ -359,13 +366,15 @@ namespace Capstones.LuaWrap
         {
             if (!ReferenceEquals(func, null) && func.L != IntPtr.Zero)
             {
-                L = func.L.newthread();
-                Refid = func.L.refer();
+                var l = func.L;
+                L = l;
+                l.pushthread();
+                Refid = l.refer();
                 if (func.Refid != 0)
                 {
-                    L.getref(func.Refid);
-                    _Func = new LuaFunc(L, -1);
-                    L.pop(1);
+                    l.getref(func.Refid);
+                    _Func = new LuaFunc(l, -1);
+                    l.pop(1);
                 }
             }
             if (L != IntPtr.Zero)
@@ -377,12 +386,14 @@ namespace Capstones.LuaWrap
         {
             if (!ReferenceEquals(func, null) && func.L != IntPtr.Zero)
             {
-                L = func.L.newthread();
-                Refid = func.L.refer();
-                func.L.pushvalue(func.StackPos);
-                var reffunc = func.L.refer();
+                var l = func.L;
+                L = l;
+                l.pushthread();
+                Refid = l.refer();
+                l.pushvalue(func.StackPos);
+                var reffunc = l.refer();
                 _Func = new LuaFunc();
-                _Func.L = L;
+                _Func.L = l;
                 _Func.Refid = reffunc;
             }
             if (L != IntPtr.Zero)
@@ -404,11 +415,13 @@ namespace Capstones.LuaWrap
                     _IsDone = false;
                     if (ReferenceEquals(_Func, null))
                     {
-                        L.settop(0);
                         return;
                     }
-                    L.PushLua(_Func);
-                    L.insert(1);
+                    L.pushnumber(Refid);
+                    var l = L.newthread();
+                    L.settable(lua.LUA_REGISTRYINDEX);
+                    _L = l;
+                    l.PushLua(_Func);
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     if (_ProfilerShownName == null)
                     {
@@ -425,7 +438,8 @@ namespace Capstones.LuaWrap
                     using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
                     using (var pconi = new Capstones.UnityFramework.ProfilerContext("at start"))
 #endif
-                    ResumeRaw(1);
+                    var oldtop = l.gettop();
+                    ResumeRaw(oldtop);
                 }
                 else if (IsRunning)
                 {
@@ -434,7 +448,8 @@ namespace Capstones.LuaWrap
                     using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
                     using (var pconi = new Capstones.UnityFramework.ProfilerContext(simpleStack))
 #endif
-                    ResumeRaw(0);
+                    var oldtop = L.gettop();
+                    ResumeRaw(oldtop);
                 }
             }
         }

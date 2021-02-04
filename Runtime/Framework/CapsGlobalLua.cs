@@ -185,9 +185,9 @@ namespace Capstones.UnityEngineEx
         }
         public static Coroutine StartLuaCoroutineForBehav(this MonoBehaviour behav, LuaOnStackFunc lfunc)
         {
+            var work = EnumLuaCoroutine(lfunc);
             if (behav != null)
             {
-                var work = EnumLuaCoroutine(lfunc);
                 if (work is IDisposable)
                 {
                     var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
@@ -195,12 +195,36 @@ namespace Capstones.UnityEngineEx
                 }
                 else
                 {
-                    return behav.StartCoroutine(EnumLuaCoroutine(lfunc));
+                    return behav.StartCoroutine(work);
                 }
             }
             else
             {
-                return CoroutineRunner.StartCoroutine(EnumLuaCoroutine(lfunc));
+                return CoroutineRunner.StartCoroutine(work);
+            }
+        }
+        public static Coroutine StartLuaCoroutine(LuaOnStackThread lthd)
+        {
+            return StartLuaCoroutineForBehav(null, lthd);
+        }
+        public static Coroutine StartLuaCoroutineForBehav(this MonoBehaviour behav, LuaOnStackThread lthd)
+        {
+            var work = EnumLuaCoroutine(lthd);
+            if (behav != null)
+            {
+                if (work is IDisposable)
+                {
+                    var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
+                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
+                }
+                else
+                {
+                    return behav.StartCoroutine(work);
+                }
+            }
+            else
+            {
+                return CoroutineRunner.StartCoroutine(work);
             }
         }
         public static IEnumerator EnumLuaCoroutine(LuaOnStackFunc lfunc)

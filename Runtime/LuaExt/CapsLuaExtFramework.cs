@@ -202,6 +202,13 @@ namespace Capstones.LuaExt
                 l.settop(oldtop);
                 l.PushLua(co);
             }
+            else if (l.isthread(1))
+            {
+                var lthd = new LuaOnStackThread(l, 1, 0);
+                var co = GlobalLua.StartLuaCoroutine(lthd);
+                l.settop(oldtop);
+                l.PushLua(co);
+            }
 
             return l.gettop() - oldtop;
         }
@@ -210,13 +217,23 @@ namespace Capstones.LuaExt
         {
             var oldtop = l.gettop();
 
-            if (l.IsObject(1) && l.isfunction(2))
+            if (l.IsObject(1))
             {
                 var behav = l.GetLua<UnityEngine.MonoBehaviour>(1);
-                var lfunc = new LuaOnStackFunc(l, 2);
-                var co = GlobalLua.StartLuaCoroutineForBehav(behav, lfunc);
-                l.settop(oldtop);
-                l.PushLua(co);
+                if (l.isfunction(2))
+                {
+                    var lfunc = new LuaOnStackFunc(l, 2);
+                    var co = GlobalLua.StartLuaCoroutineForBehav(behav, lfunc);
+                    l.settop(oldtop);
+                    l.PushLua(co);
+                }
+                else if (l.isthread(2))
+                {
+                    var lthd = new LuaOnStackThread(l, 2, 0);
+                    var co = GlobalLua.StartLuaCoroutineForBehav(behav, lthd);
+                    l.settop(oldtop);
+                    l.PushLua(co);
+                }
             }
 
             return l.gettop() - oldtop;
