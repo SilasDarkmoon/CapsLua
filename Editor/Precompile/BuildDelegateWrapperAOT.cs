@@ -102,7 +102,7 @@ namespace Capstones.UnityEditorEx
 
                 GetDelTypes(list, searchType.BaseType, typeSearched);
 
-                if (!searchType.IsPublic)
+                if (!searchType.IsPublic && !searchType.IsNestedPublic)
                 {
                     return;
                 }
@@ -146,7 +146,7 @@ namespace Capstones.UnityEditorEx
                         bool allpublic = true;
                         for (int i = 0; i < pars.Count; ++i)
                         {
-                            if (!pars[i].IsPublic || pars[i].IsPointer || IsForbiddenType(pars[i]))
+                            if (!pars[i].IsPublic && !pars[i].IsNestedPublic || pars[i].IsPointer || IsForbiddenType(pars[i]))
                             {
                                 allpublic = false;
                                 break;
