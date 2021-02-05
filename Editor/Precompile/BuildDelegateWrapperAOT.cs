@@ -12,16 +12,28 @@ using LuaHub = Capstones.LuaLib.LuaHub;
 
 namespace Capstones.UnityEditorEx
 {
-
     public static class BuildDelegateWrapperAOT
     {
+        private static Dictionary<string, Type> _TypeList;
+        //private static Dictionary<string, Type> TypeList
+        //{
+        //    get
+        //    {
+        //        if (_TypeList == null)
+        //        {
+        //            _TypeList = LuaPrecompile.GetFullTypeList();
+        //        }
+        //        return _TypeList;
+        //    }
+        //}
+
         [MenuItem("Lua/Precompile/Build Delegate Wrapper for AOT", priority = 100040)]
         public static void BuildDelegateWrapperForAOT()
         {
             HashSet<Types> list = new HashSet<Types>();
             HashSet<Type> typeSearched = new HashSet<Type>();
 
-            var typelist = LuaPrecompile.GetTypeList();
+            var typelist = _TypeList = LuaPrecompile.GetFullTypeList();
             foreach (var kvp in typelist)
             {
                 GetDelTypes(list, kvp.Value, typeSearched);
@@ -50,7 +62,7 @@ namespace Capstones.UnityEditorEx
                 }
             }
 
-            var typelist = LuaPrecompile.GetTypeList();
+            var typelist = _TypeList;
             if (!typelist.ContainsKey(type.FullName))
             {
                 return true;

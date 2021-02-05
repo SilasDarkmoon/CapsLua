@@ -236,6 +236,49 @@ namespace Capstones.UnityEditorEx
             }
             return _TypeList;
         }
+        public static Dictionary<string, Type> GetFullTypeList()
+        {
+            if (!PlatDependant.IsFileExist("EditorOutput/LuaPrecompile/MemberList.txt"))
+            {
+                throw new InvalidOperationException("Please Run 'Lua/Parse Engine Member List' First.");
+            }
+
+            List<string> memberlines = new List<string>();
+            Dictionary<string, int> lineindices = new Dictionary<string, int>();
+            using (var sr = PlatDependant.OpenReadText("EditorOutput/LuaPrecompile/MemberList.txt"))
+            {
+                while (true)
+                {
+                    var line = sr.ReadLine();
+                    if (line == null)
+                        break;
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        {
+                            lineindices[line] = memberlines.Count;
+                            memberlines.Add(line);
+                        }
+                    }
+                }
+            }
+
+            var typelist = new Dictionary<string, Type>();
+            var asms = System.AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var asm in asms)
+            {
+                var types = asm.GetTypes(); // It seems that the GetTypes returns nested types.
+                foreach (var type in types)
+                {
+                    var line = "type " + ReflectAnalyzer.GetIDString(type);
+                    if (lineindices.ContainsKey(line))
+                    {
+                        typelist[type.FullName] = type;
+                    }
+                }
+            }
+
+            return typelist;
+        }
         public static Dictionary<Type, Dictionary<string, List<MemberInfo>>> GetMemberList()
         {
             if (_MemberList == null)
