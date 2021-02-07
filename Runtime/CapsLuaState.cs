@@ -230,12 +230,12 @@ namespace Capstones.LuaWrap
             L = l;
         }
 
-        protected internal LuaOnStackThread(int refid, IntPtr l) : base(IntPtr.Zero)
+        public LuaOnStackThread(int refid, IntPtr l) : base(IntPtr.Zero)
         {
             L = l;
             Refid = refid;
         }
-        protected internal LuaOnStackThread(IntPtr parentl, int stackpos)
+        public LuaOnStackThread(IntPtr parentl, int stackpos)
         {
             L = parentl.tothread(stackpos);
             parentl.pushvalue(stackpos);
@@ -290,18 +290,21 @@ namespace Capstones.LuaWrap
         }
         protected internal void ResumeRaw(int oldtop)
         {
+            var l = L;
             if (_IsDone)
             {
-                L.settop(0);
+                l.settop(0);
                 return;
             }
-            var argc = L.gettop() - oldtop;
+            var argc = l.gettop() - oldtop;
             if (argc < 0)
             {
-                L.LogWarning("Lua stack is not correct when resume lua coroutine.");
+                l.LogWarning("Lua stack is not correct when resume lua coroutine.");
                 argc = 0;
             }
-            int status = L.resume(argc);
+            var lrr = new LuaRunningStateRecorder(l);
+            int status = l.resume(argc);
+            lrr.Dispose();
             if (status == lua.LUA_YIELD || status == 0)
             {
                 if (status == 0)
@@ -311,10 +314,10 @@ namespace Capstones.LuaWrap
             }
             else
             {
-                L.pushcfunction(LuaHub.LuaFuncOnError);
-                L.insert(-2);
-                L.pcall(1, 0, 0);
-                L.settop(0);
+                l.pushcfunction(LuaHub.LuaFuncOnError);
+                l.insert(-2);
+                l.pcall(1, 0, 0);
+                l.settop(0);
                 _IsDone = true;
             }
         }

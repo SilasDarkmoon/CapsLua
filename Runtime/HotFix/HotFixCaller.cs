@@ -13,29 +13,21 @@ namespace Capstones.LuaWrap
 {
     public static class HotFixCaller
     {
-        [ThreadStatic] private static IntPtr _LuaState;
+        [ThreadStatic] private static HashSet<IntPtr> _ReadyStates;
         private static volatile int _PackageVer = -1;
+
         public static IntPtr GetLuaStateForHotFix()
         {
-            if (_LuaState == IntPtr.Zero)
+            var running = LuaHub.RunningLuaState;
+            if (running == IntPtr.Zero)
             {
                 if (ThreadSafeValues.IsMainThread)
                 {
-                    _LuaState = GlobalLua.L;
-#if UNITY_EDITOR
-#if DEBUG_LUA_HOTFIX_IN_EDITOR
-                    _PackageVer = 0;
-#else
-#endif
-#else
-                    int packageVer;
-                    _LuaState.GetGlobalTable(out packageVer, "___resver", "package");
-                    _PackageVer = packageVer;
-#endif
+                    running = GlobalLua.L;
                 }
                 else
                 {
-                    IntPtr l = _LuaState = new LuaState();
+                    IntPtr l = running = new LuaState();
                     Assembly2Lua.Init(l);
                     Json2Lua.Init(l);
                     LuaFramework.Init(l);
@@ -43,10 +35,31 @@ namespace Capstones.LuaWrap
                     // currently these are enough.
                     // and calling a func with hotfix in non-main thread rarely happens.
                 }
-                _LuaState.SetGlobal("hotfixver", _PackageVer);
             }
-            return _LuaState;
+            if (_ReadyStates == null)
+            {
+                _ReadyStates = new HashSet<IntPtr>();
+                if (ThreadSafeValues.IsMainThread)
+                {
+#if UNITY_EDITOR
+#if DEBUG_LUA_HOTFIX_IN_EDITOR
+                    _PackageVer = 0;
+#else
+#endif
+#else
+                    int packageVer;
+                    GlobalLua.L.L.GetGlobalTable(out packageVer, "___resver", "package");
+                    _PackageVer = packageVer;
+#endif
+                }
+            }
+            if (_ReadyStates.Add(running.Indicator()))
+            {
+                running.SetGlobal("hotfixver", _PackageVer);
+            }
+            return running;
         }
+
         public static bool CallHotFix<TIn, TOut>(string token, TIn args, out TOut result)
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack

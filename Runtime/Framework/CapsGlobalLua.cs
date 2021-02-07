@@ -307,7 +307,7 @@ namespace Capstones.UnityEngineEx
 
         public static string ExStackTraceLua(string existing_stack)
         {
-            if (!ThreadSafeValues.IsMainThread || LuaHub.ForbidLuaStackTrace)
+            if (LuaHub.ForbidLuaStackTrace || !ThreadSafeValues.IsMainThread && LuaHub.RunningLuaState == IntPtr.Zero)
             {
                 return null;
             }
@@ -316,7 +316,11 @@ namespace Capstones.UnityEngineEx
                 || existing_stack.Contains(".LuaAuxLib:")
                 )
             {
-                var l = GlobalLua.L.L;
+                var l = LuaHub.RunningLuaState;
+                if (l == IntPtr.Zero)
+                {
+                    l = GlobalLua.L.L;
+                }
                 LuaHub.PushLuaStackTrace(l);
                 var lstack = l.tostring(-1);
                 l.pop(1);

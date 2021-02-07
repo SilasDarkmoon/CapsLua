@@ -9,6 +9,7 @@ using Capstones.LuaExt;
 using lua = Capstones.LuaLib.LuaCoreLib;
 using lual = Capstones.LuaLib.LuaAuxLib;
 using luae = Capstones.LuaLib.LuaLibEx;
+using static Capstones.LuaWrap.LuaPack;
 
 namespace Capstones.UnityEditorEx
 {

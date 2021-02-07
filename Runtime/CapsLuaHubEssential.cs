@@ -92,6 +92,7 @@ namespace Capstones.LuaLib
     public struct LuaStateRecover : IDisposable
     {
         private IntPtr _l;
+        private IntPtr _oldRunningState;
         private int _top;
 
         public int Top
@@ -103,10 +104,13 @@ namespace Capstones.LuaLib
         {
             _l = l;
             _top = l.gettop(); // this is dangerous, but the user should call it with available "l".
+            _oldRunningState = LuaHub.RunningLuaState;
+            LuaHub.RunningLuaState = l;
         }
 
         public void Dispose()
         {
+            LuaHub.RunningLuaState = _oldRunningState;
             int top = _l.gettop();
             if (top < _top)
             {
@@ -116,6 +120,20 @@ namespace Capstones.LuaLib
             {
                 _l.settop(_top);
             }
+        }
+    }
+    public struct LuaRunningStateRecorder : IDisposable
+    {
+        private IntPtr _oldRunningState;
+
+        public LuaRunningStateRecorder(IntPtr l)
+        {
+            _oldRunningState = LuaHub.RunningLuaState;
+            LuaHub.RunningLuaState = l;
+        }
+        public void Dispose()
+        {
+            LuaHub.RunningLuaState = _oldRunningState;
         }
     }
 
@@ -471,5 +489,7 @@ namespace Capstones.LuaLib
             LogError(l, message);
             return 1;
         }
+
+        [ThreadStatic] internal static IntPtr RunningLuaState;
     }
 }
