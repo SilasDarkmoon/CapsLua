@@ -214,38 +214,22 @@ end
 -- 主要用于自己写的shader在mask和非mask下的模板缓冲id的设置
 -- tf:transform
 function res.IsInMask(tf)
-    if not res.IsClrNull(tf) then
-        local parent = tf.parent
-        if res.IsClrNull(parent) then
-            return false
-        else
-            local mask = parent:GetComponent(Mask)
-            if res.IsClrNull(mask) then
-                return res.IsInMask(parent)
-            else
-                return true
-            end
-        end
+    if tf and tf ~= clr.null then
+        local mask = tf:GetComponentInParent(Mask)
+        return mask and mask ~= clr.null
     end
     return false
 end
 
 function res.FindCanvasLayerNameAndOrder(tf)
     local lLayerName, order
-    if res.IsClrNull(tf) then
-        local parent = tf.parent
-        if res.IsClrNull(parent) then
-            local canvas = tf:GetComponent(Canvas)
-            if not res.IsClrNull(canvas) then
-                order = canvas.sortingOrder
-                lLayerName = canvas.sortingLayerName
-            end
-            return lLayerName, order
-        else
-            return res.FindCanvasLayerNameAndOrder(parent)
+    if tf and tf ~= clr.null then
+        local canvas = tf:GetComponentInParent(Canvas)
+        if canvas and canvas ~= clr.null then
+            order = canvas.sortingOrder
+            lLayerName = canvas.sortingLayerName
         end
     end
-
     return lLayerName, order
 end
 
