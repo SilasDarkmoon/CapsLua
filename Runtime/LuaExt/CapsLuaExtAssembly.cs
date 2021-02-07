@@ -96,6 +96,8 @@ namespace Capstones.LuaExt
             L.SetField(-2, "pairs"); // clr
             L.pushcfunction(ClrDelEx); // clr func
             L.SetField(-2, "ex"); // clr
+            L.pushcfunction(ClrDelcDisposeDelegate); // clr func
+            L.SetField(-2, "closedel"); // clr
             L.PushLuaObject(null);
             L.SetField(-2, "null");
             L.pop(1);
@@ -116,6 +118,7 @@ namespace Capstones.LuaExt
         internal static readonly lua.CFunction ClrDelNext = new lua.CFunction(ClrFuncNext);
         internal static readonly lua.CFunction ClrDelPairs = new lua.CFunction(ClrFuncPairs);
         internal static readonly lua.CFunction ClrDelEx = new lua.CFunction(ClrFuncEx);
+        internal static readonly lua.CFunction ClrDelcDisposeDelegate = new lua.CFunction(ClrFuncDisposeDelegate);
 
         public static void PushClrHierarchyMetatable(this IntPtr l)
         {
@@ -650,6 +653,26 @@ namespace Capstones.LuaExt
             //l.getfenv(1);
             //return 1;
             l.LogError("clr.ex is obsoleted.");
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncDisposeDelegate(IntPtr l)
+        {
+            var arg = l.GetLua(1);
+            var func = arg as BaseLua;
+            if (!ReferenceEquals(func, null))
+            {
+                CapsLuaDelegateGenerator.DisposeDelegate(func);
+            }
+            else
+            {
+                var del = arg as Delegate;
+                if (!ReferenceEquals(del, null))
+                {
+                    CapsLuaDelegateGenerator.DisposeDelegate(del);
+                }
+            }
             return 0;
         }
 

@@ -21,32 +21,23 @@ namespace Capstones.LuaLib
         public abstract class BaseDelegateLuaWrapper : IDelegateLuaWrapper
         {
             protected BaseLua _Target;
-            internal LuaThreadRefMan _TargetMan;
 
             public BaseLua Target
             {
                 get
                 {
-                    if (!ReferenceEquals(_Target, null))
-                    {
-                        if (_TargetMan != null && !_TargetMan.IsClosed)
-                        {
-                            return _Target;
-                        }
-                    }
-                    return null;
+                    return _Target;
                 }
                 set
                 {
                     _Target = value;
-                    if (ReferenceEquals(value, null))
-                    {
-                        _TargetMan = null;
-                    }
-                    else
-                    {
-                        _TargetMan = value.Ref.man;
-                    }
+                }
+            }
+            public bool IsClosed
+            {
+                get
+                {
+                    return ReferenceEquals(_Target, null) || _Target.IsClosed;
                 }
             }
             public Delegate MakeDelegate(Type deltype)
@@ -95,6 +86,7 @@ namespace Capstones.LuaLib
         {
             public void Call()
             {
+                if (IsClosed) return;
                 Target.Call();
             }
             public delegate void WrappedDelegate();
@@ -109,6 +101,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T arg)
             {
+                if (IsClosed) return;
                 Target.Call(arg);
             }
             public delegate void WrappedDelegate(T p0);
@@ -124,6 +117,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1);
@@ -140,6 +134,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2);
@@ -157,6 +152,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3);
@@ -175,6 +171,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4, arg5);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3, T5 p4);
@@ -194,6 +191,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4, arg5, arg6);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3, T5 p4, T6 p5);
@@ -214,6 +212,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3, T5 p4, T6 p5, T7 p6);
@@ -235,6 +234,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3, T5 p4, T6 p5, T7 p6, T8 p7);
@@ -257,6 +257,7 @@ namespace Capstones.LuaLib
         {
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
             {
+                if (IsClosed) return;
                 Target.Call(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
             }
             public delegate void WrappedDelegate(T1 p0, T2 p1, T3 p2, T4 p3, T5 p4, T6 p5, T7 p6, T8 p7, T9 p8);
@@ -281,7 +282,8 @@ namespace Capstones.LuaLib
         {
             public R Call()
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r);
                 return r;
             }
@@ -298,7 +300,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T arg)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg);
                 return r;
             }
@@ -316,7 +319,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2);
                 return r;
             }
@@ -335,7 +339,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3);
                 return r;
             }
@@ -355,7 +360,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4);
                 return r;
             }
@@ -376,7 +382,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4, arg5);
                 return r;
             }
@@ -398,7 +405,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4, arg5, arg6);
                 return r;
             }
@@ -421,7 +429,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return r;
             }
@@ -445,7 +454,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return r;
             }
@@ -470,7 +480,8 @@ namespace Capstones.LuaLib
         {
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
             {
-                R r;
+                R r = default(R);
+                if (IsClosed) return r;
                 Target.Call(out r, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
                 return r;
             }
@@ -617,7 +628,7 @@ namespace Capstones.LuaLib
         public static Delegate CreateDelegate(Type t, BaseLua dyn)
         {
             {
-                var dynlua = dyn as Capstones.LuaWrap.BaseLua;
+                var dynlua = dyn;
                 var l = dynlua.L;
                 var refid = dynlua.Refid;
                 if (l != IntPtr.Zero && refid != 0)
@@ -665,6 +676,10 @@ namespace Capstones.LuaLib
                                 delwrapper = wr.GetWeakReference<IDelegateLuaWrapper>();
                                 if (delwrapper == null)
                                 {
+                                    l.pop(1); // reg finfo
+                                    l.PushLua(t); // reg finfo dtype
+                                    l.pushnil(); // reg finfo dtype nil
+                                    l.settable(-3); // reg finfo
                                     wr.ReturnToPool();
                                 }
                             }
@@ -680,6 +695,10 @@ namespace Capstones.LuaLib
                                 l.PushLuaRawObject(wr); // reg finfo dtype del
                                 l.settable(-3); // reg finfo
                             }
+                        }
+                        else
+                        {
+                            delwrapper.Target = dyn;
                         }
                         if (delwrapper != null)
                         {
@@ -698,6 +717,71 @@ namespace Capstones.LuaLib
         public static T CreateDelegate<T>(BaseLua dyn) where T : class
         {
             return CreateDelegate(typeof(T), dyn) as T;
+        }
+        public static void DisposeDelegate(Delegate del)
+        {
+            var tar = del.Target as BaseDelegateLuaWrapper;
+            if (tar != null && !ReferenceEquals(tar.Target, null))
+            {
+                tar.Target.Dispose();
+            }
+        }
+        public static void DisposeDelegate(BaseLua func)
+        {
+            var dynlua = func;
+            var l = dynlua.L;
+            var refid = dynlua.Refid;
+            if (l != IntPtr.Zero && refid != 0)
+            {
+                using (var lr = new LuaStateRecover(l))
+                {
+                    l.checkstack(5);
+                    l.pushlightuserdata(LuaConst.LRKEY_DEL_CACHE); // #reg
+                    l.gettable(lua.LUA_REGISTRYINDEX); // reg
+                    if (!l.istable(-1))
+                    {
+                        return;
+                    }
+
+                    l.getref(refid); // reg func
+                    l.gettable(-2); // reg finfo
+                    if (!l.istable(-1))
+                    {
+                        return;
+                    }
+
+                    l.pushnil();
+                    while (l.next(-2))
+                    {
+                        WeakReference wr;
+                        l.GetLua(-1, out wr);
+                        if (wr != null)
+                        {
+                            var delwrapper = wr.GetWeakReference<IDelegateLuaWrapper>();
+                            if (delwrapper != null)
+                            {
+                                if (!ReferenceEquals(delwrapper.Target, null))
+                                {
+                                    delwrapper.Target.Dispose();
+                                }
+                            }
+                            wr.ReturnToPool();
+                        }
+                        l.pop(1);
+
+                        //l.pushvalue(-1);
+                        //l.pushnil();
+                        //l.settable(-4);
+                    }
+
+                    l.pop(1); // reg
+                    l.getref(refid); // reg func
+                    l.pushnil(); // reg func nil
+                    l.settable(-3); // reg
+
+                    func.Dispose();
+                }
+            }
         }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
