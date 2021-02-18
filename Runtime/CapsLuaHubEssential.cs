@@ -416,6 +416,13 @@ namespace Capstones.LuaLib
         {
             return l.topointer(lua.LUA_REGISTRYINDEX);
         }
+        public static bool IsSameThread(this IntPtr l, IntPtr l2)
+        { // usually, we can use l == l2. this function is almost useless.
+            l.pushvalue(lua.LUA_REGISTRYINDEX);
+            bool same = l2.istable(-1) && l2.topointer(-1) == l.topointer(-1);
+            l.pop(1);
+            return same;
+        }
 
         internal static void PushLuaStackTrace(this IntPtr l)
         {
