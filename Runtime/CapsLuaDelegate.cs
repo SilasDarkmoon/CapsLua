@@ -63,7 +63,7 @@ namespace Capstones.LuaLib
 #if NETFX_CORE
                     _DelWrapped = del.GetMethodInfo().CreateDelegate(DelType, del.Target);
 #else
-                    _DelWrapped = Delegate.CreateDelegate(DelType, del.Target, del.Method, false);
+                    _DelWrapped = del.Method.CreateDelegate(DelType, del.Target);
 #endif
                 }
             }
