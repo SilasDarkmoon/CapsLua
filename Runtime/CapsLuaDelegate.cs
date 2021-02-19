@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Capstones.LuaWrap;
 using Capstones.UnityEngineEx;
 
@@ -60,20 +61,7 @@ namespace Capstones.LuaLib
                 else
                 {
 #if NETFX_CORE
-                    var extar = System.Linq.Expressions.Expression.Constant(del);
-                    System.Linq.Expressions.ParameterExpression[] expars = new System.Linq.Expressions.ParameterExpression[0];
-                    var pars = DelType.GetMethod("Invoke").GetParameters();
-                    if (pars != null)
-                    {
-                        expars = new System.Linq.Expressions.ParameterExpression[pars.Length];
-                        for (int i = 0; i < pars.Length; ++i)
-                        {
-                            expars[i] = System.Linq.Expressions.Expression.Parameter(pars[i].ParameterType, pars[i].Name);
-                        }
-                    }
-                    var invoke = System.Linq.Expressions.Expression.Invoke(extar, expars);
-                    var func = System.Linq.Expressions.Expression.Lambda(DelType, invoke, expars).Compile();
-                    _DelWrapped = func;
+                    _DelWrapped = del.GetMethodInfo().CreateDelegate(DelType, del.Target);
 #else
                     _DelWrapped = Delegate.CreateDelegate(DelType, del.Target, del.Method, false);
 #endif
@@ -561,8 +549,8 @@ namespace Capstones.LuaLib
                 {
                     cached = DelType2WrapperType.TryGetValue(t, out wrapperType);
                 }
-                System.Reflection.MethodInfo invoke = t.GetMethod("Invoke");
-                System.Reflection.ParameterInfo[] pars = invoke.GetParameters();
+                MethodInfo invoke = t.GetMethod("Invoke");
+                ParameterInfo[] pars = invoke.GetParameters();
                 if (invoke.ReturnType == typeof(void))
                 {
                     if (pars != null && pars.Length > 0)
