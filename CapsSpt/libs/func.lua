@@ -427,7 +427,7 @@ function table.mergeData(dst, src)
             if not dst then
                 dst = {}
             end
-            local isarray == dst[1] ~= nil or type(next(src)) == "number" or src[1] ~= nil or src[0] ~= nil
+            local isarray = dst[1] ~= nil or type(next(src)) == "number" or src[1] ~= nil or src[0] ~= nil
             local resortarray
             for k, v in pairs(src) do
                 if v == "\024" then
