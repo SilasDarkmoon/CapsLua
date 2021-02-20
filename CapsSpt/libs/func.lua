@@ -112,6 +112,25 @@ function shallowClone(object)
     return setmetatable(new_table, getmetatable(object))
 end
 
+function cloneData(data)
+    local function _clone(tab)
+        local cloned = {}
+        for k, v in pairs(tab) do
+            if type(v) == "table" then
+                cloned[k] = _clone(v)
+            else
+                cloned[k] = v
+            end
+        end
+        return cloned
+    end
+    if type(data) == "table" then
+        return _clone(data)
+    else
+        return data
+    end
+end
+
 -- 判断val是否在t里
 function isInArray(t, val)
     for _, v in ipairs(t) do
@@ -392,6 +411,75 @@ function table.deepmerge(dst, src)
 
     mergeTable(dst, src)
     return dst
+end
+
+function table.mergeData(dst, src)
+    local function _merge(dst, src)
+        if src[""] == "\026" then
+            return src
+        elseif src[""] == "\027" then
+            return cloneData(src)
+        -- elseif src[""] == "\024" then
+        --     return nil
+        else
+            if not dst then
+                dst = {}
+            end
+            local isarray == dst[1] ~= nil or type(next(src)) == "number" or src[1] ~= nil or src[0] ~= nil
+            local resortarray
+            for k, v in pairs(src) do
+                if v == "\024" then
+                    dst[k] = nil
+                    resortarray = true
+                else
+                    local validkey = true
+                    if isarray then
+                        if type(k) ~= "number" then
+                            validkey = false
+                        else
+                            if k < #dst and dst[k] == nil then
+                                resortarray = true
+                            end
+                        end
+                    end
+                    if validkey then
+                        if type(v) == "table" then
+                            if isarray and v[""] == "\025" then
+                                if v.to then
+                                    local val = dst[k]
+                                    dst[k] = nil
+                                    dst[v.to] = val
+                                    resortarray = true
+                                end
+                            else
+                                dst[k] = _merge(dst[k], v)
+                            end
+                        else
+                            dst[k] = v
+                        end
+                    end
+                end
+            end
+            if isarray and resortarray then
+                local plain = {}
+                for k, v in pairs(dst) do
+                    plain[#plain + 1] = { k = k, v = v }
+                    dst[k] = nil
+                end
+                table.sort(plain, function(a, b) return a.k < b.k end)
+                for i, v in ipairs(plain) do
+                    dst[i] = v.v
+                end
+            end
+            return dst
+        end
+    end
+
+    if type(src) == "table" then
+        return _merge(dst, src)
+    else
+        return src
+    end
 end
 
 --[[--
