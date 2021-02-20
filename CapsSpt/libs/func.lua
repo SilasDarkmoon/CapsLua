@@ -416,8 +416,10 @@ end
 function table.mergeData(dst, src)
     local function _merge(dst, src)
         if src[""] == "\026" then
+            src[""] = nil
             return src
         elseif src[""] == "\027" then
+            src[""] = nil
             return cloneData(src)
         -- elseif src[""] == "\024" then
         --     return nil
