@@ -519,11 +519,15 @@ namespace Capstones.LuaExt
                 if (dobj != null)
                 {
                     l.newtable();
-                    foreach (DictionaryEntry kvp in dobj)
+                    var enumerator = dobj.GetEnumerator();
+                    if (enumerator != null)
                     {
-                        l.PushLua(kvp.Key);
-                        l.PushLua(kvp.Value);
-                        l.settable(-3);
+                        while (enumerator.MoveNext())
+                        {
+                            l.PushLua(enumerator.Key);
+                            l.PushLua(enumerator.Value);
+                            l.settable(-3);
+                        }
                     }
                     return 1;
                 }
