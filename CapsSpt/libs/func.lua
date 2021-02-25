@@ -890,6 +890,13 @@ function import(lib)
     -- deal with relative path
     local _, package = debug.getlocal(3, 1)
 
+    if type(package) ~= "string" then -- this is run by command "luajit XXX.lua"
+        package = arg[0]
+        if string.sub(package, -4) == ".lua" then
+            package = string.sub(package, 1, -5)
+        end
+    end
+
     local cnt, level = 1, 1
     while cnt ~= 0 do
         -- eat up any "./" prefix
