@@ -45,7 +45,7 @@ extern "C"
             return 0;
         }
         #endif
-        if (ver != 14)
+        if (ver != 15)
         {
             return 0;
         }
@@ -377,6 +377,56 @@ extern "C"
         lua_pushcclosure(l, LuaMetaCommonEq, n_upvalue);
     }
     
+    // liveness tracker
+    static void PushTrackerReg(lua_State* l)
+    {
+        lua_checkstack(l, 1);
+        lua_pushlightuserdata(l, (void*)1008);
+        lua_gettable(l, LUA_REGISTRYINDEX);
+    }
+    static void PushOrCreateTrackerReg(lua_State* l)
+    {
+        lua_checkstack(l, 5);
+        lua_pushlightuserdata(l, (void*)1008); // key
+        lua_gettable(l, LUA_REGISTRYINDEX); // reg
+        if (!lua_istable(l, -1))
+        {
+            lua_pop(l, 1); // X
+            lua_newtable(l); // reg
+            lua_pushlightuserdata(l, (void*)1008); // reg key
+            lua_pushvalue(l, -2); // reg key reg
+            lua_settable(l, LUA_REGISTRYINDEX); // reg
+            lua_newtable(l); // reg meta
+            lua_pushstring(l, "k"); // reg meta "k"
+            lua_setfield(l, -2, "__mode"); // reg meta
+            lua_setmetatable(l, -2); // reg
+        }
+    }
+    EXPORT_API void capslua_trackLiveness(lua_State* l, int index)
+    {
+        lua_pushvalue(l, index); // tab
+        PushOrCreateTrackerReg(l); // tab reg
+        lua_insert(l, -2); // reg tab
+        lua_pushboolean(l, 1); // reg tab true
+        lua_settable(l, -3); // reg
+        lua_pop(l, 1); // X
+    }
+    EXPORT_API int capslua_checkLiveness(lua_State* l, int index)
+    {
+        lua_pushvalue(l, index); // tab
+        PushTrackerReg(l); // tab reg
+        if (!lua_istable(l, -1))
+        {
+            lua_pop(l, 2);
+            return 0;
+        }
+        lua_insert(l, -2); // reg tab
+        lua_gettable(l, -2); // reg alive?
+        int valid = lua_toboolean(l, -1);
+        lua_pop(l, 2);
+        return valid;
+    }
+
     // extend
     static void MakeExtendObj(lua_State* l, int index)
     {

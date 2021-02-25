@@ -12,7 +12,7 @@ namespace Capstones.LuaLib
     {
         public static class LuaHubC
         {
-            public const int LIB_VER = 14;
+            public const int LIB_VER = 15;
             public static readonly bool Ready;
             #if DISABLE_LUA_PRECOMPILE
             public const bool LuaPrecompileEnabled = false;
@@ -100,6 +100,11 @@ namespace Capstones.LuaLib
             public static extern void capslua_pushCommonBinaryOp(IntPtr l, int n_upvalue);
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void capslua_pushCommonEq(IntPtr l, int n_upvalue);
+
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void capslua_trackLiveness(IntPtr l, int index);
+            [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
+            public static extern bool capslua_checkLiveness(IntPtr l, int index);
             
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
             public static extern void MakeExtend(IntPtr l, int index);

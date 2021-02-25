@@ -171,14 +171,14 @@ namespace Capstones.LuaLib
 
     public class LuaObjLivenessTracker
     {
-        public static void PushTrackerReg(IntPtr l)
+        private static void PushTrackerReg(IntPtr l)
         {
             l.checkstack(1);
             l.pushlightuserdata(LuaConst.LRKEY_OBJ_GC_TRACKER); // key
             l.gettable(lua.LUA_REGISTRYINDEX); // reg
         }
 
-        public static void PushOrCreateTrackerReg(IntPtr l)
+        private static void PushOrCreateTrackerReg(IntPtr l)
         {
             l.checkstack(5);
             l.pushlightuserdata(LuaConst.LRKEY_OBJ_GC_TRACKER); // key
@@ -199,6 +199,13 @@ namespace Capstones.LuaLib
 
         public static void Track(IntPtr l, int index)
         {
+#if !DISABLE_LUA_HUB_C
+            if (LuaHub.LuaHubC.Ready)
+            {
+                LuaHub.LuaHubC.capslua_trackLiveness(l, index);
+                return;
+            }
+#endif
             l.pushvalue(index); // tab
             PushOrCreateTrackerReg(l); // tab reg
             l.insert(-2); // reg tab
@@ -208,6 +215,12 @@ namespace Capstones.LuaLib
         }
         public static bool IsAlive(IntPtr l, int index)
         {
+#if !DISABLE_LUA_HUB_C
+            if (LuaHub.LuaHubC.Ready)
+            {
+                return LuaHub.LuaHubC.capslua_checkLiveness(l, index);
+            }
+#endif
             l.pushvalue(index); // tab
             PushTrackerReg(l); // tab reg
             if (!l.istable(-1))
