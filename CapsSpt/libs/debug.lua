@@ -130,7 +130,7 @@ function vardump(object, label, israw)
         if type(v) == 'number' or type(v) == 'boolean' then
             return tostring(v)
         end
-        if clr.isobj(v) then
+        if clr and clr.isobj(v) then
             if v == clr.null then
                 return "'"..tostring(clr.type(v))..", null'"
             else
@@ -211,7 +211,7 @@ function vardump(object, label, israw)
             local line = #result + 1
             lookupTable[object] = line
 
-            if not israw and clr.isobj(object) then
+            if not israw and clr and clr.isobj(object) then
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
                 else
