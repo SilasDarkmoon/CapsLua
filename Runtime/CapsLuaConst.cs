@@ -57,6 +57,7 @@ namespace Capstones.LuaLib
         public static readonly IntPtr LRKEY_DEL_CACHE =         new IntPtr(1005);
         public static readonly IntPtr LRKEY_REF_THREAD =        new IntPtr(1006);
         public static readonly IntPtr LRKEY_REF_ATTACH =        new IntPtr(1007);
+        public static readonly IntPtr LRKEY_OBJ_GC_TRACKER =    new IntPtr(1008);
         public static readonly IntPtr LRKEY_OBJ_META =          new IntPtr(2101);
         public static readonly IntPtr LRKEY_OBJ_META_EX =       new IntPtr(2102);
         public static readonly IntPtr LRKEY_OBJ_META_RAW =      new IntPtr(2103);

@@ -108,7 +108,7 @@ namespace Capstones.LuaLib
             var pos = l.NormalizeIndex(index);
             if (obj != null)
             {
-                LuaObjCacheSlim.Record(obj, l.topointer(pos), pos);
+                LuaObjCacheSlim.Record(l, obj, pos);
             }
 
             var cache = GetOrCreateObjCache(l);
@@ -169,6 +169,60 @@ namespace Capstones.LuaLib
         }
     }
 
+    public class LuaObjLivenessTracker
+    {
+        public static void PushTrackerReg(IntPtr l)
+        {
+            l.checkstack(1);
+            l.pushlightuserdata(LuaConst.LRKEY_OBJ_GC_TRACKER); // key
+            l.gettable(lua.LUA_REGISTRYINDEX); // reg
+        }
+
+        public static void PushOrCreateTrackerReg(IntPtr l)
+        {
+            l.checkstack(5);
+            l.pushlightuserdata(LuaConst.LRKEY_OBJ_GC_TRACKER); // key
+            l.gettable(lua.LUA_REGISTRYINDEX); // reg
+            if (!l.istable(-1))
+            {
+                l.pop(1); // X
+                l.newtable(); // reg
+                l.pushlightuserdata(LuaConst.LRKEY_OBJ_GC_TRACKER); // reg key
+                l.pushvalue(-2); // reg key reg
+                l.settable(lua.LUA_REGISTRYINDEX); // reg
+                l.newtable(); // reg meta
+                l.PushString(LuaConst.LS_COMMON_K); // reg meta "k"
+                l.SetField(-2, LuaConst.LS_META_KEY_MODE); // reg meta
+                l.setmetatable(-2); // reg
+            }
+        }
+
+        public static void Track(IntPtr l, int index)
+        {
+            l.pushvalue(index); // tab
+            PushOrCreateTrackerReg(l); // tab reg
+            l.insert(-2); // reg tab
+            l.pushboolean(true); // reg tab true
+            l.settable(-3); // reg
+            l.pop(1); // X
+        }
+        public static bool IsAlive(IntPtr l, int index)
+        {
+            l.pushvalue(index); // tab
+            PushTrackerReg(l); // tab reg
+            if (!l.istable(-1))
+            {
+                l.pop(2);
+                return false;
+            }
+            l.insert(-2); // reg tab
+            l.gettable(-2); // reg alive?
+            var valid = l.toboolean(-1);
+            l.pop(2);
+            return valid;
+        }
+    }
+
     public static class LuaObjCacheSlim
     {
 #if DEBUG_LUA_PERFORMANCE
@@ -199,7 +253,7 @@ namespace Capstones.LuaLib
                     Remove(record);
                 }
             }
-            private void Remove(LuaObjCacheSlimStorageRecord record)
+            public void Remove(LuaObjCacheSlimStorageRecord record)
             {
                 List.Remove(record.Node);
                 PointerMap.Remove(record.Pointer);
@@ -213,7 +267,7 @@ namespace Capstones.LuaLib
                     Remove(List.First.Value);
                 }
             }
-            public void Record(object obj, IntPtr onStack, int stackPos)
+            public void Record(IntPtr l, object obj, int stackPos)
             {
                 LuaObjCacheSlimStorageRecord record;
                 if (ObjMap.TryGetValue(obj, out record))
@@ -221,17 +275,18 @@ namespace Capstones.LuaLib
                     Remove(record);
                 }
 
+                var p = l.topointer(stackPos);
                 record = new LuaObjCacheSlimStorageRecord()
                 {
                     Obj = obj,
-                    Pointer = onStack,
+                    Pointer = p,
                     StackPos = stackPos,
                 };
                 var node = List.AddLast(record);
                 record.Node = node;
 
                 node.Value = record;
-                PointerMap[onStack] = record;
+                PointerMap[p] = record;
                 PosMap[stackPos] = record;
                 ObjMap[obj] = record;
 
@@ -239,6 +294,8 @@ namespace Capstones.LuaLib
                 {
                     RemoveFirst();
                 }
+
+                LuaObjLivenessTracker.Track(l, stackPos);
             }
         }
         [ThreadStatic] private static LuaObjCacheSlimStorage _Storage;
@@ -254,9 +311,9 @@ namespace Capstones.LuaLib
                 return storage;
             }
         }
-        public static void Record(object obj, IntPtr onStack, int stackPos)
+        public static void Record(IntPtr l, object obj, int stackPos)
         {
-            Storage.Record(obj, onStack, stackPos);
+            Storage.Record(l, obj, stackPos);
         }
         public static void Remove(object obj)
         {
@@ -277,6 +334,12 @@ namespace Capstones.LuaLib
                 LuaObjCacheSlimStorageRecord record;
                 if (Storage.PointerMap.TryGetValue(pointer, out record))
                 {
+                    if (!LuaObjLivenessTracker.IsAlive(l, index))
+                    {
+                        Storage.Remove(record);
+                        obj = null;
+                        return false;
+                    }
                     obj = record.Obj;
 #if DEBUG_LUA_PERFORMANCE
                     System.Threading.Interlocked.Increment(ref _HitCnt);
@@ -308,6 +371,12 @@ namespace Capstones.LuaLib
                     var pointer = record.Pointer;
                     if (l.topointer(pos) == pointer)
                     {
+                        if (!LuaObjLivenessTracker.IsAlive(l, pos))
+                        {
+                            Storage.Remove(record);
+                            return false;
+                        }
+
                         l.pushvalue(pos);
 #if DEBUG_LUA_PERFORMANCE
                         System.Threading.Interlocked.Increment(ref _HitCnt);

@@ -589,7 +589,7 @@ namespace Capstones.LuaLib
             l.pop(1);
             if (rv != null)
             {
-                LuaObjCacheSlim.Record(rv, l.topointer(pos), pos);
+                LuaObjCacheSlim.Record(l, rv, pos);
             }
             return rv;
         }
