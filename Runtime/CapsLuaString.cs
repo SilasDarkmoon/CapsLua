@@ -111,6 +111,31 @@ namespace Capstones.LuaLib
             CacheRevMap.TryGetValue(index, out val);
             return val;
         }
+
+        public static string EscapeToLuaString(byte[] data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < data.Length; ++i)
+            {
+                sb.Append("\\");
+                sb.Append(data[i].ToString("000"));
+            }
+            return sb.ToString();
+        }
+        public static string EscapeToLuaString(string str)
+        {
+            return EscapeToLuaString(System.Text.Encoding.UTF8.GetBytes(str));
+        }
+        //public static string UnescapeLuaString(string lua)
+        //{
+        //}
+        //public static byte[] UnescapeLuaStringToData(string lua)
+        //{
+        //}
     }
 
     public static class LuaStringTransHelper

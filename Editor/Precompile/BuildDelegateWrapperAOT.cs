@@ -31,18 +31,20 @@ namespace Capstones.UnityEditorEx
         public static void BuildDelegateWrapperForAOT()
         {
             HashSet<Types> list = new HashSet<Types>();
+            HashSet<Type> list_uevent = new HashSet<Type>();
             HashSet<Type> typeSearched = new HashSet<Type>();
 
             var typelist = _TypeList = LuaPrecompile.GetFullTypeList();
             foreach (var kvp in typelist)
             {
-                GetDelTypes(list, kvp.Value, typeSearched);
+                GetDelTypes(list, list_uevent, kvp.Value, typeSearched);
             }
 
             var manmod = CapsEditorUtils.__MOD__;
             var manidir = "Assets/Mods/" + manmod + "/LuaHubSub/";
 
             BuildDelegateWrapperForAOT(list, manidir + "CapsLuaDelegateWrapperAOT.cs");
+            BuildEventReceiver(list_uevent, manidir + "CapsUnityLuaEventReceiverEx.cs");
         }
 
         private static bool IsForbiddenType(Type type)
@@ -91,7 +93,7 @@ namespace Capstones.UnityEditorEx
             }
             return false;
         }
-        private static void GetDelTypes(HashSet<Types> list, Type searchType, HashSet<Type> typeSearched)
+        private static void GetDelTypes(HashSet<Types> list, HashSet<Type> list_uevent, Type searchType, HashSet<Type> typeSearched)
         {
             if (searchType == null || list == null || searchType.FullName == null)
             {
@@ -112,11 +114,16 @@ namespace Capstones.UnityEditorEx
                     return;
                 }
 
-                GetDelTypes(list, searchType.BaseType, typeSearched);
+                GetDelTypes(list, list_uevent, searchType.BaseType, typeSearched);
 
                 if (!searchType.IsPublic && !searchType.IsNestedPublic)
                 {
                     return;
+                }
+
+                if (typeof(UnityEngine.Events.UnityEventBase).IsAssignableFrom(searchType))
+                {
+                    list_uevent.Add(searchType);
                 }
 
                 if (searchType.IsSubclassOf(typeof(Delegate)))
@@ -178,7 +185,7 @@ namespace Capstones.UnityEditorEx
                     {
                         foreach (var ntype in ntypes)
                         {
-                            GetDelTypes(list, ntype, typeSearched);
+                            GetDelTypes(list, list_uevent, ntype, typeSearched);
                         }
                     }
 
@@ -194,7 +201,7 @@ namespace Capstones.UnityEditorEx
                                 {
                                     //if (finfo.FieldType.IsSubclassOf(typeof(Delegate)))
                                     {
-                                        GetDelTypes(list, finfo.FieldType, typeSearched);
+                                        GetDelTypes(list, list_uevent, finfo.FieldType, typeSearched);
                                     }
                                 }
                             }
@@ -205,7 +212,7 @@ namespace Capstones.UnityEditorEx
                                 {
                                     //if (pinfo.PropertyType.IsSubclassOf(typeof(Delegate)))
                                     {
-                                        GetDelTypes(list, pinfo.PropertyType, typeSearched);
+                                        GetDelTypes(list, list_uevent, pinfo.PropertyType, typeSearched);
                                     }
                                 }
                             }
@@ -214,7 +221,7 @@ namespace Capstones.UnityEditorEx
                                 var einfo = member as EventInfo;
                                 if (einfo != null)
                                 {
-                                    GetDelTypes(list, einfo.EventHandlerType, typeSearched);
+                                    GetDelTypes(list, list_uevent, einfo.EventHandlerType, typeSearched);
                                 }
                             }
                             else if (member.MemberType == MemberTypes.Constructor || member.MemberType == MemberTypes.Method)
@@ -229,7 +236,7 @@ namespace Capstones.UnityEditorEx
                                         {
                                             //if (par.ParameterType.IsSubclassOf(typeof(Delegate)))
                                             {
-                                                GetDelTypes(list, par.ParameterType, typeSearched);
+                                                GetDelTypes(list, list_uevent, par.ParameterType, typeSearched);
                                             }
                                         }
                                     }
@@ -238,7 +245,7 @@ namespace Capstones.UnityEditorEx
                                         var method = minfo as MethodInfo;
                                         //if (method.ReturnType.IsSubclassOf(typeof(Delegate)))
                                         {
-                                            GetDelTypes(list, method.ReturnType, typeSearched);
+                                            GetDelTypes(list, list_uevent, method.ReturnType, typeSearched);
                                         }
                                     }
                                 }
@@ -300,6 +307,69 @@ namespace Capstones.UnityEditorEx
             }
             method_Entry.Statements.Add(new CodeSnippetStatement("#pragma warning restore CS0618"));
 
+            Microsoft.CSharp.CSharpCodeProvider csharpcodeprovider = new Microsoft.CSharp.CSharpCodeProvider();
+            using (var sw = PlatDependant.OpenWriteText(file))
+            {
+                csharpcodeprovider.GenerateCodeFromCompileUnit(cu, sw, new System.CodeDom.Compiler.CodeGeneratorOptions());
+            }
+        }
+
+        public static void BuildEventReceiver(IEnumerable<Type> ueventtypes, string file)
+        { 
+            // Generate CapsLuaUnityEventReceiver
+            var cu = new CodeCompileUnit();
+            var ns = new CodeNamespace("Capstones.LuaWrap");
+            cu.Namespaces.Add(ns);
+            var type_Entry = new CodeTypeDeclaration("CapsUnityLuaEventReceiver");
+            type_Entry.TypeAttributes = TypeAttributes.Public | TypeAttributes.Class;
+            type_Entry.IsPartial = true;
+            ns.Types.Add(type_Entry);
+
+            HashSet<Types> argTypes = new HashSet<Types>();
+            for (int j = 0; j < 8; ++j)
+            {
+                Types pars = new Types();
+                for (int i = 0; i < j; ++i)
+                {
+                    pars.Add(typeof(object));
+                }
+                argTypes.Add(pars);
+            }
+
+            System.Text.StringBuilder methodLine = new System.Text.StringBuilder();
+            foreach (var ueventtype in ueventtypes)
+            {
+                Types pars = new Types();
+                var methodInvoke = ueventtype.GetMethod("Invoke");
+                if (methodInvoke != null)
+                {
+                    foreach (var par in methodInvoke.GetParameters())
+                    {
+                        pars.Add(par.ParameterType);
+                    }
+                }
+
+                if (argTypes.Add(pars))
+                {
+                    var method = new CodeMemberMethod();
+                    method.Name = "EventAction";
+                    method.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+                    method.ReturnType = new CodeTypeReference(typeof(void));
+                    type_Entry.Members.Add(method);
+
+                    methodLine.Clear();
+                    methodLine.AppendLine("            if (this.isActiveAndEnabled)");
+                    methodLine.Append("            this.CallLuaFunc(FuncName");
+                    for (int i = 0; i < pars.Count; ++i)
+                    {
+                        method.Parameters.Add(new CodeParameterDeclarationExpression(pars[i], "p" + i));
+                        methodLine.Append(", p");
+                        methodLine.Append(i);
+                    }
+                    methodLine.Append(");");
+                    method.Statements.Add(new CodeSnippetStatement(methodLine.ToString()));
+                }
+            }
             Microsoft.CSharp.CSharpCodeProvider csharpcodeprovider = new Microsoft.CSharp.CSharpCodeProvider();
             using (var sw = PlatDependant.OpenWriteText(file))
             {

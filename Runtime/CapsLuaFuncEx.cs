@@ -2770,6 +2770,7 @@ namespace Capstones.LuaWrap
         public static LuaPack Pack() { return Default; }
         public Type GetType(int index) { throw new IndexOutOfRangeException(); }
     }
+    // TODO: LuaPack's Equals, IEquatable<>, GetHashCode, ToString, ==, !=
     public struct LuaPack<T0> : ILuaPack
     {
         public static implicit operator T0(LuaPack<T0> pack)

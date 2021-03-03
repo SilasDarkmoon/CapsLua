@@ -56,6 +56,37 @@ namespace Capstones.LuaLib
             l.pop(1);
             return !isobj;
         }
+        public static bool IsArray(this IntPtr l, int index)
+        {
+            if (!l.istable(index))
+            {
+                return false;
+            }
+            index = l.NormalizeIndex(index);
+
+            if (l.getn(index) > 0)
+            {
+                return true;
+            }
+
+            //l.pushnumber(1);
+            //l.rawget(index);
+            //if (!l.isnoneornil(-1))
+            //{
+            //    l.pop(1);
+            //    return true;
+            //}
+            //l.pop(1);
+
+            l.pushnil();
+            if (l.next(index))
+            {
+                var isnumerkey = l.IsNumber(-2);
+                l.pop(2);
+                return isnumerkey;
+            }
+            return true;
+        }
 
         public static void UpdateData(this IntPtr l, int index, object val)
         {
