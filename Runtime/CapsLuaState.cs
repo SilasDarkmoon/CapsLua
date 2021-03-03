@@ -716,6 +716,8 @@ namespace Capstones.LuaWrap
                 }
                 else
                 {
+                    l.pushnil();
+                    l.replace(-3); // newresult table
                     break;
                 }
             }

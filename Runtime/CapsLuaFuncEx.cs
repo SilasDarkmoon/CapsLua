@@ -2445,10 +2445,46 @@ namespace Capstones.LuaWrap
             l.GetGlobal(name, out val);
             return val;
         }
+        public static void GetHierarchical<T>(this IntPtr l, out T result, int index, string fieldname)
+        {
+            result = default(T);
+            if (l != IntPtr.Zero)
+            {
+                if (l.istable(index) || l.IsUserData(index))
+                {
+                    if (l.GetHierarchicalRaw(index, fieldname))
+                    {
+                        l.GetLua(-1, out result);
+                        l.pop(1);
+                    }
+                }
+            }
+        }
+        public static void GetGlobalHierarchical<T>(this IntPtr l, string name, out T val)
+        {
+            GetHierarchical(l, out val, lua.LUA_GLOBALSINDEX, name);
+        }
+        public static T GetGlobalHierarchical<T>(this IntPtr l, string name)
+        {
+            T val;
+            l.GetGlobalHierarchical(name, out val);
+            return val;
+        }
         public static void SetGlobal<T>(this IntPtr l, string name, T val)
         {
             l.PushLua(val);
             l.SetField(lua.LUA_GLOBALSINDEX, name);
+        }
+        public static void SetHierarchical<T>(this IntPtr l, int index, string fieldname, T val)
+        {
+            l.pushvalue(index);
+            l.PushLua(val);
+            l.SetHierarchicalRaw(-2, fieldname, -1);
+            l.pop(2);
+        }
+        public static void SetGlobalHierarchical<T>(this IntPtr l, string name, T val)
+        {
+            SetHierarchical(l, lua.LUA_GLOBALSINDEX, name, val);
         }
 
         public static LuaStackPos Require(this IntPtr l, string lib)
@@ -2498,6 +2534,18 @@ namespace Capstones.LuaWrap
             Require(l, out result, name, offset);
             return result;
         }
+        public static void Require<T>(this IntPtr l, string name, out T val)
+        {
+            var luapos = l.Require(name);
+            l.GetLua(luapos, out val);
+            l.pop(1);
+        }
+        public static T Require<T>(this IntPtr l, string name)
+        {
+            T result;
+            Require(l, name, out result);
+            return result;
+        }
         public static void Require<TOut>(this IntPtr l, string name, out TOut result, params string[] fields)
             where TOut : struct, ILuaPack
         {
@@ -2544,7 +2592,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2561,7 +2609,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2578,7 +2626,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2599,7 +2647,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2619,7 +2667,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2638,7 +2686,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2657,7 +2705,7 @@ namespace Capstones.LuaWrap
             if (l != IntPtr.Zero && action != null)
             {
                 l.pushvalue(index);
-                if (l.istable(index) || l.IsUserData(index))
+                if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
