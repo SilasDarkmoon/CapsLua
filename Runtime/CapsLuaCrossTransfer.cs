@@ -29,7 +29,7 @@ namespace Capstones.LuaLib
                     to.pushnumber(from.tonumber(index));
                     break;
                 case lua.LUA_TSTRING:
-                    to.pushstring(from.tolstring(index));
+                    to.pushbuffer(from.tolstring(index));
                     break;
                 case lua.LUA_TTABLE:
                     {
@@ -85,7 +85,7 @@ namespace Capstones.LuaLib
                     to.pushnumber(from.tonumber(index));
                     break;
                 case lua.LUA_TSTRING:
-                    to.pushstring(from.tolstring(index));
+                    to.pushbuffer(from.tolstring(index));
                     break;
                 case lua.LUA_TTABLE:
                     TransferTableSafe(from, index, to, mapindex);
@@ -146,7 +146,7 @@ namespace Capstones.LuaLib
                     to.pushnumber(from.tonumber(index));
                     break;
                 case lua.LUA_TSTRING:
-                    to.pushstring(from.tolstring(index));
+                    to.pushbuffer(from.tolstring(index));
                     break;
                 case lua.LUA_TTABLE:
                     {
