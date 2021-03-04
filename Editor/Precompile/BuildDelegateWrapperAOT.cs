@@ -44,7 +44,13 @@ namespace Capstones.UnityEditorEx
             var manidir = "Assets/Mods/" + manmod + "/LuaHubSub/";
 
             BuildDelegateWrapperForAOT(list, manidir + "CapsLuaDelegateWrapperAOT.cs");
-            BuildEventReceiver(list_uevent, manidir + "CapsUnityLuaEventReceiverEx.cs");
+            BuildEventReceiver(list_uevent, manidir + "CapsUnityLuaEventReceiver.cs");
+            var root = CapsModEditor.GetPackageOrModRoot(manmod);
+            var receivermetafile = root + "/Runtime/LuaBehav/LuaEventBridge/CapsUnityLuaEventReceiver.cs.meta~";
+            if (PlatDependant.IsFileExist(receivermetafile))
+            {
+                PlatDependant.CopyFile(receivermetafile, manidir + "CapsUnityLuaEventReceiver.cs.meta");
+            }
         }
 
         private static bool IsForbiddenType(Type type)
@@ -318,24 +324,17 @@ namespace Capstones.UnityEditorEx
         { 
             // Generate CapsLuaUnityEventReceiver
             var cu = new CodeCompileUnit();
-            var ns = new CodeNamespace("Capstones.LuaWrap");
+            var ns = new CodeNamespace("Capstones.LuaWrap.UI");
             cu.Namespaces.Add(ns);
             var type_Entry = new CodeTypeDeclaration("CapsUnityLuaEventReceiver");
             type_Entry.TypeAttributes = TypeAttributes.Public | TypeAttributes.Class;
-            type_Entry.IsPartial = true;
+            type_Entry.BaseTypes.Add("CapsUnityLuaBehavEx");
             ns.Types.Add(type_Entry);
 
-            HashSet<Types> argTypes = new HashSet<Types>();
-            for (int j = 0; j < 8; ++j)
-            {
-                Types pars = new Types();
-                for (int i = 0; i < j; ++i)
-                {
-                    pars.Add(typeof(object));
-                }
-                argTypes.Add(pars);
-            }
+            type_Entry.Members.Add(new CodeMemberField(typeof(string), "FuncName") { Attributes = MemberAttributes.Public });
+            type_Entry.Members.Add(new CodeMemberMethod() { Name = "Start", ReturnType = new CodeTypeReference(typeof(void)), Attributes = MemberAttributes.Family });
 
+            HashSet<Types> argTypes = new HashSet<Types>();
             System.Text.StringBuilder methodLine = new System.Text.StringBuilder();
             foreach (var ueventtype in ueventtypes)
             {
@@ -359,7 +358,7 @@ namespace Capstones.UnityEditorEx
 
                     methodLine.Clear();
                     methodLine.AppendLine("            if (this.isActiveAndEnabled)");
-                    methodLine.Append("            this.CallLuaFunc(FuncName");
+                    methodLine.Append("                this.CallLuaFunc(FuncName");
                     for (int i = 0; i < pars.Count; ++i)
                     {
                         method.Parameters.Add(new CodeParameterDeclarationExpression(pars[i], "p" + i));
