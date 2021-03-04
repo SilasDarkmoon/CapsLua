@@ -20,7 +20,7 @@ namespace Capstones.LuaLib
         {
             protected internal static Dictionary<Type, object> _NativePushLuaFuncs = new Dictionary<Type, object>();
         }
-        public abstract class LuaPushNativeBase<T> : LuaPushNative, ILuaPush<T>, ILuaTrans<T>
+        public abstract class LuaPushNativeBase<T> : LuaPushNative, ILuaPush<T>, ILuaTrans<T>, ILuaPush
         {
             public LuaPushNativeBase()
             {
@@ -34,6 +34,23 @@ namespace Capstones.LuaLib
             public abstract T GetLua(IntPtr l, int index);
             public abstract IntPtr PushLua(IntPtr l, T val);
 
+            public bool ShouldCache { get { return false; } }
+            public IntPtr PushLua(IntPtr l, object val)
+            {
+                if (val is T)
+                {
+                    return PushLua(l, (T)val);
+                }
+                else
+                {
+                    l.pushnil();
+                    return IntPtr.Zero;
+                }
+            }
+            public bool PushFromCache(IntPtr l, object val)
+            {
+                return false;
+            }
         }
         private class LuaPushNative_bool : LuaPushNativeBase<bool>
         {

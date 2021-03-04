@@ -364,13 +364,21 @@ namespace Capstones.LuaLib
             }
             object func;
             LuaPushNative._NativePushLuaFuncs.TryGetValue(val.GetType(), out func);
-            ILuaPush<T> gfunc = func as ILuaPush<T>;
-            if (gfunc != null)
+            if (func != null)
             {
-                gfunc.PushLua(l, val);
-                return;
+                ILuaPush<T> gfunc = func as ILuaPush<T>;
+                if (gfunc != null)
+                {
+                    gfunc.PushLua(l, val);
+                    return;
+                }
+                else if (func is ILuaPush)
+                {
+                    ((ILuaPush)func).PushLua(l, val);
+                    return;
+                }
             }
-            else if (typeof(T).IsEnum)
+            if (typeof(T).IsEnum)
             {
                 l.pushnumber(Convert.ToDouble(val));
             }
