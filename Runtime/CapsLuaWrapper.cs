@@ -513,7 +513,7 @@ namespace Capstones.LuaWrap
         BaseLua Binding { get; set; }
         string LuaFile { get; }
     }
-    public class BaseLuaWrapper : ILuaWrapper
+    public class BaseLuaWrapper : ILuaWrapper, IDisposable
     {
         protected BaseLua _Binding;
         public virtual BaseLua Binding
@@ -652,6 +652,15 @@ namespace Capstones.LuaWrap
                     }
                     return val;
                 }
+            }
+        }
+
+        public virtual void Dispose()
+        {
+            if (!ReferenceEquals(Binding, null))
+            {
+                Binding.Dispose();
+                Binding = null;
             }
         }
     }
