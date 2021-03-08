@@ -6,12 +6,20 @@ using Capstones.UnityEngineEx;
 public interface ICapsUnityLuaBehavEx
 {
     CapsUnityLuaBehav Major { set; get; }
+    bool RouteToParents { get; }
 }
 [RequireComponent(typeof(CapsUnityLuaBehav))]
 [DataDictionaryComponentType(DataDictionaryComponentTypeAttribute.DataDictionaryComponentType.Sub)]
 public abstract class CapsUnityLuaBehavEx : MonoBehaviour, ICapsUnityLuaBehavEx
 {
-    public CapsUnityLuaBehav Major { get; set; }
+    [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("luaBehaviour")] protected CapsUnityLuaBehav _Major;
+    public CapsUnityLuaBehav Major
+    {
+        get { return _Major; }
+        set { _Major = value; }
+    }
+    [SerializeField] protected bool _RouteToParents;
+    public bool RouteToParents { get { return _RouteToParents; } }
 }
 public static class CapsUnityLuaBehavExMethods
 {
@@ -20,10 +28,21 @@ public static class CapsUnityLuaBehavExMethods
         CapsUnityLuaBehav major = self.Major;
         if (object.ReferenceEquals(major, null))
         {
-            major = self.GetComponent<CapsUnityLuaBehav>();
-            if (major != null)
+            if (self.RouteToParents)
             {
-                self.Major = major;
+                major = self.GetComponentInParent<CapsUnityLuaBehav>();
+                if (major != null)
+                {
+                    self.Major = major;
+                }
+            }
+            else
+            {
+                major = self.GetComponent<CapsUnityLuaBehav>();
+                if (major != null)
+                {
+                    self.Major = major;
+                }
             }
         }
         return major;
