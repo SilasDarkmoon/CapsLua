@@ -965,9 +965,8 @@ namespace Capstones.LuaLib
                     l.gettable(-2); // ud tar
                     var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
                     l.pop(2); // X
-                    if (current != null)
+                    if (current != null && !ReferenceEquals(current.Binding, null))
                     {
-                        // TODO: Can current.Binding be null?
                         // Notice: the current may point to diffent lua table because it is created by clone() in lua.
                         var pthis = l.topointer(index);
                         l.PushLua(current.Binding);
