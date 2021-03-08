@@ -171,6 +171,15 @@ namespace Capstones.LuaWrap
             l.getref(Refid);
         }
 
+        public void Call<TIn>(string func, TIn args)
+            where TIn : struct, ILuaPack
+        {
+            var l = L;
+            PushToLua(l);
+            l.GetField(-1, func);
+            l.remove(-2);
+            LuaFuncExHelper.PushArgsAndCall(l, args);
+        }
         public void Call()
         {
             var l = L;
