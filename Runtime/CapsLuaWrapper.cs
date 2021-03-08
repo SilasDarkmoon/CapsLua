@@ -173,7 +173,7 @@ namespace Capstones.LuaWrap
 
         public void Call<TIn>(string func, TIn args)
             where TIn : struct, ILuaPack
-        {
+        { // this is fix for: Call("func", Pack(XXX)) will select Call<P0, P1>(P0 p0, P1 p1)
             var l = L;
             PushToLua(l);
             l.GetField(-1, func);
