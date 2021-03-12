@@ -278,6 +278,34 @@ namespace Capstones.UnityEditorEx
             method_Entry.ReturnType = new CodeTypeReference(typeof(void));
             type_Entry.Members.Add(method_Entry);
             method_Entry.Statements.Add(new CodeSnippetStatement("#pragma warning disable CS0618"));
+            method_Entry.Statements.Add(new CodeSnippetStatement("            new Capstones.LuaLib.CapsLuaDelegateGenerator.ActionLuaWrapper();"));
+            for (int i = 0; i < 9; ++i)
+            {
+                System.Text.StringBuilder line = new System.Text.StringBuilder();
+                line.Append("            new Capstones.LuaLib.CapsLuaDelegateGenerator.ActionLuaWrapper<");
+                for (int j = 0; j <= i; ++j)
+                {
+                    if (j != 0)
+                    {
+                        line.Append(", ");
+                    }
+                    line.Append("object");
+                }
+                line.Append(">();");
+                method_Entry.Statements.Add(new CodeSnippetStatement(line.ToString()));
+            }
+            for (int i = 0; i < 10; ++i)
+            {
+                System.Text.StringBuilder line = new System.Text.StringBuilder();
+                line.Append("            new Capstones.LuaLib.CapsLuaDelegateGenerator.FuncLuaWrapper<object");
+                for (int j = 0; j < i; ++j)
+                {
+                    line.Append(", ");
+                    line.Append("object");
+                }
+                line.Append(">();");
+                method_Entry.Statements.Add(new CodeSnippetStatement(line.ToString()));
+            }
 
             foreach (var deltype in deltypes)
             {

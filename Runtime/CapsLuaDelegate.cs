@@ -67,11 +67,14 @@ namespace Capstones.LuaLib
 #endif
                 }
             }
+            [InheritablePreserve]
             public abstract void CallByLua(IntPtr l);
         }
 
+        [UnityPreserve]
         public class ActionLuaWrapper : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call()
             {
                 if (IsClosed) return;
@@ -85,8 +88,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)();
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T arg)
             {
                 if (IsClosed) return;
@@ -101,8 +106,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2)
             {
                 if (IsClosed) return;
@@ -118,8 +125,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3)
             {
                 if (IsClosed) return;
@@ -136,8 +145,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
                 if (IsClosed) return;
@@ -155,8 +166,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2, p3);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4, T5> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
             {
                 if (IsClosed) return;
@@ -175,8 +188,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2, p3, p4);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4, T5, T6> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
             {
                 if (IsClosed) return;
@@ -196,8 +211,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2, p3, p4, p5);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4, T5, T6, T7> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
             {
                 if (IsClosed) return;
@@ -218,8 +235,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2, p3, p4, p5, p6);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4, T5, T6, T7, T8> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
             {
                 if (IsClosed) return;
@@ -241,8 +260,10 @@ namespace Capstones.LuaLib
                 ((WrappedDelegate)_DelWrapped)(p0, p1, p2, p3, p4, p5, p6, p7);
             }
         }
+        [UnityPreserve]
         public class ActionLuaWrapper<T1, T2, T3, T4, T5, T6, T7, T8, T9> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public void Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
             {
                 if (IsClosed) return;
@@ -266,8 +287,10 @@ namespace Capstones.LuaLib
             }
         }
 
+        [UnityPreserve]
         public class FuncLuaWrapper<R> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call()
             {
                 R r = default(R);
@@ -284,8 +307,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T arg)
             {
                 R r = default(R);
@@ -303,8 +328,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2)
             {
                 R r = default(R);
@@ -323,8 +350,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3)
             {
                 R r = default(R);
@@ -344,8 +373,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
                 R r = default(R);
@@ -366,8 +397,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4, T5> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
             {
                 R r = default(R);
@@ -389,8 +422,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4, T5, T6> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
             {
                 R r = default(R);
@@ -413,8 +448,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4, T5, T6, T7> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
             {
                 R r = default(R);
@@ -438,8 +475,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4, T5, T6, T7, T8> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
             {
                 R r = default(R);
@@ -464,8 +503,10 @@ namespace Capstones.LuaLib
                 l.PushLua(rv);
             }
         }
+        [UnityPreserve]
         public class FuncLuaWrapper<R, T1, T2, T3, T4, T5, T6, T7, T8, T9> : BaseDelegateLuaWrapper
         {
+            [UnityPreserve]
             public R Call(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
             {
                 R r = default(R);

@@ -116,26 +116,26 @@ namespace Capstones.LuaLib
             }
 
             protected LuaMetaCallWithPrecompiled _Ctor;
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _StaticMethods = new Dictionary<string, LuaMetaCallWithPrecompiled>();
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _StaticFieldsIndex = new Dictionary<string, LuaMetaCallWithPrecompiled>();
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _StaticFieldsNewIndex = new Dictionary<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticMethods = new SafeDict<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticFieldsIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticFieldsNewIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
 
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _InstanceMethods = new Dictionary<string, LuaMetaCallWithPrecompiled>();
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _InstanceFieldsIndex = new Dictionary<string, LuaMetaCallWithPrecompiled>();
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _InstanceFieldsNewIndex = new Dictionary<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _InstanceMethods = new SafeDict<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _InstanceFieldsIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _InstanceFieldsNewIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
 #if UNITY_EDITOR
             protected HashSet<string> _InstanceMethods_DirectFromBase = new HashSet<string>();
 #endif
 
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _IndexAccessor = new Dictionary<string, LuaMetaCallWithPrecompiled>(); // this[XXX], "get" / "set"
-            protected Dictionary<string, LuaMetaCallWithPrecompiled> _Ops = new Dictionary<string, LuaMetaCallWithPrecompiled>();
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _IndexAccessor = new SafeDict<string, LuaMetaCallWithPrecompiled>(); // this[XXX], "get" / "set"
+            protected SafeDict<string, LuaMetaCallWithPrecompiled> _Ops = new SafeDict<string, LuaMetaCallWithPrecompiled>();
 
-            protected Dictionary<int, Type> _GenericTypes = new Dictionary<int, Type>();
-            public readonly Dictionary<Types, TypeHubBase> _GenericTypesCache = new Dictionary<Types, TypeHubBase>();
+            protected SafeDict<int, Type> _GenericTypes = new SafeDict<int, Type>();
+            public readonly SafeDict<Types, TypeHubBase> _GenericTypesCache = new SafeDict<Types, TypeHubBase>();
 
-            protected Dictionary<string, TypeHubBase> _NestedTypes = new Dictionary<string, TypeHubBase>();
+            protected SafeDict<string, TypeHubBase> _NestedTypes = new SafeDict<string, TypeHubBase>();
 
-            protected Dictionary<Type, LuaConvertFunc> _ConvertFuncs = new Dictionary<Type, LuaConvertFunc>();
+            protected SafeDict<Type, LuaConvertFunc> _ConvertFuncs = new SafeDict<Type, LuaConvertFunc>();
 
             public static void PushCallableRaw(IntPtr l, LuaMetaCallWithPrecompiled info)
             {
