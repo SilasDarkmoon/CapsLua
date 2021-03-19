@@ -1337,9 +1337,14 @@ namespace Capstones.UnityEditorEx
                 CapsResManifest sptmani = new CapsResManifest();
                 HashSet<string> keys = new HashSet<string>();
                 HashSet<int> archs = new HashSet<int>();
+                string sptroot = "Assets/StreamingAssets/spt/";
+                if (PlatDependant.IsFileExist("Assets/StreamingAssets/hasobb.flag.txt"))
+                {
+                    sptroot = "EditorOutput/Build/Latest/spt/";
+                }
                 using (var sw = PlatDependant.OpenWriteText("Assets/StreamingAssets/spt/index.txt"))
                 {
-                    var files = PlatDependant.GetAllFiles("Assets/StreamingAssets/spt/");
+                    var files = PlatDependant.GetAllFiles(sptroot);
                     if (files != null)
                     {
                         for (int i = 0; i < files.Length; ++i)
@@ -1349,7 +1354,11 @@ namespace Capstones.UnityEditorEx
                             {
                                 continue;
                             }
-                            var part = file.Substring("Assets/StreamingAssets/spt/".Length);
+                            if (file.EndsWith(".srcinfo"))
+                            {
+                                continue;
+                            }
+                            var part = file.Substring(sptroot.Length);
                             if (NonSptFiles.Contains(part))
                             {
                                 continue;

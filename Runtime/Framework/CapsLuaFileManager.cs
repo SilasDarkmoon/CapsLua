@@ -285,64 +285,74 @@ namespace Capstones.LuaLib
                         if (ThreadSafeValues.AppPlatform == RuntimePlatform.Android.ToString() && ResManager.LoadAssetsFromApk)
                         {
                             // Obb
-                            if (ResManager.LoadAssetsFromObb && ResManager.ObbZipArchive != null)
+                            if (ResManager.LoadAssetsFromObb)
                             {
-                                sptfolder = "spt/";
-                                int retryTimes = 10;
-                                int entryindex = 0;
-                                for (int i = 0; i < retryTimes; ++i)
+                                var allobbs = ResManager.AllObbZipArchives;
+                                if (allobbs != null)
                                 {
-                                    Exception error = null;
-                                    do
+                                    sptfolder = "spt/";
+
+                                    for (int z = 0; z < allobbs.Length; ++z)
                                     {
-                                        ZipArchive za = ResManager.ObbZipArchive;
-                                        if (za == null)
+                                        var zip = allobbs[z];
+
+                                        int retryTimes = 10;
+                                        int entryindex = 0;
+                                        for (int i = 0; i < retryTimes; ++i)
                                         {
-                                            PlatDependant.LogError("Obb Archive Cannot be read.");
-                                            break;
-                                        }
-                                        try
-                                        {
-                                            var entries = za.Entries;
-                                            while (entryindex < entries.Count)
+                                            Exception error = null;
+                                            do
                                             {
-                                                var entry = entries[entryindex];
-                                                var fullname = entry.FullName;
-                                                if (fullname.StartsWith(sptfolder))
+                                                ZipArchive za = zip;
+                                                if (za == null)
                                                 {
-                                                    var part = fullname.Substring(sptfolder.Length);
-                                                    var node = mani.AddOrGetItem(part);
-                                                    if (node.Item == null)
+                                                    PlatDependant.LogError("Obb Archive Cannot be read.");
+                                                    break;
+                                                }
+                                                try
+                                                {
+                                                    var entries = za.Entries;
+                                                    while (entryindex < entries.Count)
                                                     {
-                                                        CapsResManifestItem item;
-                                                        item = new CapsResManifestItem(node);
-                                                        node.Item = item;
+                                                        var entry = entries[entryindex];
+                                                        var fullname = entry.FullName;
+                                                        if (fullname.StartsWith(sptfolder))
+                                                        {
+                                                            var part = fullname.Substring(sptfolder.Length);
+                                                            var node = mani.AddOrGetItem(part);
+                                                            if (node.Item == null)
+                                                            {
+                                                                CapsResManifestItem item;
+                                                                item = new CapsResManifestItem(node);
+                                                                node.Item = item;
+                                                            }
+                                                        }
+                                                        ++entryindex;
                                                     }
                                                 }
-                                                ++entryindex;
+                                                catch (Exception e)
+                                                {
+                                                    error = e;
+                                                    break;
+                                                }
+                                            } while (false);
+                                            if (error != null)
+                                            {
+                                                if (i == retryTimes - 1)
+                                                {
+                                                    PlatDependant.LogError(error);
+                                                }
+                                                else
+                                                {
+                                                    PlatDependant.LogError(error);
+                                                    PlatDependant.LogInfo("Need Retry " + i);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                break;
                                             }
                                         }
-                                        catch (Exception e)
-                                        {
-                                            error = e;
-                                            break;
-                                        }
-                                    } while (false);
-                                    if (error != null)
-                                    {
-                                        if (i == retryTimes - 1)
-                                        {
-                                            PlatDependant.LogError(error);
-                                        }
-                                        else
-                                        {
-                                            PlatDependant.LogError(error);
-                                            PlatDependant.LogInfo("Need Retry " + i);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        break;
                                     }
                                 }
                             }
@@ -694,51 +704,61 @@ namespace Capstones.LuaLib
                     if (ThreadSafeValues.AppPlatform == RuntimePlatform.Android.ToString() && ResManager.LoadAssetsFromApk)
                     {
                         // Obb
-                        if (ResManager.LoadAssetsFromObb && ResManager.ObbZipArchive != null)
+                        if (ResManager.LoadAssetsFromObb)
                         {
-                            sptpath = "spt/" + path;
-                            int retryTimes = 10;
-                            for (int i = 0; i < retryTimes; ++i)
+                            var allobbs = ResManager.AllObbZipArchives;
+                            if (allobbs != null)
                             {
-                                Exception error = null;
-                                do
+                                sptpath = "spt/" + path;
+
+                                for (int z = allobbs.Length - 1; z >= 0; --z)
                                 {
-                                    ZipArchive za = ResManager.ObbZipArchive;
-                                    if (za == null)
+                                    var zip = allobbs[z];
+
+                                    int retryTimes = 10;
+                                    for (int i = 0; i < retryTimes; ++i)
                                     {
-                                        PlatDependant.LogError("Obb Archive Cannot be read.");
-                                        break;
-                                    }
-                                    try
-                                    {
-                                        var entry = za.GetEntry(sptpath);
-                                        if (entry != null)
+                                        Exception error = null;
+                                        do
                                         {
-                                            location = sptpath;
-                                            return entry.Open();
+                                            ZipArchive za = zip;
+                                            if (za == null)
+                                            {
+                                                PlatDependant.LogError("Obb Archive Cannot be read.");
+                                                break;
+                                            }
+                                            try
+                                            {
+                                                var entry = za.GetEntry(sptpath);
+                                                if (entry != null)
+                                                {
+                                                    location = sptpath;
+                                                    return entry.Open();
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                error = e;
+                                                break;
+                                            }
+                                        } while (false);
+                                        if (error != null)
+                                        {
+                                            if (i == retryTimes - 1)
+                                            {
+                                                PlatDependant.LogError(error);
+                                            }
+                                            else
+                                            {
+                                                PlatDependant.LogError(error);
+                                                PlatDependant.LogInfo("Need Retry " + i);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
                                         }
                                     }
-                                    catch (Exception e)
-                                    {
-                                        error = e;
-                                        break;
-                                    }
-                                } while (false);
-                                if (error != null)
-                                {
-                                    if (i == retryTimes - 1)
-                                    {
-                                        PlatDependant.LogError(error);
-                                    }
-                                    else
-                                    {
-                                        PlatDependant.LogError(error);
-                                        PlatDependant.LogInfo("Need Retry " + i);
-                                    }
-                                }
-                                else
-                                {
-                                    break;
                                 }
                             }
                         }
