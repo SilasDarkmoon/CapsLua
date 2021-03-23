@@ -742,7 +742,7 @@ namespace Capstones.LuaWrap
             return !w1.Equals(w2);
         }
 
-        protected static LuaHub.BaseLuaWrapperHub<T> LuaHubSub = new LuaHub.BaseLuaWrapperHub<T>();
+        protected static LuaHub.BaseLuaWrapperHub<T> LuaHubSub = new LuaHub.BaseLuaWrapperHub<T>(); // TODO: we must create one instance of the wrapper in order to make this LuaHubSub available. Should we improve this? (By adding RuntimeInitializeOnLoad)
     }
 
     public static class LuaWrapperExtensions
