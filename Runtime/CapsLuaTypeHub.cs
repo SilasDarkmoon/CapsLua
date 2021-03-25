@@ -1497,8 +1497,11 @@ namespace Capstones.LuaLib
             {
                 try
                 {
-                    var rv = Enum.ToObject(typeof(T), (ulong)val);
-                    return rv == null ? default(T) : (T)rv;
+#if CONVERT_ENUM_SAFELY
+                    return (T)Enum.ToObject(typeof(T), (ulong)val);
+#else
+                    return EnumUtils.ConvertToEnumForcibly<T>((ulong)val);
+#endif
                 }
                 catch (Exception e)
                 {
@@ -1508,7 +1511,11 @@ namespace Capstones.LuaLib
             }
             public virtual double ConvertToNum(T val)
             {
+#if CONVERT_ENUM_SAFELY
                 return Convert.ToDouble(val);
+#else
+                return EnumUtils.ConvertFromEnumForcibly<T>(val);
+#endif
             }
             public void SetDataRaw(IntPtr l, int index, T val)
             {

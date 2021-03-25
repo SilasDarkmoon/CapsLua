@@ -920,7 +920,11 @@ namespace Capstones.LuaLib
                         if (luatype == lua.LUA_TNUMBER)
                         {
                             var num = l.tonumber(index);
+#if CONVERT_ENUM_SAFELY
                             val = (T)Enum.ToObject(typeof(T), (ulong)num);
+#else
+                            val = EnumUtils.ConvertToEnumForcibly<T>((ulong)num);
+#endif
                             return;
                         }
                         else
