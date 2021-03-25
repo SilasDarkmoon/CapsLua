@@ -259,7 +259,14 @@ namespace Capstones.LuaLib
             {
                 if (obj is string)
                 {
-                    return Enum.Parse(type, obj as string);
+                    try
+                    {
+                        return Enum.Parse(type, obj as string);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
                 else if (IsNumeric(obj))
                 {

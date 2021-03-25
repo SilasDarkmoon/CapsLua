@@ -831,12 +831,12 @@ namespace Capstones.LuaLib
                 {
                     if (l.isuserdata(index))
                     {
-                        val = (T)(object)l.touserdata(index);
+                        val = ConvertUtils.FakeConvert<IntPtr, T>(l.touserdata(index));
                         return;
                     }
                     else if (l.isthread(index))
                     {
-                        val = (T)(object)l.tothread(index);
+                        val = ConvertUtils.FakeConvert<IntPtr, T>(l.tothread(index));
                         return;
                     }
                 }
@@ -926,7 +926,7 @@ namespace Capstones.LuaLib
                         else
                         {
                             var str = l.GetString(index);
-                            val = (T)Enum.Parse(typeof(T), str);
+                            val = EnumUtils.ConvertToEnum<T>(str);
                             return;
                         }
                     }

@@ -1542,8 +1542,7 @@ namespace Capstones.LuaLib
                 }
                 else if (l.IsString(index))
                 {
-                    var rv = Enum.Parse(typeof(T), l.GetString(index));
-                    return rv == null ? default(T) : (T)rv;
+                    return EnumUtils.ConvertToEnum<T>(l.GetString(index));
                 }
                 return default(T);
             }
