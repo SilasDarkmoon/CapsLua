@@ -1549,7 +1549,7 @@ namespace Capstones.LuaLib
                 }
                 else if (l.IsString(index))
                 {
-                    return EnumUtils.ConvertToEnum<T>(l.GetString(index));
+                    return EnumUtils.ConvertStrToEnum<T>(l.GetString(index));
                 }
                 return default(T);
             }

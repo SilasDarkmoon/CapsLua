@@ -930,7 +930,7 @@ namespace Capstones.LuaLib
                         else
                         {
                             var str = l.GetString(index);
-                            val = EnumUtils.ConvertToEnum<T>(str);
+                            val = EnumUtils.ConvertStrToEnum<T>(str);
                             return;
                         }
                     }
