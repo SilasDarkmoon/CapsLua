@@ -439,7 +439,7 @@ namespace Capstones.LuaWrap
                     using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
                     using (var pconi = new Capstones.UnityFramework.ProfilerContext("at start"))
 #endif
-                    ResumeRaw(oldtop);
+                    ResumeRaw(1);
                 }
                 else if (IsRunning)
                 {
