@@ -777,6 +777,30 @@ if clr then
             return oldipairs(t)
         end
     end
+    local oldconcat = table.__cache_concat
+    if not oldconcat then
+        oldconcat = table.concat
+        table.__cache_concat = oldconcat
+    end
+    function table.concat(t, ...)
+        if table.isudtable(t) then
+            return table.concat(getmetatable(t).__raw, ...)
+        else
+            return oldconcat(t, ...)
+        end
+    end
+    local oldmaxn = table.__cache_maxn
+    if not oldmaxn then
+        oldmaxn = table.maxn
+        table.__cache_maxn = oldmaxn
+    end
+    function table.maxn(t)
+        if table.isudtable(t) then
+            return table.maxn(getmetatable(t).__raw)
+        else
+            return oldmaxn(t)
+        end
+    end
 else
     local readonlymeta = {
         __newindex = function() error("Try modify readonly table!") end
