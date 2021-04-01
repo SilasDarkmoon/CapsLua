@@ -708,6 +708,96 @@ function table.shuffleArray(t)
     end
 end
 
+if clr then
+    function table.readonly(t)
+        local readonlymeta = {
+            __newindex = function() error("Try modify readonly table!") end,
+            __index = t,
+            __len = function() return #t end,
+            __isobject = false,
+            __udtabletype = "readonly",
+            __raw = t,
+        }
+        return clr.newud(readonlymeta)
+    end
+    function table.getraw(t)
+        if table.isudtable(t) then
+            return getmetatable(t).__raw
+        else
+            return t
+        end
+    end
+    function table.isudtable(ud)
+        return not not table.udtabletype(ud)
+    end
+    function table.udtabletype(ud)
+        if type(ud) == "userdata" then
+            local meta = getmetatable(ud)
+            if meta then
+                return meta.__udtabletype
+            end
+        end
+    end
+    function table.isreadonly(ud)
+        return table.udtabletype(ud) == "readonly"
+    end
+    local oldnext = table.__cache_oldnext
+    if not oldnext then
+        oldnext = next
+        table.__cache_oldnext = oldnext
+    end
+    function next(t, key)
+        if table.isudtable(t) then
+            return next(getmetatable(t).__raw, key)
+        else
+            return oldnext(t, key)
+        end
+    end
+    local oldpairs = table.__cache_oldpairs
+    if not oldpairs then
+        oldpairs = pairs
+        table.__cache_oldpairs = oldpairs
+    end
+    function pairs(t)
+        if table.isudtable(t) then
+            return pairs(getmetatable(t).__raw)
+        else
+            return oldpairs(t)
+        end
+    end
+    local oldipairs = table.__cache_oldipairs
+    if not oldipairs then
+        oldipairs = ipairs
+        table.__cache_oldipairs = oldipairs
+    end
+    function ipairs(t)
+        if table.isudtable(t) then
+            return ipairs(getmetatable(t).__raw)
+        else
+            return oldipairs(t)
+        end
+    end
+else
+    local readonlymeta = {
+        __newindex = function() error("Try modify readonly table!") end
+    }
+    function table.readonly(t)
+        return setmetatable(t, readonlymeta)
+    end
+    function table.isudtable(ud)
+        return false
+    end
+    function table.udtabletype(ud)
+        return nil
+    end
+    function table.isreadonly(t)
+        return getmetatable(t) == readonlymeta
+    end
+    function table.getraw(t)
+        return t
+    end
+end
+
 --- 换算数字，超过1万数字形式为xx万，超过1亿数字形式为xx亿
 -- @param num 数字，类型number
 -- @param n 保留小数位数（默认两位）

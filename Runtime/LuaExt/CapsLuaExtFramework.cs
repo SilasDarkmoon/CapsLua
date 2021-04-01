@@ -57,6 +57,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "topointer");
                         L.pushcfunction(ClrDelNewUserdata);
                         L.SetField(-2, "newud");
+                        L.pushcfunction(ClrDelUserdataInfo);
+                        L.SetField(-2, "udinfo");
                         L.pushcfunction(ClrDelRandomState);
                         L.SetField(-2, "randomstate");
                         L.PushString(ThreadSafeValues.UpdatePath);
@@ -187,6 +189,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
         public static readonly lua.CFunction ClrDelToPointer = new lua.CFunction(ClrFuncToPointer);
         public static readonly lua.CFunction ClrDelNewUserdata = new lua.CFunction(ClrFuncNewUserdata);
+        public static readonly lua.CFunction ClrDelUserdataInfo = new lua.CFunction(ClrFuncUserdataInfo);
         public static readonly lua.CFunction ClrDelRandomState = new lua.CFunction(ClrFuncRandomState);
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
@@ -474,7 +477,8 @@ namespace Capstones.LuaExt
         {
             int size = 0;
             var argcnt = l.gettop();
-            if (argcnt > 0 && l.isnumber(1))
+            bool firstArgIsSize;
+            if (firstArgIsSize = argcnt > 0 && l.isnumber(1))
             {
                 size = (int)l.tonumber(1);
             }
@@ -484,17 +488,48 @@ namespace Capstones.LuaExt
             }
             l.newuserdata((IntPtr)size);
 
-            if (argcnt > 0 && l.istable(1))
+            if (firstArgIsSize)
             {
-                l.pushvalue(1);
-                l.setmetatable(-2);
+                if (argcnt > 1 && l.istable(2))
+                {
+                    l.pushvalue(2);
+                    l.setmetatable(-2);
+                }
+                if (argcnt > 2 && l.istable(3))
+                {
+                    l.pushvalue(3);
+                    l.setfenv(-2);
+                }
             }
-            else if (argcnt > 1 && l.istable(2))
+            else
             {
-                l.pushvalue(2);
-                l.setmetatable(-2);
+                if (argcnt > 0 && l.istable(1))
+                {
+                    l.pushvalue(1);
+                    l.setmetatable(-2);
+                }
+                if (argcnt > 1 && l.istable(2))
+                {
+                    l.pushvalue(2);
+                    l.setfenv(-2);
+                }
             }
             return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncUserdataInfo(IntPtr l)
+        {
+            if (l.type(1) != lua.LUA_TUSERDATA)
+            {
+                return 0;
+            }
+            l.pushnumber(l.getn(1));
+            if (!l.getmetatable(1))
+            {
+                l.pushnil();
+            }
+            l.getfenv(1);
+            return 3;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncRandomState(IntPtr l)
