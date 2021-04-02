@@ -116,7 +116,7 @@ function cloneData(data)
     local function _clone(tab)
         local cloned = {}
         for k, v in pairs(tab) do
-            if type(v) == "table" then
+            if type(v) == "table" or table.isudtable(v) then
                 cloned[k] = _clone(v)
             else
                 cloned[k] = v
@@ -124,7 +124,7 @@ function cloneData(data)
         end
         return cloned
     end
-    if type(data) == "table" then
+    if type(data) == "table" or table.isudtable(data) then
         return _clone(data)
     else
         return data
