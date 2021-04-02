@@ -1149,6 +1149,26 @@ namespace Capstones.LuaLib
         {
             l.getref(val.Refid);
         }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaFunc val)
+        {
+            if (l.isfunction(index))
+            {
+                val = new Capstones.LuaWrap.LuaFunc(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaOnStackFunc val)
+        {
+            if (l.isfunction(index))
+            {
+                val = new Capstones.LuaWrap.LuaOnStackFunc(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
 
         private class LuaPushNative_LuaOnStackFunc : LuaPushNativeBase<LuaWrap.LuaOnStackFunc>
         {

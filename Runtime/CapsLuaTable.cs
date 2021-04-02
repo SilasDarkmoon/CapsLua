@@ -588,6 +588,46 @@ namespace Capstones.LuaLib
         {
             l.getref(val.Refid);
         }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaTable val)
+        {
+            if (l.istable(index) || IsUserDataTable(l, index))
+            {
+                val = new Capstones.LuaWrap.LuaTable(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaOnStackTable val)
+        {
+            if (l.istable(index) || IsUserDataTable(l, index))
+            {
+                val = new Capstones.LuaWrap.LuaOnStackTable(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaRawTable val)
+        {
+            if (l.istable(index))
+            {
+                val = new Capstones.LuaWrap.LuaRawTable(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaOnStackRawTable val)
+        {
+            if (l.istable(index))
+            {
+                val = new Capstones.LuaWrap.LuaOnStackRawTable(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
 
         private class LuaPushNative_LuaOnStackTable : LuaPushNativeBase<LuaWrap.LuaOnStackTable>
         {

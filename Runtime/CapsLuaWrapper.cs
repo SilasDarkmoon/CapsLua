@@ -468,18 +468,27 @@ namespace Capstones.LuaLib
     {
         public static void PushLua(this IntPtr l, BaseLuaOnStack val)
         {
-            l.pushvalue(val.StackPos);
+            PushLua(l, (BaseLua)val);
         }
         public static void PushLua(this IntPtr l, BaseLua val)
         {
-            if (val is BaseLuaOnStack)
+            if (ReferenceEquals(val, null) || val.IsClosed)
             {
-                l.pushvalue(((BaseLuaOnStack)val).StackPos);
+                l.pushnil();
             }
             else
             {
-                l.getref(val.Refid);
+                val.PushToLua(l);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out BaseLua val)
+        {
+            l.pushvalue(index);
+            val = new BaseLua(l, l.refer());
+        }
+        public static void GetLua(this IntPtr l, int index, out BaseLuaOnStack val)
+        {
+            val = new BaseLuaOnStack() { L = l, StackPos = l.NormalizeIndex(index) };
         }
 
         private class LuaPushNative_BaseLuaOnStack : LuaPushNativeBase<LuaWrap.BaseLuaOnStack>
@@ -966,7 +975,7 @@ namespace Capstones.LuaLib
             }
             public static T GetLuaRaw(IntPtr l, int index)
             {
-                if (l.istable(index))
+                if (l.istable(index) || l.IsUserDataTable(index))
                 {
                     l.checkstack(3);
                     l.pushvalue(index); // ud

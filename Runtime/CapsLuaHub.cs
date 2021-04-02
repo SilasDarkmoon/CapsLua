@@ -24,12 +24,34 @@ namespace Capstones.LuaLib
         {
             return l.type(index) == LuaCoreLib.LUA_TUSERDATA;
         }
-
+        private static bool IsUserDataTableRaw(this IntPtr l, int index)
+        {
+            using (var lr = l.CreateStackRecover())
+            {
+                if (l.getmetatable(index))
+                {
+                    l.GetField(-1, "__udtabletype");
+                    if (!l.isnoneornil(-1))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        public static bool IsUserDataTable(this IntPtr l, int index)
+        {
+            if (l.type(index) == LuaCoreLib.LUA_TUSERDATA)
+            {
+                return IsUserDataTableRaw(l, index);
+            }
+            return false;
+        }
         public static bool IsObject(this IntPtr l, int index)
         {
             if (l.IsUserData(index))
             {
-                return true;
+                return !IsUserDataTableRaw(l, index);
             }
             else if (l.istable(index))
             {
@@ -46,7 +68,7 @@ namespace Capstones.LuaLib
         public static bool IsTable(this IntPtr l, int index)
         {
             if (!l.istable(index))
-            {
+            { // NOTICE: currently not compatible with UserDataTable
                 return false;
             }
             index = l.NormalizeIndex(index);
@@ -59,7 +81,7 @@ namespace Capstones.LuaLib
         public static bool IsArray(this IntPtr l, int index)
         {
             if (!l.istable(index))
-            {
+            { // NOTICE: currently not compatible with UserDataTable
                 return false;
             }
             index = l.NormalizeIndex(index);
@@ -567,7 +589,14 @@ namespace Capstones.LuaLib
             switch (typecode)
             {
                 case lua.LUA_TUSERDATA:
-                    return GetLuaRawObjectType(l, index);
+                    if (IsUserDataTableRaw(l, index))
+                    {
+                        return typeof(Capstones.LuaWrap.LuaTable);
+                    }
+                    else
+                    {
+                        return GetLuaRawObjectType(l, index);
+                    }
                 case lua.LUA_TSTRING:
                     return typeof(string);
                 case lua.LUA_TTABLE:
@@ -712,7 +741,14 @@ namespace Capstones.LuaLib
                 switch (typecode)
                 {
                     case lua.LUA_TUSERDATA:
-                        return GetLuaRawObject(l, index);
+                        if (IsUserDataTableRaw(l, index))
+                        {
+                            return new Capstones.LuaWrap.LuaTable(l, index);
+                        }
+                        else
+                        {
+                            return GetLuaRawObject(l, index);
+                        }
                     case lua.LUA_TSTRING:
                         return l.GetString(index);
                     case lua.LUA_TTABLE:
@@ -752,7 +788,14 @@ namespace Capstones.LuaLib
                 switch (typecode)
                 {
                     case lua.LUA_TUSERDATA:
-                        return GetLuaRawObject(l, index);
+                        if (IsUserDataTableRaw(l, index))
+                        {
+                            return new Capstones.LuaWrap.LuaOnStackTable(l, index);
+                        }
+                        else
+                        {
+                            return GetLuaRawObject(l, index);
+                        }
                     case lua.LUA_TSTRING:
                         return l.GetString(index);
                     case lua.LUA_TTABLE:
@@ -797,7 +840,7 @@ namespace Capstones.LuaLib
                 }
                 else if (typeof(T) == typeof(Capstones.LuaWrap.LuaTable))
                 {
-                    if (l.istable(index))
+                    if (l.istable(index) || IsUserDataTable(l, index))
                     {
                         val = (T)(object)new Capstones.LuaWrap.LuaTable(l, index);
                         return;
@@ -805,9 +848,25 @@ namespace Capstones.LuaLib
                 }
                 else if (typeof(T) == typeof(Capstones.LuaWrap.LuaOnStackTable))
                 {
-                    if (l.istable(index))
+                    if (l.istable(index) || IsUserDataTable(l, index))
                     {
                         val = (T)(object)new Capstones.LuaWrap.LuaOnStackTable(l, index);
+                        return;
+                    }
+                }
+                else if (typeof(T) == typeof(Capstones.LuaWrap.LuaRawTable))
+                {
+                    if (l.istable(index)) // Raw table is not compatible with UserDataTable
+                    {
+                        val = (T)(object)new Capstones.LuaWrap.LuaRawTable(l, index);
+                        return;
+                    }
+                }
+                else if (typeof(T) == typeof(Capstones.LuaWrap.LuaOnStackRawTable))
+                {
+                    if (l.istable(index)) // Raw table is not compatible with UserDataTable
+                    {
+                        val = (T)(object)new Capstones.LuaWrap.LuaOnStackRawTable(l, index);
                         return;
                     }
                 }
@@ -935,7 +994,7 @@ namespace Capstones.LuaLib
                         }
                     }
                 }
-                else if (luatype == lua.LUA_TTABLE && typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
+                else if ((luatype == lua.LUA_TTABLE || luatype == lua.LUA_TUSERDATA && IsUserDataTableRaw(l, index)) && typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(typeof(T)))
                 { // the BaseLuaWrapper is not initialized?
                     try
                     {
@@ -1035,49 +1094,6 @@ namespace Capstones.LuaLib
             GetLua<T>(l, index, out val);
             return val;
         }
-
-#region Get Methods for Lua Wrappers
-        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaTable val)
-        {
-            if (l.istable(index))
-            {
-                val = new Capstones.LuaWrap.LuaTable(l, index);
-                return;
-            }
-            val = null;
-            return;
-        }
-        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaOnStackTable val)
-        {
-            if (l.istable(index))
-            {
-                val = new Capstones.LuaWrap.LuaOnStackTable(l, index);
-                return;
-            }
-            val = null;
-            return;
-        }
-        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaFunc val)
-        {
-            if (l.isfunction(index))
-            {
-                val = new Capstones.LuaWrap.LuaFunc(l, index);
-                return;
-            }
-            val = null;
-            return;
-        }
-        public static void GetLua(this IntPtr l, int index, out Capstones.LuaWrap.LuaOnStackFunc val)
-        {
-            if (l.isfunction(index))
-            {
-                val = new Capstones.LuaWrap.LuaOnStackFunc(l, index);
-                return;
-            }
-            val = null;
-            return;
-        }
-#endregion
 
 #region Get Methods for Native Lua Types
         public static void GetLua(this IntPtr l, int index, out byte[] val)

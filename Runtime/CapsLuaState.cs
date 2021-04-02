@@ -887,6 +887,16 @@ namespace Capstones.LuaLib
         {
             val.L.pushthread();
         }
+        public static void GetLua(this IntPtr l, int index, out LuaWrap.LuaOnStackThread val)
+        {
+            if (l.isthread(index))
+            {
+                val = new Capstones.LuaWrap.LuaOnStackThread(l, index);
+                return;
+            }
+            val = null;
+            return;
+        }
 
         private class LuaPushNative_LuaState : LuaPushNativeBase<LuaWrap.LuaState>
         {
