@@ -45,7 +45,9 @@ Convert to table.
 
 ]]
 function totable(v)
-    if type(v) ~= "table" then v = {} end
+    if table.isudtable(v) then v = table.getraw(v)
+    elseif type(v) ~= "table" then v = {}
+    end
     return v
 end
 
@@ -86,7 +88,7 @@ Creating a copy of an table with fully replicated properties.
 function clone(object)
     local lookup_table = {}
     local function _copy(object)
-        if type(object) ~= "table" then
+        if type(object) ~= "table" and not table.isudtable(object) then
             return object
         elseif lookup_table[object] then
             return lookup_table[object]
@@ -102,7 +104,7 @@ function clone(object)
 end
 
 function shallowClone(object)
-    if type(object) ~= "table" then
+    if type(object) ~= "table" and not table.isudtable(object) then
         return object
     end
     local new_table = {}
@@ -289,7 +291,7 @@ hecks if the given key or index exists in the table.
 
 ]]
 function isset(arr, key)
-    return type(arr) == "table" and arr[key] ~= nil
+    return (type(arr) == "table" or table.isudtable(arr)) and arr[key] ~= nil
 end
 
 --[[--
@@ -393,16 +395,19 @@ function table.deepmerge(dst, src)
     local function mergeTable(dst, src)
         visited[src] = dst
         for k, v in pairs(src) do
-            if type(v) ~= "table" then
+            if type(v) ~= "table" and not table.isudtable(v) then
                 dst[k] = v
             else
                 if visited[v] then
                     dst[k] = visited[v]
                 else
-                    if type(dst[k]) ~= "table" then
+                    local olddstval = dst[k]
+                    if type(olddstval) ~= "table" and not table.isudtable(olddstval) then
                         dst[k] = v
                     else
-                        mergeTable(dst[k], v)
+                        if not table.isreadonly(olddstval) then
+                            mergeTable(olddstval, v)
+                        end
                     end
                 end
             end
@@ -445,7 +450,7 @@ function table.mergeData(dst, src)
                         end
                     end
                     if validkey then
-                        if type(v) == "table" then
+                        if type(v) == "table" or table.isudtable(v) then
                             if isarray and v[""] == "\025" then
                                 if v.to then
                                     local val = dst[k]
@@ -477,7 +482,7 @@ function table.mergeData(dst, src)
         end
     end
 
-    if type(src) == "table" then
+    if type(src) == "table" or table.isudtable(src) then
         return _merge(dst, src)
     else
         return src
@@ -602,11 +607,12 @@ function math.isInt(num)
     return type(num) == "number" and num == math.floor(num)
 end
 
-function table.isEmpty(table)
-    if table == nil then return true end
-    if type(table) ~= 'table' then return false end
+-- TODO: why not use next(tab)?
+function table.isEmpty(tab)
+    if tab == nil then return true end
+    if type(tab) ~= 'table' and not table.isudtable(tab) then return false end
     local empty = true
-    for k,v in pairs(table) do
+    for k, v in pairs(tab) do
         empty = false
         break
     end
@@ -614,7 +620,7 @@ function table.isEmpty(table)
 end
 
 function table.compare(data1, data2)
-    if type(data1) == 'table' and type(data2) == 'table' then
+    if (type(data1) == 'table' or table.isudtable(data1)) and (type(data2) == 'table' or table.isudtable(data2)) then
         local allKeys = {}
         for k,v in pairs(data1) do
             allKeys[k] = v
@@ -663,7 +669,7 @@ function table.compare(data1, data2)
 end
 
 function table.compareArray(data1, data2)
-    if type(data1) == 'table' and type(data2) == 'table' then
+    if (type(data1) == 'table' or table.isudtable(data1)) and (type(data2) == 'table' or table.isudtable(data2)) then
         for i,v1 in ipairs(data1) do
             local v2 = data2[i]
             local part = table.compareArray(v1, v2)

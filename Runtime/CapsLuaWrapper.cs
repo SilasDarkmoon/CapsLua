@@ -97,7 +97,7 @@ namespace Capstones.LuaWrap
                 }
             }
         }
-        public bool IsClosed { get { return object.ReferenceEquals(Ref, null) || Ref.IsClosed; } }
+        public virtual bool IsClosed { get { return object.ReferenceEquals(Ref, null) || Ref.IsClosed; } }
 
         public override string ToString()
         {
@@ -408,6 +408,7 @@ namespace Capstones.LuaWrap
             {
             }
         }
+        public override bool IsClosed { get { return false; } }
 
         public virtual int StackPos
         {

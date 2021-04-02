@@ -155,7 +155,7 @@ function vardump(object, label, israw)
         if type(k) == 'number' or type(k) == 'boolean' then
             return string.format("[%s]", tostring(k))
         end
-        if type(k) == 'table' then
+        if type(k) == 'table' or table.isudtable(k) then
             if lookupTable[k] then
                 local line = lookupTable[k]
                 local rv = string.format("['*%s*']", tostring(line))
