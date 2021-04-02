@@ -590,42 +590,42 @@ namespace Capstones.LuaLib
                 {
                     cached = DelType2WrapperType.TryGetValue(t, out wrapperType);
                 }
-                MethodInfo invoke = t.GetMethod("Invoke");
-                ParameterInfo[] pars = invoke.GetParameters();
-                if (invoke.ReturnType == typeof(void))
+                if (!cached)
                 {
-                    if (pars != null && pars.Length > 0)
+                    MethodInfo invoke = t.GetMethod("Invoke");
+                    ParameterInfo[] pars = invoke.GetParameters();
+                    if (invoke.ReturnType == typeof(void))
                     {
-                        if (pars.Length < ActionWrapperTypes.Length)
+                        if (pars != null && pars.Length > 0)
                         {
-                            wrapperType = ActionWrapperTypes[pars.Length];
-                            Type[] genericTypes = new Type[pars.Length];
-                            for (int i = 0; i < pars.Length; ++i)
+                            if (pars.Length < ActionWrapperTypes.Length)
                             {
-                                genericTypes[i] = pars[i].ParameterType;
+                                wrapperType = ActionWrapperTypes[pars.Length];
+                                Type[] genericTypes = new Type[pars.Length];
+                                for (int i = 0; i < pars.Length; ++i)
+                                {
+                                    genericTypes[i] = pars[i].ParameterType;
+                                }
+                                wrapperType = wrapperType.MakeGenericType(genericTypes);
                             }
-                            wrapperType = wrapperType.MakeGenericType(genericTypes);
+                        }
+                        else
+                        {
+                            wrapperType = typeof(ActionLuaWrapper);
                         }
                     }
                     else
                     {
-                        wrapperType = typeof(ActionLuaWrapper);
-                    }
-                }
-                else
-                {
-                    var gcnt = 0;
-                    if (pars != null && pars.Length > 0)
-                    {
-                        gcnt = pars.Length;
-                    }
-                    Type[] genericTypes = new Type[gcnt + 1];
-                    genericTypes[0] = invoke.ReturnType;
-                    if (gcnt < FuncWrapperTypes.Length)
-                    {
-                        wrapperType = FuncWrapperTypes[gcnt];
-                        if (gcnt > 0)
+                        var gcnt = 0;
+                        if (pars != null && pars.Length > 0)
                         {
+                            gcnt = pars.Length;
+                        }
+                        Type[] genericTypes = new Type[gcnt + 1];
+                        genericTypes[0] = invoke.ReturnType;
+                        if (gcnt < FuncWrapperTypes.Length)
+                        {
+                            wrapperType = FuncWrapperTypes[gcnt];
                             for (int i = 0; i < gcnt; ++i)
                             {
                                 genericTypes[i + 1] = pars[i].ParameterType;
@@ -633,16 +633,16 @@ namespace Capstones.LuaLib
                             wrapperType = wrapperType.MakeGenericType(genericTypes);
                         }
                     }
-                }
-                if (wrapperType != null)
-                {
-                    if (!cached)
+                    if (wrapperType != null)
                     {
                         lock (DelType2WrapperType)
                         {
                             DelType2WrapperType[t] = wrapperType;
                         }
                     }
+                }
+                if (wrapperType != null)
+                {
                     var wrapper = Activator.CreateInstance(wrapperType) as IDelegateLuaWrapper;
                     wrapper.Target = dyn;
                     return wrapper;

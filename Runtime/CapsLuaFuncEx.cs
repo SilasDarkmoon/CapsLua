@@ -2591,7 +2591,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     l.pushnil();
@@ -2608,7 +2617,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     l.pushnil();
@@ -2625,7 +2643,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     l.pushnil();
@@ -2646,7 +2673,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
@@ -2666,7 +2702,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
@@ -2685,7 +2730,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
@@ -2704,7 +2758,16 @@ namespace Capstones.LuaWrap
         {
             if (l != IntPtr.Zero && action != null)
             {
-                l.pushvalue(index);
+                if (l.IsUserDataTable(index))
+                {
+                    l.getmetatable(index);
+                    l.GetField(-1, "__raw");
+                    l.remove(-2);
+                }
+                else
+                {
+                    l.pushvalue(index);
+                }
                 if (l.istable(index))
                 {
                     var cnt = l.getn(-1);
