@@ -198,7 +198,7 @@ function vardump(object, label, israw)
             local key = _k(label, indent, nest)
             reallabel = string.format("%s%s = ", indent, key)
         end
-        if type(object) ~= "table" then
+        if type(object) ~= "table" and not table.isudtable(object) then
             result[#result +1] = string.format("%s%s%s", reallabel, _v(object), postfix)
         elseif lookupTable[object] then
             local line = lookupTable[object]
@@ -211,7 +211,7 @@ function vardump(object, label, israw)
             local line = #result + 1
             lookupTable[object] = line
 
-            if not israw and clr and clr.isobj(object) then
+            if not israw and not table.isudtable(object) and clr and clr.isobj(object) then
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
                 else
