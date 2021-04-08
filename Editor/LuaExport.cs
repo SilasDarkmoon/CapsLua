@@ -18,10 +18,10 @@ namespace Capstones.UnityEditorEx
 
     public struct LuaDescript
     {
-        public bool successFlag;
         public string path;
         public string uri;
-        public int prior;
+        public string mod;
+        public string distribute;
     }
 
 
@@ -31,14 +31,6 @@ namespace Capstones.UnityEditorEx
         private string IncludeRoots = string.Empty;
 
         private HashSet<string> Includes;
-
-        private static Func<string, HashSet<string>, HashSet<string>, Dictionary<string, LuaDescript>, LuaDescript>[] GetDescriptFunctions =
-        {
-            NormalLuaDescript,
-            ModLuaDescript,
-            DistLuaDescript,
-            ModDistLuaDescript
-        };
 
         void OnGUI()
         {
@@ -75,30 +67,60 @@ namespace Capstones.UnityEditorEx
 
         private void DoExport(string exportPath)
         {
-            var root = CreateRootDirectory(ExportPath);
-            if (root == null)
+            if (CreateRootDirectory(exportPath) == null)
             {
                 return;
             }
-            var distributes = new HashSet<string>(ResManager.PreRuntimeDFlags);
             var assets = AssetDatabase.GetAllAssetPaths();
-            var loaded = new Dictionary<string, LuaDescript>();
-            foreach (var path in assets)
+            var distributes = ResManager.PreRuntimeDFlags;
+            var distributeSorter = new Dictionary<string, int>();
+            for (var i = 0; i < distributes.Count; i++)
             {
-                //只处理lua
-                if (!path.EndsWith("lua"))
+                distributeSorter[distributes[i]] = i;
+            }
+            var loaded = new Dictionary<string, LuaDescript>();
+            foreach (var asset in assets)
+            {
+                if (!asset.EndsWith("lua"))
                 {
                     continue;
                 }
-                foreach (var func in GetDescriptFunctions)
+                if (Directory.Exists(asset))
                 {
-                    var descript = func(path, distributes, Includes, loaded);
-                    if (descript.successFlag)
+                    continue;
+                }
+                var uri = ResManager.GetAssetNormPath(asset, out var type, out var mod, out var distribute);
+                if (!string.IsNullOrEmpty(distribute) && !distributeSorter.ContainsKey(distribute))
+                {
+                    continue;
+                }
+                if (uri.IndexOf("/") > 0)
+                {
+                    if (Includes.Count > 0 && !Includes.Contains(GetPathFirstDirectory(uri)))
                     {
-                        loaded[descript.uri] = descript;
-                        break;
+                        continue;
                     }
                 }
+                else
+                {
+                    if (Includes.Count > 0)
+                    {
+                        continue;
+                    }
+                }
+
+                var result = new LuaDescript()
+                {
+                    uri = uri,
+                    path = asset,
+                    mod = mod,
+                    distribute = distribute
+                };
+                if (loaded.TryGetValue(uri, out var descript) && CompareTo(descript, result, distributeSorter) >= 0)
+                {
+                    continue;
+                }
+                loaded[uri] = result;
             }
             foreach (var item in loaded)
             {
@@ -108,153 +130,47 @@ namespace Capstones.UnityEditorEx
                 {
                     newFile.Directory.Create();
                 }
-                File.Copy(item.Value.path, newPath, true);
+                File.Copy(item.Value.path, newPath);
             }
-            UnityEngine.Debug.LogFormat("Finish");
+            System.Diagnostics.Process.Start(exportPath);
         }
 
-        private static LuaDescript NormalLuaDescript(string path, HashSet<string> distributes, HashSet<string> includes, Dictionary<string, LuaDescript> loaded)
+        private string GetPathFirstDirectory(string path)
         {
-            var empty = default(LuaDescript);
-            if (path.StartsWith("Assets/CapsSpt/dist"))
-            {
-                return empty;
-            }
-            if (!path.StartsWith("Assets/CapsSpt"))
-            {
-                return empty;
-            }
-            var uri = path.Substring("Assets/CapsSpt/".Length);
-            var layers = uri.Split('/');
-            if (layers.Length < 1 || (includes.Count > 0 && !includes.Contains(layers[0])))
-            {
-                return empty;
-            }
-            var result = new LuaDescript()
-            {
-                uri = uri,
-                path = path,
-                prior = 0,
-                successFlag = true
-            };
-            if (loaded.ContainsKey(result.uri))
-            {
-                return empty;
-            }
-            return result;
+            return path.Substring(0, path.IndexOf("/"));
         }
 
-        private static LuaDescript ModLuaDescript(string path, HashSet<string> distributes, HashSet<string> includes, Dictionary<string, LuaDescript> loaded)
+        private int CompareTo(LuaDescript d1, LuaDescript d2, Dictionary<string, int> distributeSorter)
         {
-            var empty = default(LuaDescript);
-            if (!path.StartsWith("Assets/Mods"))
+            if (string.IsNullOrEmpty(d1.distribute) && string.IsNullOrEmpty(d2.distribute))
             {
-                return empty;
+                return CompareMods(d1.mod, d2.mod, distributeSorter);
             }
-            var relativePath = path.Substring("Assets/Mods/".Length);
-            var layers = relativePath.Split('/');
-            if (layers.Length < 2)
+            if (string.IsNullOrEmpty(d1.distribute) || string.IsNullOrEmpty(d2.distribute))
             {
-                return empty;
+                return string.IsNullOrEmpty(d1.distribute) ? -1 : 1;
             }
-            if (layers[1] != "CapsSpt")
+            if (distributeSorter[d1.distribute] != distributeSorter[d2.distribute])
             {
-                return empty;
+                return distributeSorter[d1.distribute].CompareTo(distributeSorter[d2.distribute]);
             }
-            if (layers.Length < 3 || (includes.Count > 0 && !includes.Contains(layers[2])))
-            {
-                return empty;
-            }
-            var result = new LuaDescript()
-            {
-                path = path,
-                uri = relativePath.Substring(layers[0].Length + layers[1].Length + 2),
-                prior = 1,
-                successFlag = true,
-            };
-            if (loaded.TryGetValue(result.uri, out var loadedLua) && loadedLua.prior > result.prior)
-            {
-                return empty;
-            }
-            return result;
+            return CompareMods(d1.mod, d2.mod, distributeSorter);
+
         }
 
-        private static LuaDescript DistLuaDescript(string path, HashSet<string> distributes, HashSet<string> includes, Dictionary<string, LuaDescript> loaded)
+        private int CompareMods(string mod1, string mod2, Dictionary<string, int> distributeSorter)
         {
-            var empty = default(LuaDescript);
-            if (!path.StartsWith("Assets/CapsSpt/dist/"))
+            mod1 = CapsModEditor.IsModOptional(mod1) ? mod1 : string.Empty;
+            mod2 = CapsModEditor.IsModOptional(mod2) ? mod2 : string.Empty;
+            if (mod1 == mod2)
             {
-                return empty;
+                return 0;
             }
-            var relativePath = path.Substring("Assets/CapsSpt/dist/".Length);
-            var layers = relativePath.Split('/');
-            if (layers.Length == 0)
+            if (string.IsNullOrEmpty(mod1) || string.IsNullOrEmpty(mod2))
             {
-                return empty;
+                return string.IsNullOrEmpty(mod1) ? -1 : 1;
             }
-            var distribute = layers[0];
-            if (!distributes.Contains(distribute))
-            {
-                return empty;
-            }
-            if (layers.Length < 2 || (includes.Count > 0 && !includes.Contains(layers[1])))
-            {
-                return empty;
-            }
-            var result = new LuaDescript()
-            {
-                uri = relativePath.Substring(distribute.Length + 1),
-                path = path,
-                prior = 2,
-                successFlag = true,
-            };
-            if (loaded.TryGetValue(result.uri, out var loadedLua) && loadedLua.prior > result.prior)
-            {
-                return empty;
-            }
-            return result;
-        }
-
-
-
-        private static LuaDescript ModDistLuaDescript(string path, HashSet<string> distributes, HashSet<string> includes, Dictionary<string, LuaDescript> loaded)
-        {
-            var empty = default(LuaDescript);
-            if (!path.StartsWith("Assets/Mods"))
-            {
-                return empty;
-            }
-            var relativePath = path.Substring("Assets/Mods/".Length);
-            var layers = relativePath.Split('/');
-            if (layers.Length < 3)
-            {
-                return empty;
-            }
-            if (layers[1] != "CapsSpt")
-            {
-                return empty;
-            }
-            var distribute = layers[2];
-            if (!distributes.Contains(distribute))
-            {
-                return empty;
-            }
-            if (layers.Length < 4 || (includes.Count > 0 && !includes.Contains(layers[3])))
-            {
-                return empty;
-            }
-            var result = new LuaDescript()
-            {
-                path = path,
-                uri = relativePath.Substring(layers[0].Length + layers[1].Length + layers[2].Length + 3),
-                prior = 4,
-                successFlag = true,
-            };
-            if (loaded.TryGetValue(result.uri, out var loadedLua) && loadedLua.prior > result.prior)
-            {
-                return empty;
-            }
-            return result;
+            return distributeSorter[mod1].CompareTo(distributeSorter[mod2]);
         }
 
         private object CreateRootDirectory(string exportPath)
