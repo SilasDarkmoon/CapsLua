@@ -1056,39 +1056,47 @@ namespace Capstones.UnityEditorEx
                 if (isDefaultBuild)
                 {
                     logger.Log("(Phase) Write Version.");
-                    int version = CapsResBuilder.GetResVersion();
-
-                    int lastBuildVersion = 0;
-                    int streamingVersion = 0;
+                    int version;
                     var outverdir = "EditorOutput/Build/Latest/spt/version.txt";
-
-                    if (System.IO.File.Exists("Assets/StreamingAssets/spt/version.txt"))
+                    if (CapsResBuilder.BuildingParams != null && CapsResBuilder.BuildingParams.version > 0)
                     {
-                        var lines = System.IO.File.ReadAllLines("Assets/StreamingAssets/spt/version.txt");
-                        if (lines != null && lines.Length > 0)
-                        {
-                            int.TryParse(lines[0], out streamingVersion);
-                        }
-                    }
-                    if (System.IO.File.Exists(outverdir))
-                    {
-                        var lines = System.IO.File.ReadAllLines(outverdir);
-                        if (lines != null && lines.Length > 0)
-                        {
-                            int.TryParse(lines[0], out lastBuildVersion);
-                        }
-                    }
-                    if (streamingVersion > 0 || lastBuildVersion <= 0)
-                    {
-                        int maxver = Math.Max(lastBuildVersion, streamingVersion);
-                        if (maxver >= version)
-                        {
-                            version = maxver + 10;
-                        }
+                        version = CapsResBuilder.BuildingParams.version;
                     }
                     else
                     {
-                        version = lastBuildVersion;
+                        version = CapsResBuilder.GetResVersion();
+
+                        int lastBuildVersion = 0;
+                        int streamingVersion = 0;
+
+                        if (System.IO.File.Exists("Assets/StreamingAssets/spt/version.txt"))
+                        {
+                            var lines = System.IO.File.ReadAllLines("Assets/StreamingAssets/spt/version.txt");
+                            if (lines != null && lines.Length > 0)
+                            {
+                                int.TryParse(lines[0], out streamingVersion);
+                            }
+                        }
+                        if (System.IO.File.Exists(outverdir))
+                        {
+                            var lines = System.IO.File.ReadAllLines(outverdir);
+                            if (lines != null && lines.Length > 0)
+                            {
+                                int.TryParse(lines[0], out lastBuildVersion);
+                            }
+                        }
+                        if (streamingVersion > 0 || lastBuildVersion <= 0)
+                        {
+                            int maxver = Math.Max(lastBuildVersion, streamingVersion);
+                            if (maxver >= version)
+                            {
+                                version = maxver + 10;
+                            }
+                        }
+                        else
+                        {
+                            version = lastBuildVersion;
+                        }
                     }
                     if (System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(outverdir)))
                     {
