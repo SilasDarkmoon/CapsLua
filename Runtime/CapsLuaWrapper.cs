@@ -1114,7 +1114,7 @@ namespace Capstones.LuaWrap
         public LuaList() : base() { }
         public LuaList(IntPtr l) : base(l) { }
 
-        protected IEqualityComparer<T> _Comparer = EqualityComparer<T>.Default;
+        protected static IEqualityComparer<T> _Comparer = EqualityComparer<T>.Default;
         protected bool Equals(T v1, T v2)
         {
             return _Comparer.Equals(v1, v2);

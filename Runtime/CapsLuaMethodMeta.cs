@@ -9,7 +9,7 @@ using luae = Capstones.LuaLib.LuaLibEx;
 
 namespace Capstones.LuaLib
 {
-    public struct Types : IList<Type>
+    public struct Types : IList<Type>, IEquatable<Types>
     {
         private Type t0;
         private Type t1;
@@ -268,17 +268,24 @@ namespace Capstones.LuaLib
             }
             return false;
         }
+        public bool Equals(Types types2)
+        {
+            if (types2._cnt == _cnt)
+            {
+                for (int i = 0; i < _cnt; ++i)
+                {
+                    if (this[i] != types2[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
         internal static bool OpEquals(Types source, Types other)
         {
-            if (!object.ReferenceEquals(source, null))
-            {
-                return source.Equals(other);
-            }
-            else if (!object.ReferenceEquals(other, null))
-            {
-                return other.Equals(source);
-            }
-            return true;
+            return source.Equals(other);
         }
         public static bool operator ==(Types source, Types other)
         {
