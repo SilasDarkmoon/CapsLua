@@ -1094,6 +1094,9 @@ namespace Capstones.UnityEditorEx
                     {
                         System.IO.File.WriteAllText(outverdir, version.ToString());
                     }
+                    // Make icon
+                    IconMaker.SetFolderIconToText(outputDir, version.ToString());
+                    IconMaker.SetFolderIconToText(outputDir + "/spt", version.ToString());
                 }
 
                 logger.Log("(Phase) Delete old scripts in Streaming Assets.");
@@ -1312,6 +1315,9 @@ namespace Capstones.UnityEditorEx
                             }
                         }
                     }
+
+                    // Make icon
+                    IconMaker.SetFolderIconToFileContent("EditorOutput/Build/" + timetoken, outputDir + "/spt/version.txt");
                 }
             }
             finally
