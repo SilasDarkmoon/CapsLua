@@ -1,0 +1,2 @@
+#define CAPSLUA_API __declspec(dllexport)
+#define CAPSLUA_API __declspec(dllimport)
