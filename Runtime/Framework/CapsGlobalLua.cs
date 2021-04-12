@@ -116,6 +116,35 @@ namespace Capstones.UnityEngineEx
             Init();
         }
 
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+        public static void luaopen_CapsLua(IntPtr l)
+        {
+            if (!object.ReferenceEquals(L, null))
+            {
+                LuaFramework.ClrFuncReset(L.L);
+            }
+            else
+            {
+                L = new LuaState(l);
+                for (int i = 0; i < LuaExLibs.InitFuncs.Count; ++i)
+                {
+                    var func = LuaExLibs.InitFuncs[i].InitFunc;
+                    if (func != null)
+                    {
+                        try
+                        {
+                            func(L);
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                    }
+                }
+            }
+        }
+#endif
+
 #if UNITY_EDITOR
         private static bool IsEditorRunning = false;
         public static void EditorCheckRunningState()

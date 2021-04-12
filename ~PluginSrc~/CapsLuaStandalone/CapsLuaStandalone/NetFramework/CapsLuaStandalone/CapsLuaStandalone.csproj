@@ -28,7 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;LUADLL_NAME_LUA51</DefineConstants>
+    <DefineConstants>TRACE;LUADLL_NAME_LUA51;USE_CURRENT_FOLDER_AS_DATAPATH</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
