@@ -121,24 +121,24 @@ namespace Capstones.UnityEngineEx
         {
             if (!object.ReferenceEquals(L, null))
             {
-                LuaFramework.ClrFuncReset(L.L);
+                L.Dispose();
+                L = null;
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
             }
-            else
+            L = new LuaState(l);
+            for (int i = 0; i < LuaExLibs.InitFuncs.Count; ++i)
             {
-                L = new LuaState(l);
-                for (int i = 0; i < LuaExLibs.InitFuncs.Count; ++i)
+                var func = LuaExLibs.InitFuncs[i].InitFunc;
+                if (func != null)
                 {
-                    var func = LuaExLibs.InitFuncs[i].InitFunc;
-                    if (func != null)
+                    try
                     {
-                        try
-                        {
-                            func(L);
-                        }
-                        catch (Exception e)
-                        {
-                            PlatDependant.LogError(e);
-                        }
+                        func(L);
+                    }
+                    catch (Exception e)
+                    {
+                        PlatDependant.LogError(e);
                     }
                 }
             }

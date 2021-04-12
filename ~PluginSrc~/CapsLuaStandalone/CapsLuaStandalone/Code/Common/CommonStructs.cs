@@ -7,7 +7,7 @@ using UnityEngine;
 using uobj = UnityEngine.Object;
 #endif
 
-#if (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER && (NETSTANDARD || NETFRAMEWORK)) || NET_STANDARD_2_0
+#if (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER && NETSTANDARD) || NET_STANDARD_2_0
 #else
 using ITuple = System.Runtime.CompilerServices.ITuple;
 #endif
@@ -87,7 +87,7 @@ namespace Capstones.UnityEngineEx
         }
     }
 
-#if (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER && (NETSTANDARD || NETFRAMEWORK)) || NET_STANDARD_2_0
+#if (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER && NETSTANDARD) || NET_STANDARD_2_0
     public interface ITuple
     {
         object this[int index] { get; }

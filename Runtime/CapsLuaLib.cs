@@ -76,7 +76,13 @@ namespace Capstones.LuaLib
 #if UNITY_EDITOR_OSX
         public const string LUADLL = "lua";
 #else
+#if LUADLL_NAME_LUA51
+        public const string LUADLL = "lua51";
+#elif LUADLL_NAME_LUAJIT
+        public const string LUADLL = "luajit";
+#else
         public const string LUADLL = "lua";
+#endif
 #endif
 #elif UNITY_IPHONE
         public const string LUADLL = "__Internal";

@@ -340,7 +340,7 @@ namespace Capstones.UnityEditorEx
             }
             if (GUILayout.Button("导入"))
             {
-                //DoExport(ExportPath);
+                DoImport(ExportPath);
             }
             GUILayout.EndHorizontal();
             GUI.enabled = true;
