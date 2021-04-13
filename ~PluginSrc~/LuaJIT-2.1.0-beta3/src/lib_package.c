@@ -600,13 +600,11 @@ LUALIB_API int luaopen_package(lua_State *L)
   setpath(L, "path", LUA_PATH, "./?.lua", noenv);
   setpath(L, "cpath", LUA_CPATH, "./?.so", noenv);
   #elif TARGET_OS_OSX
-  char exefolder[1024];
-  uint32_t exefolderlen = 1024;
+  uint32_t exefolderlen = 0;
+  _NSGetExecutablePath(0, &exefolderlen);
+  char* exefolder = (char*)malloc(exefolderlen);
   _NSGetExecutablePath(exefolder, &exefolderlen);
-  if (exefolderlen > 1023)
-  {
-    exefolderlen = 1023;
-  }
+  --exefolderlen;
   exefolder[exefolderlen] = 0;
   for (int i = exefolderlen - 1; i >= 0; --i, --exefolderlen)
   {
@@ -634,6 +632,7 @@ LUALIB_API int luaopen_package(lua_State *L)
   strcat(luapath, "?.lua");
   setpath(L, "path", LUA_PATH, luapath, noenv);
   free(luapath);
+  free(exefolder);
   #else
   setpath(L, "path", LUA_PATH, LUA_PATH_DEFAULT, noenv);
   setpath(L, "cpath", LUA_CPATH, LUA_CPATH_DEFAULT, noenv);
