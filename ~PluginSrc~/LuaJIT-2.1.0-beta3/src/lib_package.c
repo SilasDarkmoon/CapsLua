@@ -33,7 +33,7 @@
 #include "TargetConditionals.h"
 #endif
 #if TARGET_OS_OSX
-#define SYMPREFIX_CF		"_luaopen_%s"
+#define SYMPREFIX_CF		"luaopen_%s"
 #include <mach-o/dyld.h>
 #else
 #define SYMPREFIX_CF		"luaopen_%s"
