@@ -605,19 +605,33 @@ LUALIB_API int luaopen_package(lua_State *L)
   _NSGetExecutablePath(exefolder, &exefolderlen);
   if (exefolderlen > 1023)
   {
-      exefolderlen = 1023;
+    exefolderlen = 1023;
   }
   exefolder[exefolderlen] = 0;
-  char* cpath = (char*)malloc(sizeof(LUA_CPATH_DEFAULT) + exefolderlen + 2);
-  memset(cpath, 0, sizeof(LUA_CPATH_DEFAULT) + exefolderlen + 2);
+  for (int i = exefolderlen - 1; i >= 0; --i, --exefolderlen)
+  {
+    char ch = exefolder[i];
+    if (ch == '\\' || ch == '/')
+    {
+      break;
+    }
+    else
+    {
+      exefolder[i] = 0;
+    }
+  }
+  char* cpath = (char*)malloc((sizeof(LUA_CPATH_DEFAULT) + sizeof("?.so") + 2) + exefolderlen);
+  memset(cpath, 0, (sizeof(LUA_CPATH_DEFAULT) + sizeof("?.so") + 2) + exefolderlen);
   strcpy(cpath, LUA_CPATH_DEFAULT ";");
   strcat(cpath, exefolder);
+  strcat(cpath, "?.so");
   setpath(L, "cpath", LUA_CPATH, cpath, noenv);
   free(cpath);
-  char* luapath = (char*)malloc(sizeof(LUA_PATH_DEFAULT) + exefolderlen + 2);
-  memset(luapath, 0, sizeof(LUA_PATH_DEFAULT) + exefolderlen + 2);
+  char* luapath = (char*)malloc((sizeof(LUA_PATH_DEFAULT) + sizeof("?.lua") + 2) + exefolderlen);
+  memset(luapath, 0, (sizeof(LUA_PATH_DEFAULT) + sizeof("?.lua") + 2) + exefolderlen);
   strcpy(luapath, LUA_PATH_DEFAULT ";");
   strcat(luapath, exefolder);
+  strcat(luapath, "?.lua");
   setpath(L, "path", LUA_PATH, luapath, noenv);
   free(luapath);
   #else
