@@ -29,7 +29,15 @@
 #define setprogdir(L)		((void)0)
 
 /* Symbol name prefixes. */
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+#ifdef TARGET_OS_OSX
+#define SYMPREFIX_CF		"_luaopen_%s"
+#include <mach-o/dyld.h>
+#else
 #define SYMPREFIX_CF		"luaopen_%s"
+#endif
 #define SYMPREFIX_BC		"luaJIT_BC_%s"
 
 #if LJ_TARGET_DLOPEN
@@ -585,8 +593,37 @@ LUALIB_API int luaopen_package(lua_State *L)
   lua_getfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   noenv = lua_toboolean(L, -1);
   lua_pop(L, 1);
+  #if defined(_WIN32)
   setpath(L, "path", LUA_PATH, LUA_PATH_DEFAULT, noenv);
   setpath(L, "cpath", LUA_CPATH, LUA_CPATH_DEFAULT, noenv);
+  #elif defined(TARGET_OS_IPHONE) || defined(TARGET_OS_SIMULATOR)
+  setpath(L, "path", LUA_PATH, "./?.lua", noenv);
+  setpath(L, "cpath", LUA_CPATH, "./?.so", noenv);
+  #elif defined(TARGET_OS_OSX)
+  char exefolder[1024];
+  uint32_t exefolderlen = 1024;
+  _NSGetExecutablePath(exefolder, &exefolderlen);
+  if (exefolderlen > 1023)
+  {
+      exefolderlen = 1023;
+  }
+  exefolder[exefolderlen] = 0;
+  char* cpath = (char*)malloc(sizeof(LUA_CPATH_DEFAULT) + exefolderlen + 2);
+  memset(cpath, 0, sizeof(LUA_CPATH_DEFAULT) + exefolderlen + 2);
+  strcpy(cpath, LUA_CPATH_DEFAULT ";");
+  strcat(cpath, exefolder);
+  setpath(L, "cpath", LUA_CPATH, cpath, noenv);
+  free(cpath);
+  char* luapath = (char*)malloc(sizeof(LUA_PATH_DEFAULT) + exefolderlen + 2);
+  memset(luapath, 0, sizeof(LUA_PATH_DEFAULT) + exefolderlen + 2);
+  strcpy(luapath, LUA_PATH_DEFAULT ";");
+  strcat(luapath, exefolder);
+  setpath(L, "path", LUA_PATH, luapath, noenv);
+  free(luapath);
+  #else
+  setpath(L, "path", LUA_PATH, LUA_PATH_DEFAULT, noenv);
+  setpath(L, "cpath", LUA_CPATH, LUA_CPATH_DEFAULT, noenv);
+  #endif
   lua_pushliteral(L, LUA_PATH_CONFIG);
   lua_setfield(L, -2, "config");
   luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 16);
