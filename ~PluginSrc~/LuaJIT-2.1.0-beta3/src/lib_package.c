@@ -32,7 +32,7 @@
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif
-#ifdef TARGET_OS_OSX
+#if TARGET_OS_OSX
 #define SYMPREFIX_CF		"_luaopen_%s"
 #include <mach-o/dyld.h>
 #else
@@ -596,10 +596,10 @@ LUALIB_API int luaopen_package(lua_State *L)
   #if defined(_WIN32)
   setpath(L, "path", LUA_PATH, LUA_PATH_DEFAULT, noenv);
   setpath(L, "cpath", LUA_CPATH, LUA_CPATH_DEFAULT, noenv);
-  #elif defined(TARGET_OS_IPHONE) || defined(TARGET_OS_SIMULATOR)
+  #elif TARGET_OS_IPHONE || TARGET_OS_SIMULATOR
   setpath(L, "path", LUA_PATH, "./?.lua", noenv);
   setpath(L, "cpath", LUA_CPATH, "./?.so", noenv);
-  #elif defined(TARGET_OS_OSX)
+  #elif TARGET_OS_OSX
   char exefolder[1024];
   uint32_t exefolderlen = 1024;
   _NSGetExecutablePath(exefolder, &exefolderlen);
