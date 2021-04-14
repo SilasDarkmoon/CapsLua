@@ -598,6 +598,9 @@ namespace Capstones.LuaLib
         }
 #endif
 
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+        private static string[] _CriticalLuaMods;
+#endif
         public static string[] GetCriticalLuaMods()
         {
 #if UNITY_EDITOR
@@ -644,7 +647,96 @@ namespace Capstones.LuaLib
             }
             return new string[0];
 #else
-            return ResManager.GetValidDistributeFlags();
+            if (ResManager.IsInUnityFolder)
+            {
+                if (_CriticalLuaMods == null)
+                {
+                    if (ResManager.IsInUnityStreamingFolder)
+                    {
+                        List<string> mods = new List<string>();
+                        var modsroot = UnityStreamingSptRoot + "/mod/";
+                        var subs = System.IO.Directory.GetDirectories(modsroot);
+                        if (subs != null)
+                        {
+                            for (int i = 0; i < subs.Length; ++i)
+                            {
+                                var modroot = subs[i];
+                                var mod = modroot.Substring(modsroot.Length);
+                                mods.Add(mod);
+                            }
+                        }
+                        _CriticalLuaMods = mods.ToArray();
+                    }
+                    else
+                    {
+                        List<string> mods = new List<string>();
+                        HashSet<string> set = new HashSet<string>();
+                        {
+                            var modsroot = ResManager.UnityRoot + "/Packages/";
+                            if (System.IO.Directory.Exists(modsroot))
+                            {
+                                var subs = System.IO.Directory.GetDirectories(modsroot);
+                                if (subs != null)
+                                {
+                                    for (int i = 0; i < subs.Length; ++i)
+                                    {
+                                        var modroot = subs[i];
+                                        var mod = modroot.Substring(modsroot.Length);
+                                        if (set.Add(mod))
+                                        {
+                                            mods.Add(mod);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        {
+                            var modsroot = ResManager.UnityRoot + "/Library/PackageCache/";
+                            if (System.IO.Directory.Exists(modsroot))
+                            {
+                                var subs = System.IO.Directory.GetDirectories(modsroot);
+                                if (subs != null)
+                                {
+                                    for (int i = 0; i < subs.Length; ++i)
+                                    {
+                                        var modroot = subs[i];
+                                        var mod = modroot.Substring(modsroot.Length);
+                                        if (set.Add(mod))
+                                        {
+                                            mods.Add(mod);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        {
+                            var modsroot = ResManager.UnityRoot + "/Assets/Mods/";
+                            if (System.IO.Directory.Exists(modsroot))
+                            {
+                                var subs = System.IO.Directory.GetDirectories(modsroot);
+                                if (subs != null)
+                                {
+                                    for (int i = 0; i < subs.Length; ++i)
+                                    {
+                                        var modroot = subs[i];
+                                        var mod = modroot.Substring(modsroot.Length);
+                                        if (set.Add(mod))
+                                        {
+                                            mods.Add(mod);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        _CriticalLuaMods = mods.ToArray();
+                    }
+                }
+                return _CriticalLuaMods;
+            }
+            else
+            {
+                return ResManager.GetValidDistributeFlags();
+            }
 #endif
         }
 
@@ -830,6 +922,108 @@ namespace Capstones.LuaLib
             location = "";
             return null;
         }
+#else
+        private static bool _UnityStreamingSptRootParsed;
+        private static string _UnityStreamingSptRoot;
+        public static string UnityStreamingSptRoot
+        {
+            get
+            {
+                if (!_UnityStreamingSptRootParsed)
+                {
+                    _UnityStreamingSptRootParsed = true;
+                    if (ResManager.IsInUnityFolder)
+                    {
+                        if (ResManager.IsInUnityStreamingFolder)
+                        {
+                            var sptroot = ResManager.UnityRoot + "/Assets/StreamingAssets/spt";
+                            var archroot = sptroot + "/@" + (System.Environment.Is64BitProcess ? "64" : "32");
+                            if (System.IO.Directory.Exists(archroot))
+                            {
+                                sptroot = archroot;
+                            }
+                            _UnityStreamingSptRoot = sptroot;
+                        }
+                    }
+                }
+                return _UnityStreamingSptRoot;
+            }
+        }
+
+        public static System.IO.Stream GetLuaStreamInMod(string mod, string file)
+        {
+            var realpath = file;
+            if (!ResManager.IsInUnityFolder)
+            {
+                if (!string.IsNullOrEmpty(mod))
+                {
+                    realpath = "mod/" + mod + "/" + file;
+                }
+                var stream = ResManager.LoadFileRelative(realpath);
+                if (stream == null)
+                {
+                    stream = ResManager.LoadFileRelative("spt/" + realpath);
+                }
+                return stream;
+            }
+            else
+            {
+                if (ResManager.IsInUnityStreamingFolder)
+                {
+                    if (!string.IsNullOrEmpty(mod))
+                    {
+                        realpath = "mod/" + mod + "/" + file;
+                    }
+                    var tar = UnityStreamingSptRoot + "/" + realpath;
+                    if (System.IO.File.Exists(tar))
+                    {
+                        return PlatDependant.OpenRead(tar);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(mod))
+                    {
+                        realpath = ResManager.UnityRoot + "/Packages/" + mod + "/CapsSpt/" + file;
+                        if (System.IO.File.Exists(realpath))
+                        {
+                            return PlatDependant.OpenRead(realpath);
+                        }
+                        realpath = ResManager.UnityRoot + "/Library/PackageCache/" + mod + "/CapsSpt/" + file;
+                        if (System.IO.File.Exists(realpath))
+                        {
+                            return PlatDependant.OpenRead(realpath);
+                        }
+                        realpath = ResManager.UnityRoot + "/Assets/Mods/" + mod + "/CapsSpt/" + file;
+                        if (System.IO.File.Exists(realpath))
+                        {
+                            return PlatDependant.OpenRead(realpath);
+                        }
+                        return null;
+                    }
+                    else
+                    {
+                        realpath = ResManager.UnityRoot + "/Assets/CapsSpt/" + file;
+                        if (System.IO.File.Exists(realpath))
+                        {
+                            return PlatDependant.OpenRead(realpath);
+                        }
+                        //realpath = ResManager.UnityRoot + "/" + file;
+                        //if (System.IO.File.Exists(realpath))
+                        //{
+                        //    return PlatDependant.OpenRead(realpath);
+                        //}
+                        //realpath = file;
+                        //return ResManager.LoadFileRelative(realpath);
+                        return null;
+                    }
+                }
+            }
+        }
 #endif
         public static System.IO.Stream GetLuaStream(string name, out string location)
         {
@@ -1011,7 +1205,7 @@ namespace Capstones.LuaLib
                         {
                             real = "/mod/" + mod + "/spt/" + norm + ".lua";
                         }
-                        var stream = ResManager.LoadFileRelative(real);
+                        var stream = GetLuaStreamInMod(mod, norm + ".lua");
                         if (stream != null)
                         {
                             location = real;
@@ -1020,9 +1214,21 @@ namespace Capstones.LuaLib
                     }
                     else
                     {
-                        var file = "/spt/" + name.Replace('.', '/') + ".lua";
+                        var file = name.Replace('.', '/') + ".lua";
+                        string prefix = "spt/";
+                        if (ResManager.IsInUnityStreamingFolder)
+                        {
+                            if (!UnityStreamingSptRoot.EndsWith("/spt"))
+                            {
+                                prefix += "@" + (System.Environment.Is64BitProcess ? "64/" : "32/");
+                            }
+                        }
+                        else if (ResManager.IsInUnityFolder)
+                        {
+                            prefix = "CapsSpt/";
+                        }
                         string real, mod, dist;
-                        real = ResManager.FindFile(file, out mod, out dist);
+                        real = ResManager.FindFile(prefix, file, out mod, out dist);
                         if (real != null)
                         {
                             try
@@ -1033,11 +1239,11 @@ namespace Capstones.LuaLib
                                     location = file;
                                     if (!string.IsNullOrEmpty(dist))
                                     {
-                                        location = "/dist/" + dist + location;
+                                        location = "dist/" + dist + "/" + location;
                                     }
                                     if (!string.IsNullOrEmpty(mod))
                                     {
-                                        location = "/mod/" + mod + location;
+                                        location = "mod/" + mod + "/" + location;
                                     }
                                     return stream;
                                 }

@@ -142,6 +142,12 @@ namespace Capstones.UnityEngineEx
                     }
                 }
             }
+            if (ResManager.IsInUnityFolder)
+            {
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "clrstruct.init");
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "libs.init");
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "core.init");
+            }
             return 0;
         }
 #endif
