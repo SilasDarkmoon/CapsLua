@@ -12,3 +12,5 @@ mv ./src/luajit ./luajit_arm64
 
 lipo -create -output ./libluajit.so ./libluajit_x86_64.so ./libluajit_arm64.so
 lipo -create -output ./luajit ./luajit_x86_64 ./luajit_arm64
+
+make clean
