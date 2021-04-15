@@ -93,6 +93,10 @@ namespace Capstones.UnityEditorEx
             {
                 exportPath = System.IO.Path.GetDirectoryName(exportPath);
             }
+            if (System.IO.File.Exists(exportPath + "/.luaexport"))
+            {
+                return exportPath + "/";
+            }
             if (string.IsNullOrEmpty(exportPath))
             {
                 return "~lua~/";
@@ -360,6 +364,10 @@ namespace Capstones.UnityEditorEx
             if (last.Equals("~lualib~", StringComparison.InvariantCultureIgnoreCase))
             {
                 exportPath = System.IO.Path.GetDirectoryName(exportPath);
+            }
+            if (System.IO.File.Exists(exportPath + "/.lualibexport"))
+            {
+                return exportPath + "/";
             }
             if (string.IsNullOrEmpty(exportPath))
             {
