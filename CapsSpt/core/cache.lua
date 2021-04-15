@@ -25,7 +25,7 @@ function cache.isObjWrapperTable(tab)
 end
 
 function cache.getPersistentDataPath()
-    return ___CONFIG__PERSISTENT_DATA_PATH or clr.UnityEngine.Application.persistentDataPath
+    return ___CONFIG__PERSISTENT_DATA_PATH or clr.Capstones.UnityEngineEx.ThreadSafeValues.AppPersistentDataPath
 end
 
 local cacheData = { }
@@ -285,7 +285,7 @@ function cache.getLocalData(key)
     if info then
         return info.data, info.persistent, info.readonly
     end
-    local data = clr.UnityEngine.PlayerPrefs.GetString(key)
+    local data = clr.Capstones.UnityEngineEx.IsolatedPrefs.GetString(key)
     if data == nil or data == "" then
         info = { persistent = false }
         cacheData.data[key] = info
@@ -340,11 +340,11 @@ function cache.save(key, persistentflag)
         cache.callListener(key, 'onSave')
         if value == nil or value == "" then
             -- value is nil to remove the data binded to the key
-            clr.UnityEngine.PlayerPrefs.DeleteKey(key);
+            clr.Capstones.UnityEngineEx.IsolatedPrefs.DeleteKey(key);
         else
             value = json.encode(value)
             if persistentflag == 'file' then
-                clr.UnityEngine.PlayerPrefs.SetString(key, 'file')
+                clr.Capstones.UnityEngineEx.IsolatedPrefs.SetString(key, 'file')
                 local f = io.open(cache.getPersistentDataPath() .. '/' .. key .. '.json', 'w')
                 if f then
                     f:write(value)
@@ -352,10 +352,10 @@ function cache.save(key, persistentflag)
                     f:close()
                 end
             else
-                clr.UnityEngine.PlayerPrefs.SetString(key, value)
+                clr.Capstones.UnityEngineEx.IsolatedPrefs.SetString(key, value)
             end
         end
-        clr.UnityEngine.PlayerPrefs.Save()
+        clr.Capstones.UnityEngineEx.IsolatedPrefs.Save()
     end
     return true
 end
@@ -366,7 +366,7 @@ function cache.unsave(key)
     if not cache.isPersistent(key) then return end
     cacheData.data[key].persistent = false
     cache.callListener(key, 'onUnsave')
-    clr.UnityEngine.PlayerPrefs.DeleteKey(key);
+    clr.Capstones.UnityEngineEx.IsolatedPrefs.DeleteKey(key);
 end
 
 -- on writing persistent data, we must set the third param to true or it will fail!
