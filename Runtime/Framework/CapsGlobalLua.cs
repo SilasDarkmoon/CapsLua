@@ -117,7 +117,7 @@ namespace Capstones.UnityEngineEx
         }
 
 #if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
-        public static void luaopen_CapsLua(IntPtr l)
+        public static int luaopen_CapsLua(IntPtr l)
         {
             if (!object.ReferenceEquals(L, null))
             {
@@ -142,6 +142,13 @@ namespace Capstones.UnityEngineEx
                     }
                 }
             }
+            if (ResManager.IsInUnityFolder)
+            {
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "clrstruct.init");
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "libs.init");
+                Capstones.LuaExt.LuaFramework.TryRequireLua(L, "core.init");
+            }
+            return 0;
         }
 #endif
 
