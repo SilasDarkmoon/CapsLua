@@ -251,6 +251,7 @@ namespace Capstones.LuaLib
                 {
                     LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
                     wrapper.Binding = (LuaWrap.BaseLua)obj;
+                    return wrapper;
                 }
             }
             if (type.IsAssignableFrom(obj.GetType()))
