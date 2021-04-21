@@ -1134,6 +1134,13 @@ namespace Capstones.UnityEditorEx
                 var outsptdir = outputDir + "/spt/";
                 if (System.IO.Directory.Exists(outsptdir))
                 {
+                    HashSet<string> nocopyfiles = new HashSet<string>()
+                    {
+                        "icon.png",
+                        "icon.ico",
+                        "desktop.ini",
+                        "Icon?",
+                    };
                     var allbuildfiles = PlatDependant.GetAllFiles(outsptdir);
                     for (int i = 0; i < allbuildfiles.Length; ++i)
                     {
@@ -1144,6 +1151,10 @@ namespace Capstones.UnityEditorEx
                             continue;
                         }
                         var part = srcfile.Substring(outsptdir.Length);
+                        if (nocopyfiles.Contains(part))
+                        {
+                            continue;
+                        }
                         logger.Log(part);
                         var destfile = "Assets/StreamingAssets/spt/" + part;
                         PlatDependant.CreateFolder(System.IO.Path.GetDirectoryName(destfile));
