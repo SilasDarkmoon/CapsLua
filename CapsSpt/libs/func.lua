@@ -1002,8 +1002,15 @@ end
 -- import("./abc") => require(CURRENT_DIR .. "abc")
 -- import("../abc") => require(PARENT_DIR .. "abc")
 function import(lib)
+    lib = string.gsub(lib, "\\", "/")
+    local cnt = 0
+    repeat
+        lib, cnt = string.gsub(lib, "//", "/")
+    until cnt <= 0
+
     -- if not specified relative path, use default require
     if string.sub(lib, 1, 2) ~= "./" and string.sub(lib, 1, 3) ~= "../" then
+        lib = string.gsub(lib, "/", ".")
         return require(lib)
     end
 
@@ -1039,5 +1046,7 @@ function import(lib)
         package = (package):match("^(.+)[%./][^%./]+") or ""
     end
 
-    return require(package .. "/" .. lib)
+    lib = package .. "." .. lib
+    lib = string.gsub(lib, "/", ".")
+    return require(lib)
 end
