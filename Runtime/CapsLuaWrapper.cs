@@ -924,6 +924,13 @@ namespace Capstones.LuaLib
             public override bool Nonexclusive { get { return true; } }
             public static void SetDataRaw(IntPtr l, int index, T val)
             {
+                if (!typeof(T).IsValueType)
+                {
+                    if (ReferenceEquals(val, null))
+                    {
+                        return;
+                    }
+                }
                 if (ReferenceEquals(val.Binding, null))
                 {
                     val.BindLua(l);
@@ -1040,6 +1047,14 @@ namespace Capstones.LuaLib
             }
             public static void PushLuaRaw(IntPtr l, T val)
             {
+                if (!typeof(T).IsValueType)
+                {
+                    if (ReferenceEquals(val, null))
+                    {
+                        l.pushnil();
+                        return;
+                    }
+                }
                 if (ReferenceEquals(val.Binding, null))
                 {
                     if (!val.BindLua(l))
