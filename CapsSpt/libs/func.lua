@@ -716,6 +716,9 @@ end
 
 if clr then
     function table.readonly(t)
+        if table.isreadonly(t) then
+            return t
+        end
         local readonlymeta = {
             __newindex = function() error("Try modify readonly table!") end,
             __index = t,
