@@ -714,6 +714,19 @@ function table.shuffleArray(t)
     end
 end
 
+if not table.pack then
+    function table.pack(...)
+        local result = {...}
+        result.n = select("#", ...)
+    end
+end
+
+if not table.unpack then
+    function table.unpack(list)
+        return unpack(list, 1, list.n)
+    end
+end
+
 if clr then
     function table.readonly(t)
         if table.isreadonly(t) then
