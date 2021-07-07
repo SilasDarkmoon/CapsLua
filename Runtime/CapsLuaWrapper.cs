@@ -809,6 +809,64 @@ namespace Capstones.LuaWrap
             return thiz.BindLua(l, Pack());
         }
 
+        public static bool BindType(this ILuaWrapper thiz)
+        {
+            if (thiz == null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(thiz.Binding, null))
+            {
+                return false;
+            }
+            var l = thiz.Binding.L;
+            using (l.CreateStackRecover())
+            {
+                l.PushLua(thiz.Binding);
+                if (!l.getmetatable(-1)) // ud meta
+                { // ud
+                    l.newtable(); // ud meta
+                    l.pushvalue(-1); // ud meta meta
+                    l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
+                    l.pushvalue(-1); // ud meta meta
+                    l.setmetatable(-3); // ud meta
+                }
+                else
+                { // we have already made metatable. check whether it is a lua-class
+                    // ud meta
+                    l.GetField(-1, "__ctype"); // ud meta ctype
+                    if (!l.isnoneornil(-1))
+                    { // this is a lua-class
+                        l.pop(2); // ud
+                        l.pushvalue(-1); // ud ud
+                    }
+                    else
+                    { // check the trans is stored in the ud
+                        l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta ctype #trans
+                        l.rawget(-4); // ud meta ctype trans
+                        if (!l.isnoneornil(-1))
+                        { // the trans is stored in the ud, it is a lua-class
+                            l.pop(3); // ud
+                            l.pushvalue(-1); // ud ud
+                        }
+                        else
+                        { // normal lua table
+                            l.pop(2); // ud meta
+                        }
+                    }
+                }
+                // ud meta
+                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta #trans
+                l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud meta #trans trans
+                l.rawset(-3); // ud meta
+                l.pushlightuserdata(LuaConst.LRKEY_TARGET);
+                l.PushLuaRawObject(new WeakReference(thiz));
+                l.rawset(-3); // ud meta
+                l.pop(2); // X
+                return true;
+            }
+        }
+
         public static T GetWrapper<T>(this ILuaWrapper thiz) where T : ILuaWrapper, new()
         {
             if (thiz == null)
