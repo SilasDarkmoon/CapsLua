@@ -820,9 +820,9 @@ namespace Capstones.LuaWrap
                 return false;
             }
             var l = thiz.Binding.L;
-            using (l.CreateStackRecover())
+            //using (l.CreateStackRecover())
             {
-                l.PushLua(thiz.Binding);
+                l.PushLua(thiz.Binding); // ud
                 if (!l.getmetatable(-1)) // ud meta
                 { // ud
                     l.newtable(); // ud meta

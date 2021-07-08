@@ -517,6 +517,16 @@ function table.clear(tab)
     end
 end
 
+function table.removeRange(tab, from, to)
+    local cnt = #tab
+    if cnt >= from then
+        local removeCnt = to - from + 1
+        for i = from, cnt do
+            tab[i] = tab[i + removeCnt]
+        end
+    end
+end
+
 --[[--
 
 Return formatted string with a comma (",") between every group of thousands.
@@ -718,6 +728,7 @@ if not table.pack then
     function table.pack(...)
         local result = {...}
         result.n = select("#", ...)
+        return result
     end
 end
 
