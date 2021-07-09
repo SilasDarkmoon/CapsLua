@@ -167,15 +167,29 @@ namespace Capstones.LuaExt
 #endif
         private static void OnUnityStart()
         {
-#if !UNITY_EDITOR && (UNITY_ENGINE || UNITY_5_3_OR_NEWER)
             ResManager.AddInitItem(ResManager.LifetimeOrders.PreEntrySceneDone, GlobalLuaInitLua);
-#endif
         }
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+        private static bool _Awaken = false;
+        private static void GlobalLuaInitLua()
+        {
+            if (_Awaken)
+            {
+                GlobalLua.Init();
+                InitLua(GlobalLua.L.L);
+            }
+            else
+            {
+                _Awaken = true;
+            }
+        }
+#else
         private static void GlobalLuaInitLua()
         {
             GlobalLua.Init();
             InitLua(GlobalLua.L.L);
         }
+#endif
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);
