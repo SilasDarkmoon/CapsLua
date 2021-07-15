@@ -14,6 +14,7 @@ namespace Capstones.LuaLib
 #endif
     public static partial class LuaHubEx
     {
+        static LuaHubEx() { }
         public static void Init() { }
     }
 }

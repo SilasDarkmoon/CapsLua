@@ -412,19 +412,19 @@ namespace Capstones.UnityEditorEx
 
             if (!PlatDependant.IsFileExist(manidir + "LuaPrecompileLoaderEx.cs"))
             {
-                PlatDependant.CopyFile(srcdir + "LuaPrecompileLoaderEx.cs~", manidir + "LuaPrecompileLoaderEx.cs");
+                PlatDependant.CopyFile(srcdir + ".LuaPrecompileLoaderEx.cs", manidir + "LuaPrecompileLoaderEx.cs");
             }
             if (!PlatDependant.IsFileExist(manidir + "LuaPrecompileLoaderEx.cs.meta"))
             {
-                PlatDependant.CopyFile(srcdir + "LuaPrecompileLoaderEx.cs.meta~", manidir + "LuaPrecompileLoaderEx.cs.meta");
+                PlatDependant.CopyFile(srcdir + ".LuaPrecompileLoaderEx.cs.meta", manidir + "LuaPrecompileLoaderEx.cs.meta");
             }
             if (!PlatDependant.IsFileExist(manidir + "Resources/LuaPrecompileLoaderEx.asset"))
             {
-                PlatDependant.CopyFile(srcdir + "LuaPrecompileLoaderEx.asset~", manidir + "Resources/LuaPrecompileLoaderEx.asset");
+                PlatDependant.CopyFile(srcdir + ".LuaPrecompileLoaderEx.asset", manidir + "Resources/LuaPrecompileLoaderEx.asset");
             }
             if (!PlatDependant.IsFileExist(manidir + "Resources/LuaPrecompileLoaderEx.asset.meta"))
             {
-                PlatDependant.CopyFile(srcdir + "LuaPrecompileLoaderEx.asset.meta~", manidir + "Resources/LuaPrecompileLoaderEx.asset.meta");
+                PlatDependant.CopyFile(srcdir + ".LuaPrecompileLoaderEx.asset.meta", manidir + "Resources/LuaPrecompileLoaderEx.asset.meta");
             }
         }
 

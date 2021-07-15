@@ -63,6 +63,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "randomstate");
                         L.PushString(ThreadSafeValues.UpdatePath);
                         L.SetField(-2, "updatepath");
+                        L.PushString(ThreadSafeValues.LogPath);
+                        L.SetField(-2, "logpath");
                         L.pushcfunction(ClrDelGetLangValueOfUserDataType);
                         L.SetField(-2, "trans");
                         L.pushcfunction(ClrDelGetLangValueOfStringType);
@@ -167,15 +169,31 @@ namespace Capstones.LuaExt
 #endif
         private static void OnUnityStart()
         {
-#if !UNITY_EDITOR && (UNITY_ENGINE || UNITY_5_3_OR_NEWER)
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
             ResManager.AddInitItem(ResManager.LifetimeOrders.PreEntrySceneDone, GlobalLuaInitLua);
 #endif
         }
+#if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER
+        private static bool _Awaken = false;
+        private static void GlobalLuaInitLua()
+        {
+            if (_Awaken)
+            {
+                GlobalLua.Init();
+                InitLua(GlobalLua.L.L);
+            }
+            else
+            {
+                _Awaken = true;
+            }
+        }
+#else
         private static void GlobalLuaInitLua()
         {
             GlobalLua.Init();
             InitLua(GlobalLua.L.L);
         }
+#endif
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);

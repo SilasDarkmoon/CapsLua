@@ -297,7 +297,8 @@ namespace Capstones.UnityEditorEx
             { "Packages/cn.capstones.lua/Runtime/LuaExt/CapsLuaExtJson.cs",                                 "Lua/LuaExt/CapsLuaExtJson.cs" },
             { "Packages/cn.capstones.lua/Runtime/Precompile/LuaHub_LuaNative.cs",                           "Lua/LuaHubSub/LuaHub_LuaNative.cs" },
             { "Packages/cn.capstones.lua/Runtime/Precompile/LuaPrecompileAttribute.cs",                     "Lua/LuaHubSub/LuaPrecompileAttribute.cs" },
-            { "Assets/Mods/CapsLua/LuaHubSub/LuaPrecompileLoaderEx.cs",                                     "Lua/LuaHubSub/LuaPrecompileLoaderEx.cs" },
+            { "Packages/cn.capstones.lua/Runtime/Precompile/.LuaPrecompileLoaderEx.cs",                     "Lua/LuaHubSub/LuaPrecompileLoaderEx.cs" },
+            { "Packages/cn.capstones.network/Editor/.LuaProtobufBridge.cs",                                 "Lua/LuaExt/LuaProtobufBridge.cs" },
             { "Assets/Mods/CapsLua/LuaHubSub/LuaHub_Capstones_LuaLib_LuaHub.cs",                            "Lua/LuaHubSub/LuaHub_Capstones_LuaLib_LuaHub.cs" },
             { "Assets/Mods/CapsLua/LuaHubSub/LuaHub_Capstones_LuaLib_LuaHub_LuaHubC.cs",                    "Lua/LuaHubSub/LuaHub_Capstones_LuaLib_LuaHub_LuaHubC.cs" },
             { "Assets/Mods/CapsLua/LuaHubSub/LuaHub_System_Boolean.cs",                                     "Lua/LuaHubSub/LuaHub_System_Boolean.cs" },
@@ -385,6 +386,7 @@ namespace Capstones.UnityEditorEx
             {
                 return;
             }
+            var toroot = PlatDependant.IsFileExist(exportPath + ".lualibexport");
             if (System.IO.Directory.Exists(exportPath))
             {
                 try
@@ -397,11 +399,19 @@ namespace Capstones.UnityEditorEx
                 }
             }
             System.IO.Directory.CreateDirectory(exportPath);
+            if (toroot)
+            {
+                PlatDependant.WriteAllBytes(exportPath + ".lualibexport", new byte[0]);
+            }
 
             foreach (var kvp in LuaLibFileMap)
             {
-                var dest = exportPath + kvp.Value;
-                PlatDependant.CopyFile(kvp.Key, dest);
+                var src = kvp.Key;
+                if (PlatDependant.IsFileExist(src))
+                {
+                    var dest = exportPath + kvp.Value;
+                    PlatDependant.CopyFile(src, dest);
+                }
             }
             EditorUtility.RevealInFinder(exportPath);
         }
