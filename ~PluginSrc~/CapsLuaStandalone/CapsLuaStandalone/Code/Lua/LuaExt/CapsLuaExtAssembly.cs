@@ -415,26 +415,53 @@ namespace Capstones.LuaExt
         {
             if (l.istable(1))
             {
-                Array arr = null;
-                using (var lr = new LuaStateRecover(l))
+                if (l.GetType(1) == typeof(Type))
                 {
-                    var len = l.getn(1);
-                    var otype = l.GetLua<Type>(2);
-                    if (otype == null)
+                    var t = l.GetLua<Type>(1);
+                    int rank = 1;
+                    if (l.IsNumber(2))
                     {
-                        otype = typeof(object);
+                        l.GetLua(2, out rank);
                     }
-                    arr = Array.CreateInstance(otype, len);
-                    for(int i = 0; i < len; ++i)
+                    if (rank < 1)
                     {
-                        l.pushnumber(i + 1);
-                        l.gettable(1);
-                        arr.SetValue(l.GetLua(-1).ConvertType(otype), i);
-                        l.pop(1);
+                        rank = 1;
                     }
+                    Type arrt;
+                    if (rank == 1)
+                    {
+                        arrt = t.MakeArrayType();
+                    }
+                    else
+                    {
+                        arrt = t.MakeArrayType(rank);
+                    }
+                    l.PushLua(arrt);
+                    return 1;
                 }
-                l.PushLuaObject(arr);
-                return 1;
+                else
+                {
+                    Array arr = null;
+                    using (var lr = new LuaStateRecover(l))
+                    {
+                        var len = l.getn(1);
+                        var otype = l.GetLua<Type>(2);
+                        if (otype == null)
+                        {
+                            otype = typeof(object);
+                        }
+                        arr = Array.CreateInstance(otype, len);
+                        for (int i = 0; i < len; ++i)
+                        {
+                            l.pushnumber(i + 1);
+                            l.gettable(1);
+                            arr.SetValue(l.GetLua(-1).ConvertType(otype), i);
+                            l.pop(1);
+                        }
+                    }
+                    l.PushLuaObject(arr);
+                    return 1;
+                }
             }
             else if (l.IsString(1))
             {

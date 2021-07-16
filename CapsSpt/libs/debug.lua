@@ -133,6 +133,8 @@ function vardump(object, label, israw)
         if clr and clr.isobj(v) then
             if v == clr.null then
                 return "'"..tostring(clr.type(v))..", null'"
+            elseif clr.is(v, clr.array(clr.System.Byte)) then
+                return "\""..clr.luastr(v).."\""
             else
                 return "'"..tostring(clr.type(v))..", "..tostring(v).."'"
             end
@@ -214,6 +216,8 @@ function vardump(object, label, israw)
             if not israw and not table.isudtable(object) and clr and clr.isobj(object) then
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
+                elseif clr.is(object, clr.array(clr.System.Byte)) then
+                    result[line] = reallabel.." \""..clr.luastr(object).."\""
                 else
                     result[line] = string.format("%s'%s, %s'", reallabel, tostring(clr.type(object)), clrobj2str(object))
                 end
