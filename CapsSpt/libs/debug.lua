@@ -74,37 +74,79 @@ Dumps information about a variable.
 @return nil|string
 
 ]]
-function dump(object, label)
+function dump(object, label, israw)
     if LogEnabled == false or LogInfoEnabled == false then return end
-    local result = vardump(object, label)
-    local str = table.concat(result, "\n")
-    echo(str)
-    return str
+    local message = dumpq(object, label, israw)
+    print(message)
+    return message
 end
 
-function dumpq(object, label)
-    local result = vardump(object, label)
-    local str = table.concat(result, "\n")
-    return str
+function dumpq(object, label, israw)
+    local result = vardump(object, label, israw)
+    return table.concat(result, "\n")
 end
 
-function dumpw(object, label)
+function dumpw(object, label, israw)
     if LogEnabled == false or LogWarningEnabled == false then return end
-    printw(dumpq(object, label))
+    printw(dumpq(object, label, israw))
 end
 
-function dumpe(object, label)
+function dumpe(object, label, israw)
     if LogEnabled == false or LogErrorEnabled == false then return end
-    local msg = dumpq(object, label)
-    printe(msg)
+    printe(dumpq(object, label, israw))
+end
+
+function dumprawq(object, label)
+    return dumpq(object, lable, true)
 end
 
 function dumpraw(object, label)
     if LogEnabled == false or LogInfoEnabled == false then return end
-    local result = vardump(object, label, true)
-    local str = table.concat(result, "\n")
-    echo(str)
+    local message = dumprawq(object, label)
+    print(message)
+    return message
+end
+
+function dumpraww(object, label)
+    if LogEnabled == false or LogWarningEnabled == false then return end
+    printw(dumprawq(object, label))
+end
+
+function dumprawe(object, label)
+    if LogEnabled == false or LogErrorEnabled == false then return end
+    printe(dumprawq(object, label))
+end
+
+function ndump(...)
+    if LogEnabled == false or LogInfoEnabled == false then return end
+    local str = ndumpq(...)
+    print(str)
     return str
+end
+
+function ndumpq(...)
+    local str
+    for i = 1, select('#', ...) do
+        local arg = select(i, ...)
+        local result = vardump(arg, i)
+        if str then
+            str = str..'\n'
+        else
+            str = ""
+        end
+        str = str..table.concat(result, "\n")..','
+    end
+    return str
+end
+
+function ndumpw(...)
+    if LogEnabled == false or LogWarningEnabled == false then return end
+    printw(ndumpq(...))
+end
+
+function ndumpe(...)
+    if LogEnabled == false or LogErrorEnabled == false then return end
+    printe(ndumpq(...))
 end
 
 local typeClrBytes
@@ -272,46 +314,4 @@ function vardump(object, label, israw)
     _vardump(object, label, "", 1)
 
     return result
-end
-
-function ndump(...)
-    if LogEnabled == false or LogInfoEnabled == false then return end
-    local str
-    for i = 1, select('#', ...) do
-        local arg = select(i, ...)
-        local result = vardump(arg, i)
-        if str then
-            str = str..'\n'
-        else
-            str = ""
-        end
-        str = str..table.concat(result, "\n")..','
-    end
-    echo(str)
-end
-
-local function ndumpq(...)
-    local str
-    for i = 1, select('#', ...) do
-        local arg = select(i, ...)
-        local result = vardump(arg, i)
-        if str then
-            str = str..'\n'
-        else
-            str = ""
-        end
-        str = str..table.concat(result, "\n")..','
-    end
-
-    return str
-end
-
-function ndumpw(...)
-    if LogEnabled == false or LogWarningEnabled == false then return end
-    printw(ndumpq(...))
-end
-
-function ndumpe(...)
-    if LogEnabled == false or LogErrorEnabled == false then return end
-    printe(ndumpq(...))
 end
