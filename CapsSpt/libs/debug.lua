@@ -107,6 +107,14 @@ function dumpraw(object, label)
     return str
 end
 
+local typeClrBytes
+local function isClrBytes(val)
+    if not typeClrBytes then
+        typeClrBytes = clr.array(clr.System.Byte)
+    end
+    return rawequal(clr.type(val), typeClrBytes)
+end
+
 --[[--
 
 Outputs or returns a parsable string representation of a variable.
@@ -123,9 +131,7 @@ function vardump(object, label, israw)
 
     local function _v(v)
         if type(v) == "string" then
-            local str = string.gsub(v, "\\", "\\\\")
-            str = string.gsub(str, "\"", "\\\"")
-            return "\""..str.."\""
+            return "\""..clr.luastr(v).."\""
         end
         if type(v) == 'number' or type(v) == 'boolean' then
             return tostring(v)
@@ -133,8 +139,8 @@ function vardump(object, label, israw)
         if clr and clr.isobj(v) then
             if v == clr.null then
                 return "'"..tostring(clr.type(v))..", null'"
-            elseif clr.is(v, clr.array(clr.System.Byte)) then
-                return "\""..clr.luastr(v).."\""
+            elseif isClrBytes(v) then
+                return "\""..clr.datastr(v).."\""
             else
                 return "'"..tostring(clr.type(v))..", "..tostring(v).."'"
             end
@@ -145,14 +151,17 @@ function vardump(object, label, israw)
     local _vardump -- local function _vardump
     local function _k(k, indent, nest)
         if type(k) == "string" then
-            if k ~= "" then
-                local firstChar = string.byte (k, 1)
+            local str = clr.luastr(k)
+            if str ~= "" then
+                local firstChar = string.byte (str, 1)
                 if firstChar >= 65 and firstChar <= 90 or firstChar == 95 or firstChar >= 97 and firstChar <= 122 then
                     --a-zA-Z_
-                    return k
+                    if not string.find(str, "\\", 1, true) then
+                        return str
+                    end
                 end
             end
-            return string.format('["%s"]', k)
+            return string.format('["%s"]', str)
         end
         if type(k) == 'number' or type(k) == 'boolean' then
             return string.format("[%s]", tostring(k))
@@ -216,8 +225,8 @@ function vardump(object, label, israw)
             if not israw and not table.isudtable(object) and clr and clr.isobj(object) then
                 if object == clr.null then
                     result[line] = string.format("%s'%s, null'", reallabel, tostring(clr.type(object)))
-                elseif clr.is(object, clr.array(clr.System.Byte)) then
-                    result[line] = reallabel.." \""..clr.luastr(object).."\""
+                elseif isClrBytes(object) then
+                    result[line] = reallabel.." \""..clr.datastr(object).."\""
                 else
                     result[line] = string.format("%s'%s, %s'", reallabel, tostring(clr.type(object)), clrobj2str(object))
                 end
