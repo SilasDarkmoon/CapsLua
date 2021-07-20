@@ -137,116 +137,7 @@ namespace Capstones.LuaLib
         //{
         //}
 
-        public class LuaStringUTF8DecoderFallback : System.Text.DecoderFallback
-        {
-            public override int MaxCharCount { get { return 8; } }
-
-            public override System.Text.DecoderFallbackBuffer CreateFallbackBuffer()
-            {
-                return new LuaStringUTF8DecoderFallbackBuffer();
-            }
-
-            public class LuaStringUTF8DecoderFallbackBuffer : System.Text.DecoderFallbackBuffer
-            {
-                private byte[] _UnKnownBytes;
-                private int _ReadPos = -1;
-
-                public override int Remaining { get { return _UnKnownBytes.Length - 1 - _ReadPos; } }
-
-                public override bool Fallback(byte[] bytesUnknown, int index)
-                {
-                    _UnKnownBytes = bytesUnknown;
-                    _ReadPos = -1;
-                    return true;
-                }
-
-                public override char GetNextChar()
-                {
-                    ++_ReadPos;
-                    if (_ReadPos >= _UnKnownBytes.Length)
-                    {
-                        return '\0';
-                    }
-                    ushort ch = _UnKnownBytes[_ReadPos];
-                    ch += 0xEC00;
-                    return (char)ch;
-                }
-
-                public override bool MovePrevious()
-                {
-                    if (_ReadPos < 0)
-                    {
-                        return false;
-                    }
-                    --_ReadPos;
-                    return true;
-                }
-            }
-        }
-        private static System.Text.Decoder _LuaStringUTF8Decoder;
-        public static System.Text.Decoder LuaStringUTF8Decoder
-        {
-            get
-            {
-                if (_LuaStringUTF8Decoder == null)
-                {
-                    _LuaStringUTF8Decoder = System.Text.Encoding.UTF8.GetDecoder();
-                    _LuaStringUTF8Decoder.Fallback = new LuaStringUTF8DecoderFallback();
-                }
-                return _LuaStringUTF8Decoder;
-            }
-        }
-        public static char[] GetCharsLuaString(byte[] data)
-        {
-            var cnt = data.Length;
-            var decoder = LuaStringUTF8Decoder;
-            var chcnt = decoder.GetCharCount(data, 0, cnt, true);
-            char[] chars = new char[chcnt];
-            decoder.GetChars(data, 0, cnt, chars, 0);
-            return chars;
-        }
-        public struct DataStringFormat
-        {
-            public HashSet<char> EscapeChars;
-            public string PreUnicodeEscape;
-            public string UnicodeEscapeFormat;
-        }
-        public static string FormatDataString(byte[] data, DataStringFormat format)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            var chars = GetCharsLuaString(data);
-
-            for (int i = 0; i < chars.Length; ++i)
-            {
-                var ch = chars[i];
-                if (format.EscapeChars != null && format.EscapeChars.Contains(ch))
-                {
-                    sb.Append("\\");
-                    sb.Append(ch);
-                }
-                else if ((int)ch >= 32 && (int)ch <= 126)
-                {
-                    sb.Append(ch);
-                }
-                else if (ch < 128)
-                {
-                    sb.Append(format.PreUnicodeEscape);
-                    sb.Append(((int)ch).ToString(format.UnicodeEscapeFormat));
-                }
-                else if ((((int)ch) & 0xFF00) == 0xEC00)
-                {
-                    int real = ((int)ch) & 0xFF;
-                    sb.Append(format.PreUnicodeEscape);
-                    sb.Append(real.ToString(format.UnicodeEscapeFormat));
-                }
-                else
-                {
-                    sb.Append(ch);
-                }
-            }
-            return sb.ToString();
-        }
-        private static DataStringFormat _LuaDataStringFormat = new DataStringFormat()
+        private static UnityEngineEx.PlatDependant.DataStringFormat _LuaDataStringFormat = new UnityEngineEx.PlatDependant.DataStringFormat()
         {
             EscapeChars = new HashSet<char>() { '\\', '\"', '\'' },
             PreUnicodeEscape = "\\",
@@ -254,17 +145,11 @@ namespace Capstones.LuaLib
         };
         public static string FormatLuaString(byte[] data)
         {
-            return FormatDataString(data, _LuaDataStringFormat);
+            return UnityEngineEx.PlatDependant.FormatDataString(data, _LuaDataStringFormat);
         }
-        private static DataStringFormat _JsonDataStringFormat = new DataStringFormat()
+        public static string FormatLuaString(string raw)
         {
-            EscapeChars = new HashSet<char>() { '\\', '\"', '/' },
-            PreUnicodeEscape = "\\u",
-            UnicodeEscapeFormat = "X4",
-        };
-        public static string FormatJsonString(byte[] data)
-        {
-            return FormatDataString(data, _JsonDataStringFormat);
+            return UnityEngineEx.PlatDependant.FormatDataString(raw, _LuaDataStringFormat);
         }
     }
 

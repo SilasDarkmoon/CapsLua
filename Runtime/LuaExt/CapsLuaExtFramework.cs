@@ -51,7 +51,7 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "capid");
                         L.pushcfunction(ClrDelSplitStr);
                         L.SetField(-2, "splitstr");
-                        L.pushcfunction(ClrDelFormatBuffer);
+                        L.pushcfunction(ClrDelFormatDataString);
                         L.SetField(-2, "datastr");
                         L.pushcfunction(ClrDelFormatJsonString);
                         L.SetField(-2, "jsonstr");
@@ -210,7 +210,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
         public static readonly lua.CFunction ClrDelGetCapID = new lua.CFunction(ClrFuncGetCapID);
         public static readonly lua.CFunction ClrDelSplitStr = new lua.CFunction(ClrFuncSplitStr);
-        public static readonly lua.CFunction ClrDelFormatBuffer = new lua.CFunction(ClrFuncFormatBuffer);
+        public static readonly lua.CFunction ClrDelFormatDataString = new lua.CFunction(ClrFuncFormatDataString);
         public static readonly lua.CFunction ClrDelFormatLuaString = new lua.CFunction(ClrFuncFormatLuaString);
         public static readonly lua.CFunction ClrDelFormatJsonString = new lua.CFunction(ClrFuncFormatJsonString);
         public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
@@ -474,12 +474,12 @@ namespace Capstones.LuaExt
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
-        public static int ClrFuncFormatBuffer(IntPtr l)
+        public static int ClrFuncFormatDataString(IntPtr l)
         {
             if (l.isstring(1))
             {
                 var buffer = l.tolstring(1);
-                l.PushString(PlatDependant.FormatBuffer(buffer));
+                l.PushString(PlatDependant.FormatDataString(buffer));
                 return 1;
             }
             else if (l.IsObject(1))
@@ -488,13 +488,13 @@ namespace Capstones.LuaExt
                 if (obj is byte[])
                 {
                     var buffer = (byte[])obj;
-                    l.PushString(PlatDependant.FormatBuffer(buffer));
+                    l.PushString(PlatDependant.FormatDataString(buffer));
                     return 1;
                 }
                 else if (obj is IList<byte>)
                 {
                     var buffer = (IList<byte>)obj;
-                    l.PushString(PlatDependant.FormatBuffer(buffer));
+                    l.PushString(PlatDependant.FormatDataString(buffer));
                     return 1;
                 }
             }
@@ -521,7 +521,7 @@ namespace Capstones.LuaExt
             {
                 return 0;
             }
-            l.PushLua(LuaString.FormatJsonString(data));
+            l.PushLua(PlatDependant.FormatJsonString(data));
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
