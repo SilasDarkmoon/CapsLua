@@ -335,7 +335,6 @@ namespace Capstones.LuaExt
                         ILuaNative snative = sub as ILuaNative;
                         if (snative != null)
                         {
-                            
                             ILuaNative dnative = dsub as ILuaNative;
                             if (dnative != null)
                             {
