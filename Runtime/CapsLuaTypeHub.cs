@@ -136,6 +136,7 @@ namespace Capstones.LuaLib
             protected SafeDict<string, TypeHubBase> _NestedTypes = new SafeDict<string, TypeHubBase>();
 
             protected SafeDict<Type, LuaConvertFunc> _ConvertFuncs = new SafeDict<Type, LuaConvertFunc>();
+            protected LinkedList<KeyValuePair<Type, LuaConvertFunc>> _ConvertFromFuncs = new LinkedList<KeyValuePair<Type, LuaConvertFunc>>();
 
             public static void PushCallableRaw(IntPtr l, LuaMetaCallWithPrecompiled info)
             {
@@ -927,6 +928,18 @@ namespace Capstones.LuaLib
                 LuaConvertFunc rv;
                 _ConvertFuncs.TryGetValue(totype, out rv);
                 return rv;
+            }
+            public LuaConvertFunc GetConverterFrom(Type fromtype)
+            {
+                foreach (var kvp in _ConvertFromFuncs)
+                {
+                    var stype = kvp.Key;
+                    if (stype.IsAssignableFrom(fromtype))
+                    {
+                        return kvp.Value;
+                    }
+                }
+                return null;
             }
 
             public virtual bool ShouldCache
