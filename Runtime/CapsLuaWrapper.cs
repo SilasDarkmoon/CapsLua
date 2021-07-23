@@ -576,16 +576,34 @@ namespace Capstones.LuaWrap
         {
             this.BindLua(l);
         }
-        protected static LuaTypeHub.TypeHubValueType CheckLuaHubSub(object thiz)
+        protected internal static LuaTypeHub.TypeHubValueType CheckLuaHubSub(object thiz)
         {
             var type = thiz.GetType();
+            return CheckLuaHubSub(type);
+        }
+        protected internal static LuaTypeHub.TypeHubValueType CheckLuaHubSub(Type type)
+        {
             LuaTypeHub.TypeHubValueType hub;
             if (!LuaHubSubs.TryGetValue(type, out hub))
             {
                 try
                 {
+                    LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
+                    if (LuaHubSubs.TryGetValue(type, out hub))
+                    {
+                        return hub;
+                    }
+                }
+                catch (Exception e)
+                {
+                    DynamicHelper.LogError(e);
+                    //return null;
+                }
+
+                try
+                {
                     hub = (LuaTypeHub.TypeHubValueType)Activator.CreateInstance(typeof(LuaHub.BaseLuaWrapperHub<>).MakeGenericType(type));
-                    //LuaHubSubs[type] = hub;
+                    LuaHubSubs[type] = hub;
                 }
                 catch (Exception e)
                 {
@@ -994,24 +1012,39 @@ namespace Capstones.LuaLib
             object IInstanceCreator.NewInstance() { return NewInstance(); }
 
             public override bool Nonexclusive { get { return true; } }
-            public static void SetDataRaw(IntPtr l, int index, T val)
+            public void SetDataRaw(IntPtr l, int index, T val)
             {
-                l.checkstack(3);
-                l.pushvalue(index); // otab
-                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // otab #tar
-                LuaHubNative.PushLua(l, val); // otab #tar obj
-                l.rawset(-3); // otab
-                l.pop(1);
+                if (_ExposeToLua)
+                {
+                    l.checkstack(3);
+                    l.pushvalue(index); // otab
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // otab #tar
+                    LuaHubNative.PushLua(l, val); // otab #tar obj
+                    l.rawset(-3); // otab
+                    l.pop(1);
+                }
+                else
+                {
+                    val.BindType();
+                    LuaHubNative.SetDataRaw(l, index, val);
+                }
             }
-            public static T GetLuaRaw(IntPtr l, int index)
+            public T GetLuaRaw(IntPtr l, int index)
             {
-                l.checkstack(2);
-                l.pushvalue(index); // otab
-                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // otab #tar
-                l.rawget(-2); // otab ud
-                var result = LuaHubNative.GetLua(l, -1);
-                l.pop(2); // X
-                return result;
+                if (_ExposeToLua)
+                {
+                    l.checkstack(2);
+                    l.pushvalue(index); // otab
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // otab #tar
+                    l.rawget(-2); // otab ud
+                    var result = LuaHubNative.GetLua(l, -1);
+                    l.pop(2); // X
+                    return result;
+                }
+                else
+                {
+                    return LuaHubNative.GetLua(l, index);
+                }
             }
 
             public class LuaWrapperNative : LuaPushNativeBase<T>, ILuaTypeRef, ILuaTrans
@@ -1189,14 +1222,24 @@ namespace Capstones.LuaLib
             }
             public static readonly LuaWrapperNative LuaHubNative = new LuaWrapperNative();
 
-            public BaseLuaWrapperHub() : base(typeof(T))
+            private bool _ExposeToLua;
+            public BaseLuaWrapperHub(bool exposeToLua) : base(exposeToLua ? typeof(T) : null)
             {
+                _ExposeToLua = exposeToLua;
+                if (!exposeToLua)
+                {
+                    t = typeof(T);
+                }
                 PutIntoCache();
                 BaseLuaWrapper.LuaHubSubs[t] = this;
 
-                _ConvertFromFuncs.AddLast(new KeyValuePair<Type, LuaConvertFunc>(typeof(BaseLua), ConvertFromBaseLua));
-                _ConvertFromFuncs.AddLast(new KeyValuePair<Type, LuaConvertFunc>(typeof(ILuaWrapper), ConvertFromLuaWrapper));
+                _ConvertFromFuncs = new[]
+                {
+                    new KeyValuePair<Type, LuaConvertFunc>(typeof(BaseLua), ConvertFromBaseLua),
+                    new KeyValuePair<Type, LuaConvertFunc>(typeof(ILuaWrapper), ConvertFromLuaWrapper),
+                };
             }
+            public BaseLuaWrapperHub() : this(false) { }
             protected override bool UpdateDataAfterCall
             {
                 get { return true; }
@@ -1216,18 +1259,26 @@ namespace Capstones.LuaLib
             }
             public IntPtr PushLua(IntPtr l, T val)
             {
-                l.checkstack(3);
-                l.newtable(); // ud
-                SetDataRaw(l, -1, val);
-                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud #trans
-                l.pushlightuserdata(r); // ud #trans trans
-                l.rawset(-3); // ud
+                if (_ExposeToLua)
+                {
+                    l.checkstack(3);
+                    l.newtable(); // ud
+                    SetDataRaw(l, -1, val);
+                    l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud #trans
+                    l.pushlightuserdata(r); // ud #trans trans
+                    l.rawset(-3); // ud
 
-                PushToLuaCached(l); // ud type
-                l.pushlightuserdata(LuaConst.LRKEY_OBJ_META); // ud type #meta
-                l.rawget(-2); // ud type meta
-                l.setmetatable(-3); // ud type
-                l.pop(1); // ud
+                    PushToLuaCached(l); // ud type
+                    l.pushlightuserdata(LuaConst.LRKEY_OBJ_META); // ud type #meta
+                    l.rawget(-2); // ud type meta
+                    l.setmetatable(-3); // ud type
+                    l.pop(1); // ud
+                }
+                else
+                {
+                    val.BindType();
+                    LuaHubNative.PushLua(l, val);
+                }
                 return IntPtr.Zero;
             }
             public void SetData(IntPtr l, int index, T val)
@@ -1288,6 +1339,20 @@ namespace Capstones.LuaLib
                 return 0;
             }
         }
+
+        private class BaseLuaWrapperHubPrepareFuncs
+        {
+            private static LuaTypeHub.TypeHubBase PrepareTypeHub(Type type)
+            {
+                return BaseLuaWrapper.CheckLuaHubSub(type);
+            }
+
+            public BaseLuaWrapperHubPrepareFuncs()
+            {
+                LuaTypeHub.RegTypeHubPrepareFunc(typeof(ILuaWrapper), PrepareTypeHub);
+            }
+        }
+        private static BaseLuaWrapperHubPrepareFuncs _BaseLuaWrapperHubPrepareFuncs = new BaseLuaWrapperHubPrepareFuncs();
     }
 }
 

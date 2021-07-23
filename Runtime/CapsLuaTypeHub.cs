@@ -18,12 +18,20 @@ namespace Capstones.LuaLib
         private static Dictionary<Type, TypeHubBase> _TypeHubCache = new Dictionary<Type, TypeHubBase>();
 #endif
         private static Dictionary<Type, Func<Type, TypeHubBase>> _TypeHubCreators = new Dictionary<Type, Func<Type, TypeHubBase>>(); // Notice: this field should be filled only once, on starting.
+        private static LinkedList<KeyValuePair<Type, Func<Type, TypeHubBase>>> _TypeHubPrepareFuncs = new LinkedList<KeyValuePair<Type, Func<Type, TypeHubBase>>>();
 
         public static void RegTypeHubCreator(Type type, Func<Type, TypeHubBase> creator)
         {
             if (type != null && creator != null)
             {
                 _TypeHubCreators[type] = creator;
+            }
+        }
+        public static void RegTypeHubPrepareFunc(Type type, Func<Type, TypeHubBase> func)
+        {
+            if (type != null && func != null)
+            {
+                _TypeHubPrepareFuncs.AddLast(new KeyValuePair<Type, Func<Type, TypeHubBase>>(type, func));
             }
         }
 
@@ -63,6 +71,30 @@ namespace Capstones.LuaLib
                     catch (Exception e)
                     {
                         PlatDependant.LogError(e);
+                    }
+                }
+                if (hub == null)
+                {
+                    var node = _TypeHubPrepareFuncs.First;
+                    while (node != null)
+                    {
+                        var kvp = node.Value;
+                        if (kvp.Key.IsAssignableFrom(type))
+                        {
+                            try
+                            {
+                                hub = kvp.Value(type);
+                                if (hub != null)
+                                {
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PlatDependant.LogError(e);
+                            }
+                        }
+                        node = node.Next;
                     }
                 }
                 if (hub == null)
@@ -136,7 +168,7 @@ namespace Capstones.LuaLib
             protected SafeDict<string, TypeHubBase> _NestedTypes = new SafeDict<string, TypeHubBase>();
 
             protected SafeDict<Type, LuaConvertFunc> _ConvertFuncs = new SafeDict<Type, LuaConvertFunc>();
-            protected LinkedList<KeyValuePair<Type, LuaConvertFunc>> _ConvertFromFuncs = new LinkedList<KeyValuePair<Type, LuaConvertFunc>>();
+            protected IList<KeyValuePair<Type, LuaConvertFunc>> _ConvertFromFuncs;
 
             public static void PushCallableRaw(IntPtr l, LuaMetaCallWithPrecompiled info)
             {
@@ -931,12 +963,16 @@ namespace Capstones.LuaLib
             }
             public LuaConvertFunc GetConverterFrom(Type fromtype)
             {
-                foreach (var kvp in _ConvertFromFuncs)
+                if (_ConvertFromFuncs != null)
                 {
-                    var stype = kvp.Key;
-                    if (stype.IsAssignableFrom(fromtype))
+                    for (int i = 0; i < _ConvertFromFuncs.Count; ++i)
                     {
-                        return kvp.Value;
+                        var kvp = _ConvertFromFuncs[i];
+                        var stype = kvp.Key;
+                        if (stype.IsAssignableFrom(fromtype))
+                        {
+                            return kvp.Value;
+                        }
                     }
                 }
                 return null;
