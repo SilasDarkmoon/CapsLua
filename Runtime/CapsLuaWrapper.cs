@@ -579,7 +579,36 @@ namespace Capstones.LuaWrap
         protected internal static LuaTypeHub.TypeHubValueType CheckLuaHubSub(object thiz)
         {
             var type = thiz.GetType();
-            return CheckLuaHubSub(type);
+            LuaTypeHub.TypeHubValueType hub;
+            if (!LuaHubSubs.TryGetValue(type, out hub))
+            {
+                // Notice: the thiz is the instance of type, we donot need create another instance of type.
+                //try
+                //{
+                //    LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
+                //    if (LuaHubSubs.TryGetValue(type, out hub))
+                //    {
+                //        return hub;
+                //    }
+                //}
+                //catch (Exception e)
+                //{
+                //    DynamicHelper.LogError(e);
+                //    //return null;
+                //}
+
+                try
+                {
+                    hub = (LuaTypeHub.TypeHubValueType)Activator.CreateInstance(typeof(LuaHub.BaseLuaWrapperHub<>).MakeGenericType(type));
+                    LuaHubSubs[type] = hub;
+                }
+                catch (Exception e)
+                {
+                    DynamicHelper.LogError(e);
+                    return null;
+                }
+            }
+            return hub;
         }
         protected internal static LuaTypeHub.TypeHubValueType CheckLuaHubSub(Type type)
         {
