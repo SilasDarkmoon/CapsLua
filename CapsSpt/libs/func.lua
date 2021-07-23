@@ -1077,3 +1077,87 @@ function import(lib)
     lib = string.gsub(lib, "/", ".")
     return require(lib)
 end
+
+function isolate(tab, env)
+    if not env then
+        env = {
+            exports = _G,
+        }
+        env["_G"] = env
+        local envmeta = {
+            __index = _G,
+        }
+        setmetatable(env, envmeta)
+    end
+    local emuthd = coroutine.create(function()
+        setfenv(0, env)
+        local func, args
+        local results = table.pack()
+        while true do
+            func, args = coroutine.yield(results)
+            results = table.pack(func(table.unpack(args)))
+        end
+    end)
+    local success, message = coroutine.resume(emuthd)
+    if not success then
+        printe(message)
+    end
+
+    local isorunning = false
+    local function isorun(raw, ...)
+        if isorunning or coroutine.running() == emuthd then -- when access in C, we could directly call funcs in emuthd, in this condition, isorunning == false but cannot coroutine.resume
+            return raw(...)
+        end
+        isorunning = true
+        setfenv(raw, env)
+        local success, result = coroutine.resume(emuthd, raw, table.pack(...))
+        isorunning = false
+        if not success then
+            printe(result)
+            return
+        end
+        return table.unpack(result)
+    end
+    local function isofunc(raw)
+        return function(...)
+            return isorun(raw, ...)
+        end
+    end
+
+    if type(tab) == "function" then
+        tab = isorun(tab)
+    elseif type(tab) == "string" then
+        tab = isorun(function()
+            local cls = require(tab)
+            if cls.__ctype and type(cls.new) == "function" then
+                return cls.new()
+            else
+                return cls
+            end
+        end)
+    end
+
+    local iso = { __run = isorun, __func = isofunc }
+    local isometa = {
+        __index = isofunc(function(t, k)
+            local raw = tab[k]
+            if type(raw) == "function" then
+                return isofunc(raw)
+            end
+            return raw
+        end),
+        __newindex = isofunc(function(t, k, v)
+            tab[k] = v
+        end),
+    }
+    local oldmeta = getmetatable(tab)
+    if oldmeta then
+        local isometameta = {
+            __index = oldmeta
+        }
+        setmetatable(isometa, isometameta)
+    end
+    setmetatable(iso, isometa)
+    return iso
+    -- TODO: for pairs/ipairs, next, #, __call, ...
+end
