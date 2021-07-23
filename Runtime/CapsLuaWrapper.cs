@@ -815,6 +815,20 @@ namespace Capstones.LuaWrap
 
     public static class LuaWrapperExtensions
     {
+        private static IntPtr GetNativeTrans(Type t)
+        {
+            object ntrans;
+            if (LuaHub.LuaPushNative._NativePushLuaFuncs.TryGetValue(t, out ntrans))
+            {
+                ILuaHandle hntrans = ntrans as ILuaHandle;
+                if (hntrans != null)
+                {
+                    return hntrans.r;
+                }
+            }
+            return IntPtr.Zero;
+        }
+
         public static bool BindLua<TIn>(this ILuaWrapper thiz, IntPtr l, TIn args)
             where TIn : struct, ILuaPack
         {
@@ -846,8 +860,16 @@ namespace Capstones.LuaWrap
                     l.pop(1);
                     l.pushvalue(-1); // ud ud
                 }
+                var ntrans = GetNativeTrans(thiz.GetType());
+                if (ntrans == IntPtr.Zero)
+                {
+                    ntrans = LuaHub._LuaWrapperNativeCommon.r;
+                    l.PushString(LuaConst.LS_SP_KEY_TYPE);
+                    l.PushLua(thiz.GetType());
+                    l.rawset(-3);
+                }
                 l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta #trans
-                l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud meta #trans trans
+                l.pushlightuserdata(ntrans); // ud meta #trans trans
                 l.rawset(-3); // ud meta
                 l.pushlightuserdata(LuaConst.LRKEY_TARGET);
                 l.PushLuaRawObject(new WeakReference(thiz));
@@ -914,8 +936,16 @@ namespace Capstones.LuaWrap
                     }
                 }
                 // ud meta
+                var ntrans = GetNativeTrans(thiz.GetType());
+                if (ntrans == IntPtr.Zero)
+                {
+                    ntrans = LuaHub._LuaWrapperNativeCommon.r;
+                    l.PushString(LuaConst.LS_SP_KEY_TYPE);
+                    l.PushLua(thiz.GetType());
+                    l.rawset(-3);
+                }
                 l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ud meta #trans
-                l.pushlightuserdata(LuaTypeHub.GetTypeHub(thiz.GetType()).r); // ud meta #trans trans
+                l.pushlightuserdata(ntrans); // ud meta #trans trans
                 l.rawset(-3); // ud meta
                 l.pushlightuserdata(LuaConst.LRKEY_TARGET);
                 l.PushLuaRawObject(new WeakReference(thiz));
@@ -1100,7 +1130,7 @@ namespace Capstones.LuaLib
                         l.gettable(-2); // ud tar
                         var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<T>() : default(T);
                         l.pop(2); // X
-                        if (current != null && !ReferenceEquals(current.Binding, null))
+                        if (current != null && !ReferenceEquals(current.Binding, null)) // TODO: when T is ValueType, current != null may cause box of current.
                         {
                             // Notice: the current may point to diffent lua table because it is created by clone() in lua.
                             var pthis = l.topointer(index);
@@ -1114,42 +1144,39 @@ namespace Capstones.LuaLib
                         }
                         {
                             var val = new T();
-                            if (val != null)
+                            l.pushvalue(index); // ud
+                            val.Binding = new BaseLua(l, l.refer()); // X
+                            l.pushvalue(index); // ud
+                            if (!l.getmetatable(-1)) // ud meta
+                            { // ud
+                                l.newtable(); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.setmetatable(-3); // ud meta
+                            }
+                            else
                             {
-                                l.pushvalue(index); // ud
-                                val.Binding = new BaseLua(l, l.refer()); // X
-                                l.pushvalue(index); // ud
-                                if (!l.getmetatable(-1)) // ud meta
-                                { // ud
-                                    l.newtable(); // ud meta
-                                    l.pushvalue(-1); // ud meta meta
-                                    l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
-                                    l.pushvalue(-1); // ud meta meta
-                                    l.setmetatable(-3); // ud meta
+                                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                                l.rawget(-2); // ud meta tar
+                                if (l.isnoneornil(-1))
+                                { // the tar is not stored in metatable
+                                    l.pop(2); // ud
+                                    l.pushvalue(-1); // ud ud
                                 }
                                 else
                                 {
-                                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
-                                    l.rawget(-2); // ud meta tar
-                                    if (l.isnoneornil(-1))
-                                    { // the tar is not stored in metatable
-                                        l.pop(2); // ud
-                                        l.pushvalue(-1); // ud ud
-                                    }
-                                    else
-                                    {
-                                        l.pop(1); // ud meta
-                                    }
+                                    l.pop(1); // ud meta
                                 }
-                                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
-                                l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
-                                l.rawset(-3); // ud meta
-                                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
-                                l.pushlightuserdata(r);
-                                l.rawset(-3);
-                                l.pop(2); // X
-                                return val;
                             }
+                            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                            l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                            l.rawset(-3); // ud meta
+                            l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
+                            l.pushlightuserdata(r);
+                            l.rawset(-3);
+                            l.pop(2); // X
+                            return val;
                         }
                     }
                     return default(T);
@@ -1382,6 +1409,209 @@ namespace Capstones.LuaLib
             }
         }
         private static BaseLuaWrapperHubPrepareFuncs _BaseLuaWrapperHubPrepareFuncs = new BaseLuaWrapperHubPrepareFuncs();
+
+        public class LuaWrapperNativeCommon : ILuaHandle, ILuaTrans, ILuaPush
+        {
+            protected IntPtr _r;
+            public IntPtr r
+            {
+                get { return _r; }
+            }
+            public LuaWrapperNativeCommon()
+            {
+                _r = (IntPtr)System.Runtime.InteropServices.GCHandle.Alloc(this);
+            }
+
+            public object GetLua(IntPtr l, int index)
+            {
+                if (l.istable(index) || l.IsUserDataTable(index))
+                {
+                    l.checkstack(3);
+                    l.pushvalue(index); // ud
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
+                    l.gettable(-2); // ud tar
+                    var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<ILuaWrapper>() : null;
+                    l.pop(2); // X
+                    if (current != null && !ReferenceEquals(current.Binding, null))
+                    {
+                        // Notice: the current may point to diffent lua table because it is created by clone() in lua.
+                        var pthis = l.topointer(index);
+                        l.PushLua(current.Binding);
+                        var pcur = l.topointer(-1);
+                        l.pop(1);
+                        if (pthis == pcur)
+                        {
+                            return current;
+                        }
+                    }
+                    Type wrapperType;
+                    l.pushvalue(index); // ud
+                    l.PushString(LuaConst.LS_SP_KEY_TYPE); // ud @type
+                    l.gettable(-2); // ud type
+                    l.GetLua(-1, out wrapperType);
+                    l.pop(2); // X
+                    if (wrapperType == null || !typeof(ILuaWrapper).IsAssignableFrom(wrapperType))
+                    {
+                        wrapperType = typeof(BaseLuaWrapper);
+                    }
+
+                    {
+                        ILuaWrapper val = null;
+                        try
+                        {
+                            val = Activator.CreateInstance(wrapperType) as ILuaWrapper;
+                        }
+                        catch (Exception e)
+                        {
+                            DynamicHelper.LogError(e);
+                        }
+                        if (val == null)
+                        {
+                            val = new BaseLuaWrapper();
+                        }
+
+                        {
+                            l.pushvalue(index); // ud
+                            val.Binding = new BaseLua(l, l.refer()); // X
+                            l.pushvalue(index); // ud
+                            if (!l.getmetatable(-1)) // ud meta
+                            { // ud
+                                l.newtable(); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
+                                l.pushvalue(-1); // ud meta meta
+                                l.setmetatable(-3); // ud meta
+                            }
+                            else
+                            {
+                                l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                                l.rawget(-2); // ud meta tar
+                                if (l.isnoneornil(-1))
+                                { // the tar is not stored in metatable
+                                    l.pop(2); // ud
+                                    l.pushvalue(-1); // ud ud
+                                }
+                                else
+                                {
+                                    l.pop(1); // ud meta
+                                }
+                            }
+                            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                            l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                            l.rawset(-3); // ud meta
+                            l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
+                            l.pushlightuserdata(r);
+                            l.rawset(-3); // ud meta
+                            l.pop(2); // X
+                            return val;
+                        }
+                    }
+                }
+                return null;
+            }
+            public IntPtr PushLua(IntPtr l, object val)
+            {
+                var wrapper = val as ILuaWrapper;
+                if (ReferenceEquals(wrapper, null))
+                {
+                    l.pushnil();
+                    return IntPtr.Zero;
+                }
+                if (ReferenceEquals(wrapper.Binding, null))
+                {
+                    if (!wrapper.BindLua(l))
+                    {
+                        l.pushnil();
+                        return IntPtr.Zero;
+                    }
+                }
+                l.PushLua(wrapper.Binding);
+                return IntPtr.Zero;
+            }
+            public void SetData(IntPtr l, int index, object val)
+            {
+                var wrapper = val as ILuaWrapper;
+                if (ReferenceEquals(wrapper, null))
+                {
+                    return;
+                }
+                if (ReferenceEquals(wrapper.Binding, null))
+                {
+                    wrapper.BindLua(l);
+                }
+                else if (!(wrapper.Binding is BaseLuaOnStack))
+                {
+                    l.checkstack(3);
+                    l.PushLua(wrapper.Binding); // ud
+                    l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud #tar
+                    l.gettable(-2); // ud tar
+                    var current = l.isuserdata(-1) ? (l.GetLuaRawObject(-1) as WeakReference).GetWeakReference<ILuaWrapper>() : null;
+                    if (ReferenceEquals(current, val))
+                    {
+                        l.pop(2); // X
+                    }
+                    else
+                    {
+                        l.pop(1); // ud
+                        if (!l.getmetatable(-1)) // ud meta
+                        { // ud
+                            l.newtable(); // ud meta
+                            l.pushvalue(-1); // ud meta meta
+                            l.SetField(-2, LuaConst.LS_META_KEY_INDEX); // ud meta
+                            l.pushvalue(-1); // ud meta meta
+                            l.setmetatable(-3); // ud meta
+                        }
+                        else
+                        {
+                            l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                            l.rawget(-2); // ud meta tar
+                            if (l.isnoneornil(-1))
+                            { // the tar is not stored in metatable
+                                l.pop(2); // ud
+                                l.pushvalue(-1); // ud ud
+                            }
+                            else
+                            {
+                                l.pop(1); // ud meta
+                            }
+                        }
+                        l.pushlightuserdata(LuaConst.LRKEY_TARGET); // ud meta #tar
+                        l.PushLuaRawObject(new WeakReference(val)); // ud meta #tar tar
+                        l.rawset(-3); // ud meta
+                        l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS);
+                        l.pushlightuserdata(r);
+                        l.rawset(-3);
+                        l.PushString(LuaConst.LS_SP_KEY_TYPE);
+                        l.PushLua(val.GetType());
+                        l.rawset(-3);
+                        l.pop(2); // X
+                    }
+                }
+            }
+
+            public bool Nonexclusive { get { return true; } }
+            public bool ShouldCache { get { return false; } }
+            public Type GetType(IntPtr l, int index)
+            {
+                Type t;
+                l.checkstack(3);
+                l.pushvalue(index); // ud
+                l.PushString(LuaConst.LS_SP_KEY_TYPE); // ud @type
+                l.gettable(-2); // ud type
+                l.GetLua(-1, out t);
+                l.pop(2);
+                if (t == null || !typeof(ILuaWrapper).IsAssignableFrom(t))
+                {
+                    t = typeof(BaseLuaWrapper);
+                }
+                return t;
+            }
+            public bool PushFromCache(IntPtr l, object val)
+            {
+                return false;
+            }
+        }
+        internal static LuaWrapperNativeCommon _LuaWrapperNativeCommon = new LuaWrapperNativeCommon();
     }
 }
 
