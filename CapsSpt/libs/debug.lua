@@ -97,7 +97,7 @@ function dumpe(object, label, israw)
 end
 
 function dumprawq(object, label)
-    return dumpq(object, lable, true)
+    return dumpq(object, label, true)
 end
 
 function dumpraw(object, label)
