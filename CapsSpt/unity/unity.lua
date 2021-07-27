@@ -166,10 +166,15 @@ function unity.component(go, comp)
 end
 
 function unity.restart()
-    res.Cleanup()
+    -- 使用这个会使ab缺失，资源也没有重新加载。所以不使用了。
+    -- res.Cleanup()
     for k,v in pairs(package.loaded) do
         package.loaded[k] = nil
     end
+
+    res.DestroyAll()
+    res.CollectGarbage(2)
+    res.ClearSceneCache()
 
     Application.LoadLevel(0)
     Time.timeScale = 1
