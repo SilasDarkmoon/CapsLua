@@ -166,10 +166,14 @@ function unity.component(go, comp)
 end
 
 function unity.restart()
-    res.Cleanup()
+    -- res.Cleanup()
     for k,v in pairs(package.loaded) do
         package.loaded[k] = nil
     end
+
+    res.DestroyAll()
+    res.CollectGarbage(2)
+    res.ClearSceneCache()
 
     Application.LoadLevel(0)
     Time.timeScale = 1
