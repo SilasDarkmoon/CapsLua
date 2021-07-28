@@ -88,7 +88,10 @@ Creating a copy of an table with fully replicated properties.
 function clone(object)
     local lookup_table = {}
     local function _copy(object)
-        if type(object) ~= "table" and not table.isudtable(object) then
+        if table.isudtable(object) then
+            return _copy(table.getraw(object))
+        end
+        if type(object) ~= "table" then
             return object
         elseif lookup_table[object] then
             return lookup_table[object]
@@ -104,7 +107,10 @@ function clone(object)
 end
 
 function shallowClone(object)
-    if type(object) ~= "table" and not table.isudtable(object) then
+    if table.isudtable(object) then
+        return shallowClone(table.getraw(object))
+    end
+    if type(object) ~= "table" then
         return object
     end
     local new_table = {}
@@ -1159,5 +1165,5 @@ function isolate(tab, env)
     end
     setmetatable(iso, isometa)
     return iso
-    -- TODO: for pairs/ipairs, next, #, __call, ...
+    -- TODO: for pairs/ipairs, next, #, __call, ..., make it a udtable?
 end
