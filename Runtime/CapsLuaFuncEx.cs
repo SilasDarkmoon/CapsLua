@@ -72,6 +72,21 @@ namespace Capstones.LuaWrap
             l.remove(-2); // obj
             return true;
         }
+        public static bool NewTableOrRequire(this IntPtr l, string luafile)
+        {
+            l.Require(luafile); // class
+            if (!l.istable(-1))
+            {
+                return false;
+            }
+            if (l.CallRawSingleReturn(-1, "new") != 0) // class obj
+            {
+                l.pop(1); // class
+                return false;
+            }
+            l.remove(-2); // obj
+            return true;
+        }
 
         public static TOut PushArgsAndCall<TIn, TOut>(this IntPtr l, TIn args)
             where TIn : struct, ILuaPack

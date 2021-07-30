@@ -844,8 +844,20 @@ namespace Capstones.LuaWrap
                 }
                 else if (!l.NewTable(thiz.LuaFile, args)) // ud
                 {
-                    l.pop(1);
-                    return false;
+                    l.pop(1); // X
+                    if (args.Length == 0)
+                    {
+                        l.Require(thiz.LuaFile); // file
+                        if (!l.istable(-1) && !l.IsUserDataTable(-1))
+                        {
+                            l.pop(1); // X
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 if (!l.getmetatable(-1)) // ud meta
                 { // ud
