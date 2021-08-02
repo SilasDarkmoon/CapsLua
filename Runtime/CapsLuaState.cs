@@ -203,7 +203,9 @@ namespace Capstones.LuaWrap
             {
                 return code;
             }
+            var lrr = new LuaRunningStateRecorder(l);
             code = l.pcall(0, lua.LUA_MULTRET, oldtop + 1);
+            lrr.Dispose();
             l.remove(oldtop + 1);
             return code;
         }

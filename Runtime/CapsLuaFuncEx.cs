@@ -108,7 +108,9 @@ namespace Capstones.LuaWrap
                 l.insert(oldtop); // error func
                 var argc = args.Length;
                 args.PushToLua(l); // error func args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();
@@ -147,7 +149,9 @@ namespace Capstones.LuaWrap
                 l.PushLua(self); // error func self
                 var argc = args.Length;
                 args.PushToLua(l); // error func self args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc + 1, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();
@@ -185,7 +189,9 @@ namespace Capstones.LuaWrap
                 l.insert(oldtop); // error func self
                 var argc = args.Length;
                 args.PushToLua(l); // error func self args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc + 1, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();

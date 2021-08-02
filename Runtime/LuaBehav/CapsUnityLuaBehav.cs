@@ -300,7 +300,9 @@ public class CapsUnityLuaBehav : MonoBehaviour
             l.insert(oldtop + 2); // func, this, args(*pcnt)
             l.pushcfunction(LuaHub.LuaFuncOnError); // func, this, args(*pcnt), err
             l.insert(oldtop + 1); // err, func, this, args(*pcnt)
+            var lrr = new LuaRunningStateRecorder(l);
             var code = l.pcall(pcnt + 1, lua.LUA_MULTRET, oldtop + 1); // err, rv(*x)
+            lrr.Dispose();
             l.remove(oldtop + 1); // rv(*x)
             if (code != 0)
             {
