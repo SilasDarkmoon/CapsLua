@@ -460,7 +460,12 @@ namespace Capstones.LuaLib
                 l.pushvalue(i);
             }
             // err realfunc args(*argc)
-            l.pcall(argc, lua.LUA_MULTRET, oldtop + 1); // err rv(*n)
+            var code = l.pcall(argc, lua.LUA_MULTRET, oldtop + 1); // err rv(*n)
+            if (code != 0)
+            { // err failmessage
+                l.pop(2); // X
+                return 0;
+            }
             l.remove(oldtop + 1); // rv(*n)
             return l.gettop() - oldtop;
         }

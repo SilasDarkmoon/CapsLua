@@ -416,6 +416,7 @@ namespace Capstones.LuaLib
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         private static int LuaMetaExtCall(IntPtr l)
         {
+            l.pushcfunction(LuaHub.LuaFuncOnError); // err
             var oldtop = l.gettop();
             l.pushvalue(1); // func
             MakeUnextend(l, -1);
@@ -429,17 +430,23 @@ namespace Capstones.LuaLib
             {
                 MakeUnextend(l, -1);
             }
-            for (int i = 2; i <= oldtop; ++i)
+            for (int i = 2; i <= oldtop - 1; ++i)
             {
                 l.pushvalue(i);
                 MakeUnextend(l, -1);
             }
-            l.call(l.gettop() - oldtop - 1, lua.LUA_MULTRET);
+            var code = l.pcall(l.gettop() - oldtop - 1, lua.LUA_MULTRET, oldtop);
+            if (code != 0)
+            {
+                l.settop(oldtop - 1);
+                return 0;
+            }
             var rvcnt = l.gettop() - oldtop;
             for (int i = 1; i <= rvcnt; ++i)
             {
                 MakeExtend(l, i + oldtop);
             }
+            l.remove(oldtop);
             return rvcnt;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
@@ -528,17 +535,27 @@ namespace Capstones.LuaLib
                     MakeUnextend(l, -1);
                     l.pushvalue(2); // err func1 op1 op2
                     MakeUnextend(l, -1);
-                    l.pcall(2, 2, -4); // err rv failed
-                    if (!l.toboolean(-1))
-                    {
+                    var code = l.pcall(2, 2, -4); // err rv failed
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2); // X
+                    }
+                    else if (!l.toboolean(-1))
+                    { // err rv failed(false)
                         l.pop(1); // err rv
-                        l.insert(3); // rv err
-                        l.settop(3); // rv
+                        l.remove(-2); // rv
                         MakeExtend(l, -1);
                         return 1;
                     }
+                    else
+                    { // err rv failed(true)
+                        l.pop(3); // X
+                    }
                 }
-                l.settop(2); // X
+                else
+                {
+                    l.pop(2); // X
+                }
             }
             if (l.IsUserData(2) || l.istable(2))
             {
@@ -551,17 +568,27 @@ namespace Capstones.LuaLib
                     MakeUnextend(l, -1);
                     l.pushvalue(2); // err func2 op1 op2
                     MakeUnextend(l, -1);
-                    l.pcall(2, 2, -4); // err rv failed
-                    if (!l.toboolean(-1))
-                    {
+                    var code = l.pcall(2, 2, -4); // err rv failed
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2); // X
+                    }
+                    else if (!l.toboolean(-1))
+                    { // err rv failed(false)
                         l.pop(1); // err rv
-                        l.insert(3); // rv err
-                        l.settop(3); // rv
+                        l.remove(-2); // rv
                         MakeExtend(l, -1);
                         return 1;
                     }
+                    else
+                    { // err rv failed(true)
+                        l.pop(3); // X
+                    }
                 }
-                l.settop(2); // X
+                else
+                {
+                    l.pop(2); // X
+                }
             }
             return 0;
         }
@@ -581,9 +608,20 @@ namespace Capstones.LuaLib
                 }
                 l.remove(-2); // obj op
                 l.insert(-2); // op obj
-                l.call(1, 1); // rv
-                MakeExtend(l, -1);
-                return 1;
+                l.pushcfunction(LuaHub.LuaFuncOnError); // op obj err
+                l.insert(-3); // err op obj
+                var code = l.pcall(1, 1, -3); // err rv
+                if (code != 0)
+                {
+                    l.pop(2); // X
+                    return 0;
+                }
+                else
+                {
+                    l.remove(-2); // rv
+                    MakeExtend(l, -1);
+                    return 1;
+                }
             }
             else // obj
             {

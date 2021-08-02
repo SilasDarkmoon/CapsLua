@@ -1011,7 +1011,12 @@ namespace Capstones.LuaLib
                 l.gettable(lua.upvalueindex(1)); // err getter
                 if (!l.isnoneornil(-1))
                 {
-                    l.pcall(0, 1, -2); // err rv
+                    var code = l.pcall(0, 1, -2); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1056,7 +1061,12 @@ namespace Capstones.LuaLib
                 if (!l.isnoneornil(-1))
                 {
                     l.pushvalue(3); // err setter v
-                    l.pcall(1, 0, -3); // err
+                    var code = l.pcall(1, 0, -3); // err
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2);
+                        return 0;
+                    }
                     l.pop(1); // X
                     return 0;
                 }
@@ -1116,7 +1126,12 @@ namespace Capstones.LuaLib
                 if (!l.isnoneornil(-1))
                 {
                     l.pushvalue(1); // err getter tar
-                    l.pcall(1, 1, -3); // err rv
+                    var code = l.pcall(1, 1, -3); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1128,7 +1143,12 @@ namespace Capstones.LuaLib
                     l.rawget(lua.upvalueindex(2)); // err indexer
                     l.pushvalue(1); // err indexer tar
                     l.pushvalue(2); // err indexer tar key
-                    l.pcall(2, 1, -4); // err rv
+                    var code = l.pcall(2, 1, -4); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1147,7 +1167,12 @@ namespace Capstones.LuaLib
                 {
                     l.pushvalue(1); // err setter tar
                     l.pushvalue(3); // err setter tar val
-                    l.pcall(2, 0, -4); // err
+                    var code = l.pcall(2, 0, -4); // err
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.pop(1); // X
                     return 0;
                 }
@@ -1160,8 +1185,8 @@ namespace Capstones.LuaLib
                     l.pushvalue(1); // err indexer tar
                     l.pushvalue(2); // err indexer tar key
                     l.pushvalue(3); // err indexer tar key val
-                    l.pcall(3, 1, -5); // err failed
-                    bool failed = l.toboolean(-1);
+                    var code = l.pcall(3, 1, -5); // err failed
+                    bool failed = code != 0 || l.toboolean(-1);
                     l.pop(2); // X
                     if (!failed)
                     {
