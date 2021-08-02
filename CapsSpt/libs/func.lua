@@ -149,6 +149,68 @@ function isInArray(t, val)
     return false
 end
 
+local function class_instancebase(self)
+    local cached = rawget(self, "__instance_base")
+    if cached ~= nil then
+        if not cached then
+            return nil
+        else
+            return cached
+        end
+    end
+
+    local curtype = rawget(self, "__instance_type")
+    if not curtype then
+        curtype = self
+    end
+
+    local super = curtype.super
+    if type(super) == "table" then
+        local basei = {
+            ["__instance_type"] = super,
+            class = super,
+            super = super.super,
+        }
+        local basem = {
+            __index = function(tab, k)
+                local v = rawget(self, k)
+                if v ~= nil then
+                    return v
+                end
+                v = super[k]
+                return v
+            end,
+            __newindex = function(tab, k, v)
+                rawset(self, k, v)
+            end,
+        }
+        setmetatable(basei, basem)
+        rawset(self, "__instance_base", basei)
+        return basei
+    else
+        rawset(self, "__instance_base", false)
+        return nil
+    end
+end
+
+local function class_isSubClassOf(cls, parent)
+    if not parent then return false end
+    while cls do
+        if cls == parent then
+            return true
+        end
+        if type(cls) == "table" then
+            cls = cls.super
+        end
+    end
+end
+
+local function class_isTypeOf(inst, parent)
+    if not parent then return false end
+    local cls = inst.class
+    return class_isSubClassOf(cls, parent)
+end
+
 --[[--
 
 Create an class.
@@ -276,6 +338,10 @@ function class(super, classname)
             return instance
         end
     end
+
+    cls.base = class_instancebase
+    cls.isSubClassOf = class_isSubClassOf
+    cls.isTypeOf = class_isTypeOf
 
     function cls.attach(instance, ...)
         for k,v in pairs(cls) do instance[k] = v end
