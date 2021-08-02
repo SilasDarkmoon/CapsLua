@@ -304,7 +304,7 @@ namespace Capstones.LuaWrap
                 l.LogWarning("Lua stack is not correct when resume lua coroutine.");
                 argc = 0;
             }
-            var lrr = new LuaRunningStateRecorder(l);
+            var lrr = new LuaStateHelper.LuaRunningThreadRecorder(l);
             int status = l.resume(argc);
             lrr.Dispose();
             if (status == lua.LUA_YIELD || status == 0)
@@ -870,6 +870,28 @@ namespace Capstones.LuaWrap
         //        return false;
         //    }
         //}
+
+        [ThreadStatic] private static IntPtr _RunningLuaThread;
+        public static IntPtr RunningLuaThread { get { return _RunningLuaThread; } }
+
+        public struct LuaRunningThreadRecorder : IDisposable
+        {
+            private IntPtr _oldRunningState;
+            private IntPtr _oldRunningThread;
+
+            public LuaRunningThreadRecorder(IntPtr l)
+            {
+                _oldRunningState = LuaHub.RunningLuaState;
+                _oldRunningThread = _RunningLuaThread;
+                LuaHub.RunningLuaState = l;
+                _RunningLuaThread = l;
+            }
+            public void Dispose()
+            {
+                LuaHub.RunningLuaState = _oldRunningState;
+                _RunningLuaThread = _oldRunningThread;
+            }
+        }
     }
 }
 

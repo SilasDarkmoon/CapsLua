@@ -43,6 +43,8 @@ namespace Capstones.LuaExt
                         L.pushcfunction(ClrDelBehavCoroutine); // clr func
                         L.SetField(-2, "bcoroutine"); // clr
 #endif
+                        L.pushcfunction(ClrDelRunningCoroutine); // clr func
+                        L.SetField(-2, "runningco"); // clr
                         L.pushcfunction(ClrDelReset); // clr func
                         L.SetField(-2, "reset"); // clr
                         L.PushString(ThreadSafeValues.AppPlatform); // clr plat
@@ -205,6 +207,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);
         public static readonly lua.CFunction ClrDelBehavCoroutine = new lua.CFunction(ClrFuncBehavCoroutine);
 #endif
+        public static readonly lua.CFunction ClrDelRunningCoroutine = new lua.CFunction(ClrFuncRunningCoroutine);
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
         public static readonly lua.CFunction ClrDelReset = new lua.CFunction(ClrFuncReset);
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
@@ -272,6 +275,20 @@ namespace Capstones.LuaExt
             return l.gettop() - oldtop;
         }
 #endif
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncRunningCoroutine(IntPtr l)
+        {
+            if (l == LuaStateHelper.RunningLuaThread)
+            {
+                l.pushthread();
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncPanic(IntPtr l)

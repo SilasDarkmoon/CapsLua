@@ -355,6 +355,30 @@ function newuscene:ctor()
     cache.setGlobalTempData(self, "MainManager")
 end
 
+function unity.async(func, ...)
+    if clr.runningco() then
+        func(...)
+    else
+        local args = {...}
+        local argc = select('#', ...)
+        clr.coroutine(function()
+            func(unpack(args, 1, argc))
+        end)
+    end
+end
+
+function unity.basync(self, func, ...)
+    if clr.runningco() then
+        func(...)
+    else
+        local args = {...}
+        local argc = select('#', ...)
+        clr.bcoroutine(self, function()
+            func(unpack(args, 1, argc))
+        end)
+    end
+end
+
 local asyncmeta = {} -- TODO: for pairs/ipairs, next, #, __call, ..., make it a udtable?
 asyncmeta.__index = function(cls, key)
     if type(key) == "string" and string.sub(key, -5) == "Async" then
@@ -374,16 +398,10 @@ asyncmeta.__newindex = function(cls, key, value)
         regtab[key] = value
         if type(value) == "function" then
             local funcasync = function(self, ...)
-                local args = {...}
-                local argc = select('#', ...)
-                if type(self) == "table" and self.coroutine == rawget(behaviour, "coroutine") then
-                    self:coroutine(function()
-                        value(self, unpack(args, 1, argc))
-                    end)
+                if type(self) == "table" and self.async == unity.basync then
+                    self:async(value, self, ...)
                 else
-                    clr.coroutine(function()
-                        value(self, unpack(args, 1, argc))
-                    end)
+                    unity.async(value, self, ...)
                 end
             end
             local keyasync = string.sub(key, 1, -6)
