@@ -243,7 +243,6 @@ luacomp.__index = function(tab, key)
     if rv ~= nil then
         return rv
     end
-    return rawget(tab, key)
 end
 
 local composed = class(unity.base)
@@ -413,5 +412,9 @@ asyncmeta.__newindex = function(cls, key, value)
 end
 
 unity.asyncmeta = asyncmeta
+
+unity.asyncclass = class("asyncclass")
+setmetatable(unity.asyncclass, asyncmeta)
+setmetatable(unity.base, asyncmeta)
 
 return unity
