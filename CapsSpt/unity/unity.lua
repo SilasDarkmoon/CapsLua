@@ -171,8 +171,8 @@ function unity.restart()
         package.loaded[k] = nil
     end
 
-    res.DestroyAll()
-    res.CollectGarbage(2)
+    -- res.DestroyAll()
+    -- res.CollectGarbage(2)
     res.ClearSceneCache()
 
     Application.LoadLevel(0)
