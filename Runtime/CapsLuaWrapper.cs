@@ -615,18 +615,21 @@ namespace Capstones.LuaWrap
             LuaTypeHub.TypeHubValueType hub;
             if (!LuaHubSubs.TryGetValue(type, out hub))
             {
-                try
+                if (!type.IsAbstract && !type.IsInterface)
                 {
-                    LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
-                    if (LuaHubSubs.TryGetValue(type, out hub))
+                    try
                     {
-                        return hub;
+                        LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
+                        if (LuaHubSubs.TryGetValue(type, out hub))
+                        {
+                            return hub;
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    DynamicHelper.LogError(e);
-                    //return null;
+                    catch (Exception e)
+                    {
+                        DynamicHelper.LogError(e);
+                        //return null;
+                    }
                 }
 
                 try
