@@ -1310,9 +1310,8 @@ namespace Capstones.LuaLib
                 if (vers != null)
                 {
                     RecordedResVersions = vers.Data;
-                    Debug.Log("RecordedResVersions = " + RecordedResVersions);
                 }
-                Debug.Log("@@@@@@@@@@ SptManifestReady");
+
                 StartLoadRuntimeManifest();
             });
             //CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
@@ -1335,14 +1334,10 @@ namespace Capstones.LuaLib
                 {
                     l.pushnumber(kvp.Value);
                     l.SetField(-2, kvp.Key);
-
-                    Debug.Log("kvp.Value = " + kvp.Value);
-                    Debug.Log("kvp.Key = " + kvp.Key);
                 }
             }
 #endif
             l.SetGlobal("___resver");
-            Debug.Log("@@@@@@@@@@ PushVersionToLua");
         }
 
         //private static LuaExt.LuaExLibs.LuaExLibItem _LuaExLib_UpdateVersion_Instance = new LuaExt.LuaExLibs.LuaExLibItem(PushVersionToLua, 500);
