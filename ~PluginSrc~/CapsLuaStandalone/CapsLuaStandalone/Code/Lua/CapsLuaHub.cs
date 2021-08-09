@@ -304,6 +304,19 @@ namespace Capstones.LuaLib
                 }
                 else
                 {
+                    // Try native push.
+                    object func;
+                    LuaPushNative._NativePushLuaFuncs.TryGetValue(val.GetType(), out func);
+                    if (func != null)
+                    {
+                        ILuaPush pfunc = func as ILuaPush;
+                        if (pfunc != null)
+                        {
+                            pfunc.PushLua(l, val);
+                            return;
+                        }
+                    }
+                    // Common push.
                     l.PushLuaObject(val);
                 }
             }
@@ -583,7 +596,7 @@ namespace Capstones.LuaLib
             }
             return null;
         }
-        public static Type GetType(this IntPtr l, int index, out int typecode)
+        public static Type GetType(this IntPtr l, int index, out int typecode, out bool isobj)
         {
             typecode = l.type(index);
             switch (typecode)
@@ -591,36 +604,57 @@ namespace Capstones.LuaLib
                 case lua.LUA_TUSERDATA:
                     if (IsUserDataTableRaw(l, index))
                     {
+                        isobj = false;
                         return typeof(Capstones.LuaWrap.LuaTable);
                     }
                     else
                     {
-                        return GetLuaRawObjectType(l, index);
+                        var t = GetLuaRawObjectType(l, index);
+                        isobj = t != null;
+                        return t;
                     }
                 case lua.LUA_TSTRING:
+                    isobj = false;
                     return typeof(string);
                 case lua.LUA_TTABLE:
                     {
-                        bool isUserData;
-                        var type = GetLuaTableObjectType(l, index, out isUserData);
-                        return isUserData ? type : typeof(Capstones.LuaWrap.LuaTable);
+                        var type = GetLuaTableObjectType(l, index, out isobj);
+                        return isobj ? type : typeof(Capstones.LuaWrap.LuaTable);
                     }
                 case lua.LUA_TNUMBER:
+                    isobj = false;
                     return typeof(double);
                 case lua.LUA_TBOOLEAN:
+                    isobj = false;
                     return typeof(bool);
                 case lua.LUA_TNIL:
+                    isobj = false;
                     return null;
                 case lua.LUA_TNONE:
+                    isobj = false;
                     return null;
                 case lua.LUA_TLIGHTUSERDATA:
+                    isobj = false;
                     return typeof(IntPtr);
                 case lua.LUA_TFUNCTION:
+                    isobj = false;
                     return typeof(Capstones.LuaWrap.LuaFunc);
                 case lua.LUA_TTHREAD:
+                    isobj = false;
                     return typeof(Capstones.LuaWrap.LuaOnStackThread);
             }
+            isobj = false;
             return null;
+        }
+        public static Type GetType(this IntPtr l, int index, out bool isobj)
+        {
+            int typecode;
+            return GetType(l, index, out typecode, out isobj);
+        }
+        public static Type GetType(this IntPtr l, int index, out int typecode)
+        {
+            bool isobj;
+            return GetType(l, index, out typecode, out isobj);
         }
         public static Type GetType(this IntPtr l, int index)
         {

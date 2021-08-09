@@ -18,12 +18,20 @@ namespace Capstones.LuaLib
         private static Dictionary<Type, TypeHubBase> _TypeHubCache = new Dictionary<Type, TypeHubBase>();
 #endif
         private static Dictionary<Type, Func<Type, TypeHubBase>> _TypeHubCreators = new Dictionary<Type, Func<Type, TypeHubBase>>(); // Notice: this field should be filled only once, on starting.
+        private static LinkedList<KeyValuePair<Type, Func<Type, TypeHubBase>>> _TypeHubPrepareFuncs = new LinkedList<KeyValuePair<Type, Func<Type, TypeHubBase>>>();
 
         public static void RegTypeHubCreator(Type type, Func<Type, TypeHubBase> creator)
         {
             if (type != null && creator != null)
             {
                 _TypeHubCreators[type] = creator;
+            }
+        }
+        public static void RegTypeHubPrepareFunc(Type type, Func<Type, TypeHubBase> func)
+        {
+            if (type != null && func != null)
+            {
+                _TypeHubPrepareFuncs.AddLast(new KeyValuePair<Type, Func<Type, TypeHubBase>>(type, func));
             }
         }
 
@@ -63,6 +71,30 @@ namespace Capstones.LuaLib
                     catch (Exception e)
                     {
                         PlatDependant.LogError(e);
+                    }
+                }
+                if (hub == null)
+                {
+                    var node = _TypeHubPrepareFuncs.First;
+                    while (node != null)
+                    {
+                        var kvp = node.Value;
+                        if (kvp.Key.IsAssignableFrom(type))
+                        {
+                            try
+                            {
+                                hub = kvp.Value(type);
+                                if (hub != null)
+                                {
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PlatDependant.LogError(e);
+                            }
+                        }
+                        node = node.Next;
                     }
                 }
                 if (hub == null)
@@ -136,6 +168,7 @@ namespace Capstones.LuaLib
             protected SafeDict<string, TypeHubBase> _NestedTypes = new SafeDict<string, TypeHubBase>();
 
             protected SafeDict<Type, LuaConvertFunc> _ConvertFuncs = new SafeDict<Type, LuaConvertFunc>();
+            protected IList<KeyValuePair<Type, LuaConvertFunc>> _ConvertFromFuncs;
 
             public static void PushCallableRaw(IntPtr l, LuaMetaCallWithPrecompiled info)
             {
@@ -928,6 +961,22 @@ namespace Capstones.LuaLib
                 _ConvertFuncs.TryGetValue(totype, out rv);
                 return rv;
             }
+            public LuaConvertFunc GetConverterFrom(Type fromtype)
+            {
+                if (_ConvertFromFuncs != null)
+                {
+                    for (int i = 0; i < _ConvertFromFuncs.Count; ++i)
+                    {
+                        var kvp = _ConvertFromFuncs[i];
+                        var stype = kvp.Key;
+                        if (stype.IsAssignableFrom(fromtype))
+                        {
+                            return kvp.Value;
+                        }
+                    }
+                }
+                return null;
+            }
 
             public virtual bool ShouldCache
             {
@@ -962,7 +1011,12 @@ namespace Capstones.LuaLib
                 l.gettable(lua.upvalueindex(1)); // err getter
                 if (!l.isnoneornil(-1))
                 {
-                    l.pcall(0, 1, -2); // err rv
+                    var code = l.pcall(0, 1, -2); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1007,7 +1061,12 @@ namespace Capstones.LuaLib
                 if (!l.isnoneornil(-1))
                 {
                     l.pushvalue(3); // err setter v
-                    l.pcall(1, 0, -3); // err
+                    var code = l.pcall(1, 0, -3); // err
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2);
+                        return 0;
+                    }
                     l.pop(1); // X
                     return 0;
                 }
@@ -1067,7 +1126,12 @@ namespace Capstones.LuaLib
                 if (!l.isnoneornil(-1))
                 {
                     l.pushvalue(1); // err getter tar
-                    l.pcall(1, 1, -3); // err rv
+                    var code = l.pcall(1, 1, -3); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1079,7 +1143,12 @@ namespace Capstones.LuaLib
                     l.rawget(lua.upvalueindex(2)); // err indexer
                     l.pushvalue(1); // err indexer tar
                     l.pushvalue(2); // err indexer tar key
-                    l.pcall(2, 1, -4); // err rv
+                    var code = l.pcall(2, 1, -4); // err rv
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.remove(-2); // rv
                     return 1;
                 }
@@ -1098,7 +1167,12 @@ namespace Capstones.LuaLib
                 {
                     l.pushvalue(1); // err setter tar
                     l.pushvalue(3); // err setter tar val
-                    l.pcall(2, 0, -4); // err
+                    var code = l.pcall(2, 0, -4); // err
+                    if (code != 0)
+                    {
+                        l.pop(2);
+                        return 0;
+                    }
                     l.pop(1); // X
                     return 0;
                 }
@@ -1111,8 +1185,8 @@ namespace Capstones.LuaLib
                     l.pushvalue(1); // err indexer tar
                     l.pushvalue(2); // err indexer tar key
                     l.pushvalue(3); // err indexer tar key val
-                    l.pcall(3, 1, -5); // err failed
-                    bool failed = l.toboolean(-1);
+                    var code = l.pcall(3, 1, -5); // err failed
+                    bool failed = code != 0 || l.toboolean(-1);
                     l.pop(2); // X
                     if (!failed)
                     {

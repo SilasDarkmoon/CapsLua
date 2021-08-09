@@ -44,6 +44,14 @@ namespace Capstones.LuaLib
     {
         IntPtr PushLua(IntPtr l, T val);
     }
+    public interface IInstanceCreator
+    {
+        object NewInstance();
+    }
+    public interface IInstanceCreator<T> : IInstanceCreator
+    {
+        new T NewInstance();
+    }
     public interface ILuaTypeHub : ILuaHandle, ILuaTypeRef, ILuaTrans, ILuaPush
     {
         void PushLuaTypeRaw(IntPtr l);
@@ -73,6 +81,7 @@ namespace Capstones.LuaLib
     public interface ILuaConvert
     {
         LuaConvertFunc GetConverter(Type totype);
+        LuaConvertFunc GetConverterFrom(Type fromtype);
     }
 
     public abstract class SelfHandled : ILuaHandle
@@ -249,9 +258,17 @@ namespace Capstones.LuaLib
                 }
                 else if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
                 {
-                    LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
-                    wrapper.Binding = (LuaWrap.BaseLua)obj;
-                    return wrapper;
+                    try
+                    {
+                        LuaWrap.ILuaWrapper wrapper = (LuaWrap.ILuaWrapper)Activator.CreateInstance(type);
+                        wrapper.Binding = (LuaWrap.BaseLua)obj;
+                        return wrapper;
+                    }
+                    catch (Exception e)
+                    {
+                        PlatDependant.LogError(e);
+                        return null;
+                    }
                 }
             }
             if (type.IsAssignableFrom(obj.GetType()))

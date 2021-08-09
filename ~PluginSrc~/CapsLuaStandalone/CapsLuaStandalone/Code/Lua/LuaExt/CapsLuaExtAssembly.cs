@@ -286,7 +286,8 @@ namespace Capstones.LuaExt
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncConvert(IntPtr l)
         {
-            var stype = l.GetType(1);
+            bool srcIsObj;
+            var stype = l.GetType(1, out srcIsObj);
             Type dtype;
             l.GetLua(2, out dtype);
             if (dtype == null)
@@ -297,20 +298,14 @@ namespace Capstones.LuaExt
             {
                 if (stype == dtype)
                 {
-                    if (l.IsObject(1))
+                    if (srcIsObj)
                     {
                         l.pushvalue(1);
                         return 1;
                     }
                     else
                     {
-                        var dsub = LuaTypeHub.GetTypeHub(dtype);
-                        ILuaNative dnative = dsub as ILuaNative;
-                        if (dnative != null)
-                        {
-                            dnative.Wrap(l, 1);
-                            return 1;
-                        }
+                        return ClrFuncWrap(l);
                     }
                 }
                 else
@@ -325,12 +320,21 @@ namespace Capstones.LuaExt
                             return meta(l, 1);
                         }
                     }
-                    else
+                    ILuaTypeHub dsub = LuaTypeHub.GetTypeHub(dtype);
+                    nsub = dsub as ILuaConvert;
+                    if (nsub != null)
+                    {
+                        var meta = nsub.GetConverterFrom(stype);
+                        if (meta != null)
+                        {
+                            return meta(l, 1);
+                        }
+                    }
+
                     { // NOTICE: if beblow makes bugs, restrict below to enum <-> number
                         ILuaNative snative = sub as ILuaNative;
                         if (snative != null)
                         {
-                            var dsub = LuaTypeHub.GetTypeHub(dtype);
                             ILuaNative dnative = dsub as ILuaNative;
                             if (dnative != null)
                             {

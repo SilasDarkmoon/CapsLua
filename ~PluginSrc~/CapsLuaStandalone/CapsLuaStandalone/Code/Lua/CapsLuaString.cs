@@ -136,6 +136,21 @@ namespace Capstones.LuaLib
         //public static byte[] UnescapeLuaStringToData(string lua)
         //{
         //}
+
+        private static UnityEngineEx.PlatDependant.DataStringFormat _LuaDataStringFormat = new UnityEngineEx.PlatDependant.DataStringFormat()
+        {
+            EscapeChars = new HashSet<char>() { '\\', '\"', '\'' },
+            PreUnicodeEscape = "\\",
+            UnicodeEscapeFormat = "000",
+        };
+        public static string FormatLuaString(byte[] data)
+        {
+            return UnityEngineEx.PlatDependant.FormatDataString(data, _LuaDataStringFormat);
+        }
+        public static string FormatLuaString(string raw)
+        {
+            return UnityEngineEx.PlatDependant.FormatDataString(raw, _LuaDataStringFormat);
+        }
     }
 
     public static class LuaStringTransHelper

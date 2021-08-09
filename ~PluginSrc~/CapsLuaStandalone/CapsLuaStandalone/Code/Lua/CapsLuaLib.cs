@@ -80,6 +80,8 @@ namespace Capstones.LuaLib
         public const string LUADLL = "lua51";
 #elif LUADLL_NAME_LUAJIT
         public const string LUADLL = "luajit";
+#elif LUADLL_NAME_FULL_LUAJIT
+        public const string LUADLL = "libluajit.so";
 #else
         public const string LUADLL = "lua";
 #endif
