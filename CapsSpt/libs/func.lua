@@ -827,7 +827,7 @@ if clr then
     end
     function table.getraw(t)
         if table.isudtable(t) then
-            return getmetatable(t).__raw
+            return table.getraw(getmetatable(t).__raw)
         else
             return t
         end
