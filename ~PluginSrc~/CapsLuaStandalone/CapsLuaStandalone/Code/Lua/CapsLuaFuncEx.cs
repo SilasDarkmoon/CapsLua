@@ -72,6 +72,21 @@ namespace Capstones.LuaWrap
             l.remove(-2); // obj
             return true;
         }
+        public static bool NewTableOrRequire(this IntPtr l, string luafile)
+        {
+            l.Require(luafile); // class
+            if (!l.istable(-1))
+            {
+                return false;
+            }
+            if (l.CallRawSingleReturn(-1, "new") != 0) // class obj
+            {
+                l.pop(1); // class
+                return false;
+            }
+            l.remove(-2); // obj
+            return true;
+        }
 
         public static TOut PushArgsAndCall<TIn, TOut>(this IntPtr l, TIn args)
             where TIn : struct, ILuaPack
@@ -93,7 +108,9 @@ namespace Capstones.LuaWrap
                 l.insert(oldtop); // error func
                 var argc = args.Length;
                 args.PushToLua(l); // error func args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();
@@ -132,7 +149,9 @@ namespace Capstones.LuaWrap
                 l.PushLua(self); // error func self
                 var argc = args.Length;
                 args.PushToLua(l); // error func self args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc + 1, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();
@@ -170,7 +189,9 @@ namespace Capstones.LuaWrap
                 l.insert(oldtop); // error func self
                 var argc = args.Length;
                 args.PushToLua(l); // error func self args
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc + 1, result.Length, oldtop); // error results
+                lrr.Dispose();
                 if (code == 0)
                 {
                     int onstackcnt = result.OnStackCount();

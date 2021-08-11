@@ -72,7 +72,11 @@ namespace Capstones.LuaLib
 #if UNITY_IPHONE && !UNITY_EDITOR
             public const string LIB_PATH = "__Internal";
 #else
+#if DLLIMPORT_NAME_FULL
+            public const string LIB_PATH = "libLuaProtobuf.so";
+#else
             public const string LIB_PATH = "LuaProtobuf";
+#endif
 #endif
             static LuaProtobufNative()
             {
@@ -84,7 +88,10 @@ namespace Capstones.LuaLib
                 {
                     InitFunc = InitLuaProtobufPlugin;
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    PlatDependant.LogError(e);
+                }
             }
 
             [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]
@@ -185,8 +192,19 @@ namespace Capstones.LuaLib
                         slot.Doubles.Add(l.tonumber(index));
                         break;
                     case lua.LUA_TSTRING:
-                        slot.Strings.Add(l.GetString(index));
-                        break;
+                        {
+                            var data = l.tolstring(index);
+                            var chars = PlatDependant.GetCharsDataString(data);
+                            if (PlatDependant.ContainUTF8DecodeFailure(chars))
+                            {
+                                slot.RepeatedBytes.Add(data);
+                            }
+                            else
+                            {
+                                slot.Strings.Add(new string(chars));
+                            }
+                            break;
+                        }
                     case lua.LUA_TTABLE:
                         slot.Messages.Add(GetLuaRaw(l, index));
                         break;
@@ -216,8 +234,19 @@ namespace Capstones.LuaLib
                         slot.Double = l.tonumber(index);
                         break;
                     case lua.LUA_TSTRING:
-                        slot.String = l.GetString(index);
-                        break;
+                        {
+                            var data = l.tolstring(index);
+                            var chars = PlatDependant.GetCharsDataString(data);
+                            if (PlatDependant.ContainUTF8DecodeFailure(chars))
+                            {
+                                slot.Bytes = data;
+                            }
+                            else
+                            {
+                                slot.String = new string(chars);
+                            }
+                            break;
+                        }
                     case lua.LUA_TTABLE:
                         {
                             if (l.IsArray(index))
@@ -647,7 +676,7 @@ namespace Capstones.LuaExt
         {
             var l = GlobalLua.L.L;
             Capstones.Net.ProtobufMessage val;
-            l.DoString(out val, "return { field1 = 0, field2 = 'dsadfgdf', field3 = { field1 = 666, field4 = {1,2,3,4,5} } }");
+            l.DoString(out val, "return { field1 = 0, field2 = 'dsadfgdf', field3 = { field1 = 666, field2 = '\\1\\217\\3大家', field3 = '\\1\\2\\3大家', field4 = {1,2,3,4,5} } }");
             UnityEngine.Debug.LogError(val.ToJson());
 
             UnityEngine.Debug.LogError(val["field2"].String);
@@ -839,6 +868,14 @@ namespace LuaProto
                 dest.Add(item);
             });
         }
+        public static void ConvertField(this pbc.RepeatedField<pb.ByteString> dest, LuaList<byte[]> src)
+        {
+            dest.Clear();
+            src.ForEach(item =>
+            {
+                dest.Add(pb.ByteString.CopyFrom(item));
+            });
+        }
         public static void ConvertField<TDest, TSrc>(this ILuaWrapper thiz, LuaList<TDest> dest, pbc.RepeatedField<TSrc> src)
         {
             dest.Clear();
@@ -857,6 +894,26 @@ namespace LuaProto
             {
                 var item = src[i];
                 dest.Add(item);
+            }
+        }
+        public static void ConvertField(this LuaList<byte[]> dest, pbc.RepeatedField<pb.ByteString> src)
+        {
+            dest.Clear();
+            for (int i = 0; i < src.Count; ++i)
+            {
+                var item = src[i];
+                dest.Add(item.ToByteArray());
+            }
+        }
+        public static pb.ByteString ToByteString(this byte[] data)
+        {
+            if (data == null)
+            {
+                return pb.ByteString.Empty;
+            }
+            else
+            {
+                return pb.ByteString.CopyFrom(data);
             }
         }
         //public static LuaList<TDest> ConvertField<TDest, TSrc>(this pbc.RepeatedField<TSrc> src, IntPtr l)

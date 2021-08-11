@@ -23,7 +23,11 @@ namespace Capstones.LuaExt
 #if UNITY_EDITOR_OSX
         public const string LIB_PATH = "LuaJsonNative";
 #else
+#if DLLIMPORT_NAME_FULL
+        public const string LIB_PATH = "libLuaJsonNative.so";
+#else
         public const string LIB_PATH = "LuaJsonNative";
+#endif
 #endif
         static Json2LuaNative()
         {
@@ -37,8 +41,15 @@ namespace Capstones.LuaExt
                 {
                     InitFunc = InitLuaJsonPlugin;
                 }
+                else
+                {
+                    UnityEngineEx.PlatDependant.LogError("Can not initialize Json2LuaNative");
+                }
             }
-            catch { }
+            catch (Exception e)
+            {
+                UnityEngineEx.PlatDependant.LogError(e);
+            }
         }
 
         [DllImport(LIB_PATH, CallingConvention = CallingConvention.Cdecl)]

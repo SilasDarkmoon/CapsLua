@@ -18,20 +18,24 @@ namespace Capstones.LuaLib
             public const bool LuaPrecompileEnabled = false;
             #else
             public const bool LuaPrecompileEnabled = true;
-            #endif
-            
-            #if UNITY_EDITOR
-            #if UNITY_EDITOR_OSX
+#endif
+
+#if UNITY_EDITOR
+#if UNITY_EDITOR_OSX
             public const string LIB_PATH = "CapsLuaNative";
-            #else
+#else
             public const string LIB_PATH = "CapsLuaNative";
-            #endif
-            #elif UNITY_IPHONE
+#endif
+#elif UNITY_IPHONE
             public const string LIB_PATH = "__Internal";
-            #else
+#else
+#if DLLIMPORT_NAME_FULL
+            public const string LIB_PATH = "libCapsLuaNative.so";
+#else
             public const string LIB_PATH = "CapsLuaNative";
-            #endif
-            
+#endif
+#endif
+
             static LuaHubC()
             {
                 Ready = false;
@@ -57,8 +61,15 @@ namespace Capstones.LuaLib
                         );
                         Ready = true;
                     }
+                    else
+                    {
+                        UnityEngineEx.PlatDependant.LogError("Can not initialize CapsLuaNative");
+                    }
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    UnityEngineEx.PlatDependant.LogError(e);
+                }
                 #endif
             }
             

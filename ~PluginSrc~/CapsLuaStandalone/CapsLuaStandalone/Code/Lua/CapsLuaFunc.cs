@@ -146,7 +146,9 @@ namespace Capstones.LuaWrap
                     }
                 }
                 var argc = args == null ? 0 : args.Length;
+                var lrr = new LuaRunningStateRecorder(l);
                 var code = l.pcall(argc, lua.LUA_MULTRET, oldtop);
+                lrr.Dispose();
                 if (l.gettop() >= oldtop)
                 {
                     l.remove(oldtop);
@@ -189,7 +191,9 @@ namespace Capstones.LuaWrap
             int pcnt = l.gettop() - oldtop; // func, args(*pcnt)
             l.pushcfunction(LuaHub.LuaFuncOnError); // func, args(*pcnt), err
             l.insert(oldtop); // err, func, args(*pcnt)
+            var lrr = new LuaRunningStateRecorder(l);
             var code = l.pcall(pcnt, lua.LUA_MULTRET, oldtop); // err, rv(*x)
+            lrr.Dispose();
             l.remove(oldtop); // rv(*x)
             if (code != 0)
             {
@@ -202,7 +206,9 @@ namespace Capstones.LuaWrap
             int pcnt = l.gettop() - oldtop; // func, args(*pcnt)
             l.pushcfunction(LuaHub.LuaFuncOnError); // func, args(*pcnt), err
             l.insert(oldtop); // err, func, args(*pcnt)
+            var lrr = new LuaRunningStateRecorder(l);
             var code = l.pcall(pcnt, 1, oldtop); // err, rv
+            lrr.Dispose();
             l.remove(oldtop); // rv
             if (code != 0)
             {

@@ -43,6 +43,8 @@ namespace Capstones.LuaExt
                         L.pushcfunction(ClrDelBehavCoroutine); // clr func
                         L.SetField(-2, "bcoroutine"); // clr
 #endif
+                        L.pushcfunction(ClrDelRunningCoroutine); // clr func
+                        L.SetField(-2, "runningco"); // clr
                         L.pushcfunction(ClrDelReset); // clr func
                         L.SetField(-2, "reset"); // clr
                         L.PushString(ThreadSafeValues.AppPlatform); // clr plat
@@ -51,8 +53,10 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "capid");
                         L.pushcfunction(ClrDelSplitStr);
                         L.SetField(-2, "splitstr");
-                        L.pushcfunction(ClrDelFormatBuffer);
+                        L.pushcfunction(ClrDelFormatDataString);
                         L.SetField(-2, "datastr");
+                        L.pushcfunction(ClrDelFormatJsonString);
+                        L.SetField(-2, "jsonstr");
                         L.pushcfunction(ClrDelFormatLuaString);
                         L.SetField(-2, "luastr");
                         L.pushcfunction(ClrDelCurrentLua);
@@ -203,13 +207,15 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);
         public static readonly lua.CFunction ClrDelBehavCoroutine = new lua.CFunction(ClrFuncBehavCoroutine);
 #endif
+        public static readonly lua.CFunction ClrDelRunningCoroutine = new lua.CFunction(ClrFuncRunningCoroutine);
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
         public static readonly lua.CFunction ClrDelReset = new lua.CFunction(ClrFuncReset);
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
         public static readonly lua.CFunction ClrDelGetCapID = new lua.CFunction(ClrFuncGetCapID);
         public static readonly lua.CFunction ClrDelSplitStr = new lua.CFunction(ClrFuncSplitStr);
-        public static readonly lua.CFunction ClrDelFormatBuffer = new lua.CFunction(ClrFuncFormatBuffer);
+        public static readonly lua.CFunction ClrDelFormatDataString = new lua.CFunction(ClrFuncFormatDataString);
         public static readonly lua.CFunction ClrDelFormatLuaString = new lua.CFunction(ClrFuncFormatLuaString);
+        public static readonly lua.CFunction ClrDelFormatJsonString = new lua.CFunction(ClrFuncFormatJsonString);
         public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
         public static readonly lua.CFunction ClrDelToPointer = new lua.CFunction(ClrFuncToPointer);
         public static readonly lua.CFunction ClrDelNewUserdata = new lua.CFunction(ClrFuncNewUserdata);
@@ -269,6 +275,20 @@ namespace Capstones.LuaExt
             return l.gettop() - oldtop;
         }
 #endif
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncRunningCoroutine(IntPtr l)
+        {
+            if (l == LuaStateHelper.RunningLuaThread)
+            {
+                l.pushthread();
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncPanic(IntPtr l)
@@ -471,12 +491,12 @@ namespace Capstones.LuaExt
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
-        public static int ClrFuncFormatBuffer(IntPtr l)
+        public static int ClrFuncFormatDataString(IntPtr l)
         {
             if (l.isstring(1))
             {
                 var buffer = l.tolstring(1);
-                l.PushString(PlatDependant.FormatBuffer(buffer));
+                l.PushString(PlatDependant.FormatDataString(buffer));
                 return 1;
             }
             else if (l.IsObject(1))
@@ -485,41 +505,17 @@ namespace Capstones.LuaExt
                 if (obj is byte[])
                 {
                     var buffer = (byte[])obj;
-                    l.PushString(PlatDependant.FormatBuffer(buffer));
+                    l.PushString(PlatDependant.FormatDataString(buffer));
                     return 1;
                 }
                 else if (obj is IList<byte>)
                 {
                     var buffer = (IList<byte>)obj;
-                    l.PushString(PlatDependant.FormatBuffer(buffer));
+                    l.PushString(PlatDependant.FormatDataString(buffer));
                     return 1;
                 }
             }
             return 0;
-        }
-        public static string FormatLuaString(byte[] data)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            var cnt = data.Length;
-            for (int i = 0; i < cnt; ++i)
-            {
-                var b = data[i];
-                if (b == (byte)'\\' || b == (byte)'\"' || b == (byte)'\'')
-                {
-                    sb.Append("\\");
-                    sb.Append((char)b);
-                }
-                else if (b >= 32 && b <= 126)
-                {
-                    sb.Append((char)b);
-                }
-                else
-                {
-                    sb.Append("\\");
-                    sb.Append(data[i].ToString("000"));
-                }
-            }
-            return sb.ToString();
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncFormatLuaString(IntPtr l)
@@ -530,7 +526,19 @@ namespace Capstones.LuaExt
             {
                 return 0;
             }
-            l.PushLua(FormatLuaString(data));
+            l.PushLua(LuaString.FormatLuaString(data));
+            return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncFormatJsonString(IntPtr l)
+        {
+            byte[] data;
+            l.GetLua(1, out data);
+            if (data == null)
+            {
+                return 0;
+            }
+            l.PushLua(PlatDependant.FormatJsonString(data));
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]

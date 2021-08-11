@@ -382,15 +382,24 @@ namespace Capstones.LuaLib
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         private static int LuaMetaEq(IntPtr l)
         {
+            l.pushcfunction(LuaHub.LuaFuncOnError); // err
             var oldtop = l.gettop();
             l.pushvalue(lua.upvalueindex(1)); // binop
             l.pushvalue(1);
             l.pushvalue(2);
-            l.call(2, lua.LUA_MULTRET);
-            var rv = l.gettop() - oldtop;
-            if (rv > 0)
-            {
-                return rv;
+            var code = l.pcall(2, lua.LUA_MULTRET, -4);
+            if (code != 0)
+            { // err failmessage
+                l.pop(2); // X
+            }
+            else
+            { // err results
+                var rv = l.gettop() - oldtop;
+                l.remove(oldtop);
+                if (rv > 0)
+                {
+                    return rv;
+                }
             }
             return LuaMetaRawEq(l);
         }
@@ -452,16 +461,26 @@ namespace Capstones.LuaLib
                 {
                     l.pushvalue(1); // err func1 op1
                     l.pushvalue(2); // err func1 op1 op2
-                    l.pcall(2, 2, -4); // err rv failed
-                    if (!l.toboolean(-1))
-                    {
+                    var code = l.pcall(2, 2, -4); // err rv failed
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2); // X
+                    }
+                    else if (!l.toboolean(-1))
+                    { // err rv failed(false)
                         l.pop(1); // err rv
-                        l.insert(3); // rv err
-                        l.settop(3); // rv
+                        l.remove(-2); // rv
                         return 1;
                     }
+                    else
+                    { // err rv failed(true)
+                        l.pop(3); // X
+                    }
                 }
-                l.settop(2); // X
+                else
+                {
+                    l.pop(2); // X
+                }
             }
             if (l.IsUserData(2) || l.istable(2))
             {
@@ -472,16 +491,26 @@ namespace Capstones.LuaLib
                 {
                     l.pushvalue(1); // err func2 op1
                     l.pushvalue(2); // err func2 op1 op2
-                    l.pcall(2, 2, -4); // err rv failed
-                    if (!l.toboolean(-1))
-                    {
+                    var code = l.pcall(2, 2, -4); // err rv failed
+                    if (code != 0)
+                    { // err failmessage
+                        l.pop(2); // X
+                    }
+                    else if (!l.toboolean(-1))
+                    { // err rv failed(false)
                         l.pop(1); // err rv
-                        l.insert(3); // rv err
-                        l.settop(3); // rv
+                        l.remove(-2); // rv
                         return 1;
                     }
+                    else
+                    { // err rv failed(true)
+                        l.pop(3); // X
+                    }
                 }
-                l.settop(2); // X
+                else
+                {
+                    l.pop(2); // X
+                }
             }
             return 0;
         }

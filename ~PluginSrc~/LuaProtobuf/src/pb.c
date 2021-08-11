@@ -142,6 +142,7 @@ typedef struct lpb_State {
     unsigned enum_as_value : 1;
     unsigned default_mode  : 2; /* lpb_DefMode */
     unsigned int64_mode    : 2; /* lpb_Int64Mode */
+    unsigned encode_seq    : 1; /* encode fields by field-number order? */
 } lpb_State;
 
 static int lpb_reftable(lua_State *L, int ref) {
@@ -1577,23 +1578,45 @@ static void lpbE_repeated(lpb_Env *e, const pb_Field *f) {
 }
 
 static void lpb_encode(lpb_Env *e, const pb_Type *t) {
-    lua_State *L = e->L;
+    lua_State *L = e->L; // tab
     luaL_checkstack(L, 3, "message too many levels");
-    lua_pushnil(L);
-    while (lua_next(L, -2)) {
-        if (lua_type(L, -2) == LUA_TSTRING) {
-            const pb_Field *f =
-                pb_fname(t, lpb_name(e->LS, lpb_toslice(L, -2)));
-            if (f == NULL)
-                /* skip */;
-            else if (f->type && f->type->is_map)
-                lpbE_map(e, f);
-            else if (f->repeated)
-                lpbE_repeated(e, f);
-            else if (!f->type || !f->type->is_dead)
-                lpbE_tagfield(e, f, t->is_proto3 && !f->oneof_idx);
+    const pb_Field* f = 0;
+
+    if (e->LS->encode_seq)
+    {
+        while (pb_nextfield(t, &f))
+        {
+            lua_pushstring(L, (const char*)f->name); // tab key
+            lua_rawget(L, -2); // tab val
+            if (!lua_isnoneornil(L, -1))
+            {
+                if (f->type && f->type->is_map)
+                    lpbE_map(e, f);
+                else if (f->repeated)
+                    lpbE_repeated(e, f);
+                else if (!f->type || !f->type->is_dead)
+                    lpbE_tagfield(e, f, t->is_proto3 && !f->oneof_idx);
+            }
+            lua_pop(L, 1); // tab
         }
-        lua_pop(L, 1);
+    }
+    else
+    {
+        lua_pushnil(L);
+        while (lua_next(L, -2)) {
+            if (lua_type(L, -2) == LUA_TSTRING) {
+                f = pb_fname(t, lpb_name(e->LS, lpb_toslice(L, -2)));
+                if (f == NULL)
+                    /* skip */;
+                else if (f->type && f->type->is_map)
+                    lpbE_map(e, f);
+                else if (f->repeated)
+                    lpbE_repeated(e, f);
+                else if (!f->type || !f->type->is_dead)
+                    lpbE_tagfield(e, f, t->is_proto3 && !f->oneof_idx);
+            }
+            lua_pop(L, 1);
+        }
     }
 }
 
@@ -1819,6 +1842,8 @@ static int Lpb_option(lua_State *L) {
     X(8, use_default_metatable, LS->default_mode = LPB_METADEF)    \
     X(9, enable_hooks,          LS->use_hooks = 1)                 \
     X(10, disable_hooks,        LS->use_hooks = 0)                 \
+    X(11, encode_ordered,       LS->encode_seq = 1)                \
+    X(12, encode_unordered,     LS->encode_seq = 0)                \
 
     static const char *opts[] = {
 #define X(ID,NAME,CODE) #NAME,

@@ -273,11 +273,27 @@ namespace Capstones.LuaLib
         internal protected virtual void CopyToImp(Array array, int index)
         {
             int curi = 0;
-            foreach (object val in this)
+            if (array is KeyValuePair<object, object>[])
             {
-                if (curi >= index && curi < array.Length)
-                    array.SetValue(val, curi);
-                ++curi;
+                foreach (var val in this)
+                {
+                    if (curi >= index && curi < array.Length)
+                    {
+                        array.SetValue(val, curi);
+                    }
+                    ++curi;
+                }
+            }
+            else
+            {
+                foreach (var val in this)
+                {
+                    if (curi >= index && curi < array.Length)
+                    {
+                        array.SetValue(new DictionaryEntry(val.Key, val.Value), curi);
+                    }
+                    ++curi;
+                }
             }
         }
         internal protected virtual bool IsSynchronizedImp()
@@ -333,7 +349,7 @@ namespace Capstones.LuaLib
             return values.ToArray();
         }
 
-        public void CopyTo(Array array, int index)
+        public virtual void CopyTo(Array array, int index)
         {
             CopyToImp(array, index);
         }
@@ -371,7 +387,7 @@ namespace Capstones.LuaLib
             return false;
         }
 
-        public void CopyTo(KeyValuePair<object, object>[] array, int arrayIndex)
+        public virtual void CopyTo(KeyValuePair<object, object>[] array, int arrayIndex)
         {
             CopyToImp(array, arrayIndex);
         }
@@ -538,6 +554,67 @@ namespace Capstones.LuaLib
 
         public virtual void Dispose()
         { }
+    }
+
+    public class DictionaryFieldsProvider : BaseFieldsProvider
+    {
+        protected IDictionary _Dict;
+        public DictionaryFieldsProvider(IDictionary dict)
+        {
+            _Dict = dict;
+        }
+
+        protected internal override IEnumerator<KeyValuePair<object, object>> GetEnumeratorImp()
+        {
+            foreach (DictionaryEntry entry in _Dict)
+            {
+                yield return new KeyValuePair<object, object>(entry.Key, entry.Value);
+            }
+        }
+        protected internal override int GetCountImp()
+        {
+            return _Dict.Count;
+        }
+        protected internal override bool IsSynchronizedImp()
+        {
+            return _Dict.IsSynchronized;
+        }
+        protected internal override object GetSyncRootImp()
+        {
+            return _Dict.SyncRoot;
+        }
+        protected internal override object GetValueImp(object key)
+        {
+            if (_Dict.Contains(key))
+            {
+                return _Dict[key];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        protected internal override object SetValueImp(object key, object val)
+        {
+            var old = GetValueImp(key);
+            if (val == null)
+            {
+                _Dict.Remove(key);
+            }
+            else
+            {
+                _Dict[key] = val;
+            }
+            return old;
+        }
+        protected internal override void ClearImp()
+        {
+            _Dict.Clear();
+        }
+        protected internal override bool IsReadOnlyImp()
+        {
+            return _Dict.IsReadOnly;
+        }
     }
 
     public interface IExpando

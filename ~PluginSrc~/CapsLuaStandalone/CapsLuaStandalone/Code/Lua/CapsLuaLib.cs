@@ -77,11 +77,23 @@ namespace Capstones.LuaLib
         public const string LUADLL = "lua";
 #else
 #if LUADLL_NAME_LUA51
+#if DLLIMPORT_NAME_FULL
+        public const string LUADLL = "liblua51.so";
+#else
         public const string LUADLL = "lua51";
+#endif
 #elif LUADLL_NAME_LUAJIT
+#if DLLIMPORT_NAME_FULL
+        public const string LUADLL = "libluajit.so";
+#else
         public const string LUADLL = "luajit";
+#endif
+#else
+#if DLLIMPORT_NAME_FULL
+        public const string LUADLL = "liblua.so";
 #else
         public const string LUADLL = "lua";
+#endif
 #endif
 #endif
 #elif UNITY_IPHONE
