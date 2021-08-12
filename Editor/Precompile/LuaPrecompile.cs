@@ -6302,7 +6302,7 @@ namespace Capstones.UnityEditorEx
                 max_group_ele_cnt = Math.Max(max_group_ele_cnt, rest.Count);
 
                 if (max_group_ele_cnt < min_max_group_ele_cnt
-                    || max_group_ele_cnt == min_max_group_ele_cnt && min_max_group_cnt == 1 && groups.Count() > min_max_group_cnt // this is normally for lua-type. Consider: if lua-type cannot split group but the 1st arg is "this"(all-same-type).
+                    || max_group_ele_cnt == min_max_group_ele_cnt && (min_max_group_cnt == 1 && groups.Count() > min_max_group_cnt || min_max_group_cnt > 1 && groups.Count() > 1 && groups.Count() < min_max_group_cnt) // this is normally for lua-type. Consider: if lua-type cannot split group but the 1st arg is "this"(all-same-type).
                     )
                 {
                     minindex = i;
