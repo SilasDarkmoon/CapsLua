@@ -4589,6 +4589,41 @@ namespace Capstones.UnityEditorEx
                     }
                 }
             }
+            private void CombineUniqueLuaType(int index)
+            {
+                var map = _ByObjType[index];
+
+                Dictionary<string, Type> luatypecomb = new Dictionary<string, Type>();
+                foreach (var kvplua in map)
+                {
+                    if (kvplua.Key.LuaType != null)
+                    {
+                        int clrcnt = 0;
+                        Type clrtype = null;
+                        foreach (var kvpclr in map)
+                        {
+                            if (kvpclr.Key.ClrType != null && GetLuaType(kvpclr.Key.ClrType) == kvplua.Key.LuaType)
+                            {
+                                ++clrcnt;
+                                clrtype = kvpclr.Key.ClrType;
+                            }
+                        }
+
+                        if (clrcnt == 1)
+                        {
+                            luatypecomb.Add(kvplua.Key.LuaType, clrtype);
+                        }
+                    }
+                }
+                foreach (var kvp in luatypecomb)
+                {
+                    var list = map[kvp.Value];
+                    map.Remove(kvp.Key);
+                    map.Remove(kvp.Value);
+                    var combKey = new TypeOrLuaType(kvp.Value, kvp.Key);
+                    map[combKey] = list;
+                }
+            }
             private void GenerateByObjType()
             {
                 var methods = GetOverloads();
@@ -4611,6 +4646,7 @@ namespace Capstones.UnityEditorEx
                         }
                     }
                     AddObjTypeToLuaType(i);
+                    CombineUniqueLuaType(i);
                 }
             }
 
@@ -6084,11 +6120,21 @@ namespace Capstones.UnityEditorEx
             {
                 if (type.ClrType.IsValueType || type.ClrType.IsSealed)
                 {
-                    sb.Append("if (___ot");
+                    sb.Append("if (");
+                    if (type.LuaType != null)
+                    {
+                        sb.Append("___lt");
+                        sb.Append(index);
+                        sb.Append(" == lua.");
+                        sb.Append(type.LuaType);
+                        sb.Append(" || ");
+                    }
+                    sb.Append("___ot");
                     sb.Append(index);
                     sb.Append(" == typeof(");
                     sb.WriteType(type);
-                    sb.AppendLine("))");
+                    sb.Append(")");
+                    sb.AppendLine(")");
                 }
                 else
                 {
@@ -6501,9 +6547,7 @@ namespace Capstones.UnityEditorEx
                     //                select g.Key;
                     //WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype, realtypes);
 
-                    WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
-                    sb.AppendLine("{");
-                    var subprocessed2 = WriteMethodBody_30_ByObjType_CopyProcessed(subprocessed);
+                    var subprocessedelse = WriteMethodBody_30_ByObjType_CopyProcessed(subprocessed);
                     if (mintype.ClrType == null)
                     {
                         // LuaType
@@ -6514,16 +6558,20 @@ namespace Capstones.UnityEditorEx
                             {
                                 if (GetLuaType(kvp.Key.ClrType) == minluatype)
                                 {
-                                    WriteMethodBody_30_ByObjType_MarkProcessed(subprocessed2, minindex, kvp.Key);
+                                    WriteMethodBody_30_ByObjType_MarkProcessed(subprocessedelse, minindex, kvp.Key);
                                 }
                             }
                         }
                     }
-                    WriteMethodBody_30_ByObjType_WorkStep(context, new HashSet<MethodOverload>(partmethods), subprocessed2);
-                    sb.AppendLine("}");
-
                     if (subsub.Count > 0)
                     {
+                        WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
+                        sb.AppendLine("{");
+                    }
+                    WriteMethodBody_30_ByObjType_WorkStep(context, new HashSet<MethodOverload>(partmethods), subprocessedelse);
+                    if (subsub.Count > 0)
+                    {
+                        sb.AppendLine("}");
                         sb.AppendLine("else");
                         sb.AppendLine("{");
                         WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
