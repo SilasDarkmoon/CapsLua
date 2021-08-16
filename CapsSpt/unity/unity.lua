@@ -116,6 +116,29 @@ function unity.waitForNextEndOfFrame()
     unity.waitForEndOfFrameIndex = curFrame
 end
 
+unity.await = {}
+unity.await.eof = unity.waitForEndOfFrame
+unity.await.neof = unity.waitForNextEndOfFrame
+unity.await.time = function(seconds)
+    coroutine.yield(clr.UnityEngine.WaitForSeconds(seconds))
+end
+unity.await.rtime = function(seconds)
+    coroutine.yield(clr.UnityEngine.WaitForSecondsRealtime(seconds))
+end
+unity.await.update = function()
+    coroutine.yield()
+end
+unity.await.fupdate = function()
+    coroutine.yield(clr.UnityEngine.WaitForFixedUpdate())
+end
+unity.await.to = function(func)
+    coroutine.yield(clr.UnityEngine.WaitUntil(func))
+end
+unity.await.when = function(func)
+    coroutine.yield(clr.UnityEngine.WaitWhile(func))
+end
+setmetatable(unity.await, { __call = unity.await.update })
+
 function unity.updateCanvases()
     UnityEngine.Canvas.ForceUpdateCanvases()
 end
