@@ -4110,6 +4110,12 @@ namespace Capstones.UnityEditorEx
             }
             return nativeTypeMap.TryGetValue(type, out luatype);
         }
+        public static string GetLuaType(Type type)
+        {
+            string luatype;
+            TryGetLuaType(type, out luatype);
+            return luatype;
+        }
         public static Dictionary<string, Type> nativeRevMap = new Dictionary<string, Type>()
         {
             { "LUA_TBOOLEAN", typeof(bool) },
@@ -4183,6 +4189,107 @@ namespace Capstones.UnityEditorEx
             }
             return true;
         }
+        internal struct TypeOrLuaType
+        {
+            private Pack<Type, string> _Data;
+            public Type ClrType { get { return _Data.t1; } set { _Data.t1 = value; } }
+            public string LuaType { get { return _Data.t2; } set { _Data.t2 = value; } }
+
+            public TypeOrLuaType(Type clrType, string luaType)
+            {
+                _Data = new Pack<Type, string>(clrType, luaType);
+            }
+            public TypeOrLuaType(Type clrType)
+            {
+                _Data = new Pack<Type, string>(clrType, null);
+            }
+            public TypeOrLuaType(string luaType)
+            {
+                _Data = new Pack<Type, string>(null, luaType);
+            }
+
+            public override int GetHashCode()
+            {
+                return _Data.GetHashCode();
+            }
+            public override bool Equals(object obj)
+            {
+                if (obj is TypeOrLuaType)
+                {
+                    return Equals((TypeOrLuaType)obj);
+                }
+                else if (obj is Type)
+                {
+                    return Equals((Type)obj);
+                }
+                else if (obj is string)
+                {
+                    return Equals((string)obj);
+                }
+                else if (obj is Pack<Type, string>)
+                {
+                    return _Data.Equals((Pack<Type, string>)obj);
+                }
+                return false;
+            }
+            public bool Equals(TypeOrLuaType other)
+            {
+                return _Data.Equals(other._Data);
+            }
+            public bool Equals(Type clrType)
+            {
+                return ClrType.Equals(clrType);
+            }
+            public bool Equals(string luaType)
+            {
+                return LuaType == luaType;
+            }
+            public override string ToString()
+            {
+                return _Data.ToString();
+            }
+
+            public static bool operator==(TypeOrLuaType v1, TypeOrLuaType v2)
+            {
+                return v1.Equals(v2);
+            }
+            public static bool operator!=(TypeOrLuaType v1, TypeOrLuaType v2)
+            {
+                return !v1.Equals(v2);
+            }
+            public static bool operator==(TypeOrLuaType v1, Type v2)
+            {
+                return v1.Equals(v2);
+            }
+            public static bool operator!=(TypeOrLuaType v1, Type v2)
+            {
+                return !v1.Equals(v2);
+            }
+            public static bool operator==(TypeOrLuaType v1, string v2)
+            {
+                return v1.Equals(v2);
+            }
+            public static bool operator!=(TypeOrLuaType v1, string v2)
+            {
+                return !v1.Equals(v2);
+            }
+            public static implicit operator TypeOrLuaType(Type clrType)
+            {
+                return new TypeOrLuaType(clrType);
+            }
+            public static implicit operator TypeOrLuaType(string luaType)
+            {
+                return new TypeOrLuaType(luaType);
+            }
+            public static implicit operator Type(TypeOrLuaType v)
+            {
+                return v.ClrType;
+            }
+            public static implicit operator string(TypeOrLuaType v)
+            {
+                return v.LuaType;
+            }
+        }
         internal class WriteMethodBodyContext
         {
             internal struct MethodBaseWithExtraInfo
@@ -4220,7 +4327,7 @@ namespace Capstones.UnityEditorEx
             private HashSet<MethodBase> _DoneMethods = new HashSet<MethodBase>();
             private Dictionary<MethodBase, MethodBaseWithExtraInfo> _MethodEx = new Dictionary<MethodBase, MethodBaseWithExtraInfo>();
             private IList<MethodOverload> _Overloads;
-            private List<Dictionary<Type, HashSet<MethodOverload>>> _ByObjType;
+            private List<Dictionary<TypeOrLuaType, HashSet<MethodOverload>>> _ByObjType;
             public IList<MethodOverload> Overloads
             {
                 get
@@ -4232,7 +4339,7 @@ namespace Capstones.UnityEditorEx
                     return _Overloads;
                 }
             }
-            public List<Dictionary<Type, HashSet<MethodOverload>>> ByObjType
+            public List<Dictionary<TypeOrLuaType, HashSet<MethodOverload>>> ByObjType
             {
                 get
                 {
@@ -4412,16 +4519,18 @@ namespace Capstones.UnityEditorEx
                 list.Add(method);
                 foreach (var kvp in map)
                 {
-                    var ot = kvp.Key;
+                    var ot = kvp.Key.ClrType;
+                    if (ot == null)
+                        continue; // luaType
                     if (ot == type)
                         continue;
-                    string otluatype, tluatype;
-                    if (nativeTypeMap.TryGetValue(ot, out otluatype) && nativeTypeMap.TryGetValue(type, out tluatype) && otluatype == tluatype)
-                    { // Numeric. but not Enums
-                        kvp.Value.UnionWith(list);
-                        list.UnionWith(kvp.Value);
-                    }
-                    else
+                    //string otluatype, tluatype;
+                    //if (nativeTypeMap.TryGetValue(ot, out otluatype) && nativeTypeMap.TryGetValue(type, out tluatype) && otluatype == tluatype)
+                    //{ // Numeric. but not Enums
+                    //    kvp.Value.UnionWith(list);
+                    //    list.UnionWith(kvp.Value);
+                    //}
+                    //else
                     {
                         // comp                 behav
                         if (ot.IsAssignableFrom(type))
@@ -4449,16 +4558,82 @@ namespace Capstones.UnityEditorEx
                     }
                 }
             }
+            private void AddByLuaType(int index, Type type, MethodOverload method)
+            {
+                string luaType;
+                if (!TryGetLuaType(type, out luaType))
+                {
+                    return;
+                }
+                var map = _ByObjType[index];
+                HashSet<MethodOverload> list;
+                if (!map.TryGetValue(luaType, out list))
+                {
+                    list = new HashSet<MethodOverload>();
+                    map[luaType] = list;
+                }
+                list.Add(method);
+            }
+            private void AddObjTypeToLuaType(int index)
+            {
+                var map = _ByObjType[index];
+                HashSet<MethodOverload> listobj;
+                if (map.TryGetValue(typeof(object), out listobj))
+                {
+                    foreach (var kvp in map)
+                    {
+                        if (kvp.Key.ClrType == null)
+                        {
+                            kvp.Value.UnionWith(listobj);
+                        }
+                    }
+                }
+            }
+            private void CombineUniqueLuaType(int index)
+            {
+                var map = _ByObjType[index];
+
+                Dictionary<string, Type> luatypecomb = new Dictionary<string, Type>();
+                foreach (var kvplua in map)
+                {
+                    if (kvplua.Key.LuaType != null)
+                    {
+                        int clrcnt = 0;
+                        Type clrtype = null;
+                        foreach (var kvpclr in map)
+                        {
+                            if (kvpclr.Key.ClrType != null && GetLuaType(kvpclr.Key.ClrType) == kvplua.Key.LuaType)
+                            {
+                                ++clrcnt;
+                                clrtype = kvpclr.Key.ClrType;
+                            }
+                        }
+
+                        if (clrcnt == 1)
+                        {
+                            luatypecomb.Add(kvplua.Key.LuaType, clrtype);
+                        }
+                    }
+                }
+                foreach (var kvp in luatypecomb)
+                {
+                    var list = map[kvp.Value];
+                    map.Remove(kvp.Key);
+                    map.Remove(kvp.Value);
+                    var combKey = new TypeOrLuaType(kvp.Value, kvp.Key);
+                    map[combKey] = list;
+                }
+            }
             private void GenerateByObjType()
             {
                 var methods = GetOverloads();
-                _ByObjType = new List<Dictionary<Type, HashSet<MethodOverload>>>();
+                _ByObjType = new List<Dictionary<TypeOrLuaType, HashSet<MethodOverload>>>();
                 int maxargsCnt = (from method in _Methods
                                   let pars = method.GetParameters()
                                   select pars == null ? 0 : pars.Length).Max() + 1;
                 for (int i = 0; i < maxargsCnt; ++i)
                 {
-                    var map = new Dictionary<Type, HashSet<MethodOverload>>();
+                    var map = new Dictionary<TypeOrLuaType, HashSet<MethodOverload>>();
                     _ByObjType.Add(map);
 
                     foreach (var method in methods)
@@ -4467,9 +4642,26 @@ namespace Capstones.UnityEditorEx
                         {
                             var pt = method.ArgTypes[i];
                             AddByObjType(i, pt, method);
+                            AddByLuaType(i, pt, method);
                         }
                     }
+                    AddObjTypeToLuaType(i);
+                    CombineUniqueLuaType(i);
                 }
+            }
+
+            public WriteMethodBodyContext Clone()
+            {
+                return new WriteMethodBodyContext()
+                {
+                    _sb = _sb,
+                    Written_gettop = Written_gettop,
+                    _Methods = _Methods,
+                    _DoneMethods = new HashSet<MethodBase>(_DoneMethods),
+                    _MethodEx = _MethodEx,
+                    _Overloads = _Overloads,
+                    _ByObjType = _ByObjType,
+                };
             }
         }
         internal enum WriteMethodBodyParamsTreatment
@@ -5268,172 +5460,368 @@ namespace Capstones.UnityEditorEx
             sb.AppendLine(";");
             sb.AppendLine("}");
         }
+        internal static void WriteMethodBody_10_ByArgCnt_Branch(this WriteMethodBodyContext context, ref bool shouldelse, int cnt, IList<MethodBase> methods)
+        {
+            var sb = context.sb;
+            if (shouldelse)
+            {
+                sb.Append("else ");
+            }
+            else
+            {
+                shouldelse = true;
+                context.Write_gettop();
+            }
+            sb.Append("if (oldtop == ");
+            sb.Append(cnt);
+            sb.Append(")");
+            sb.AppendLine(); // if (oldtop == 8)
+
+            sb.AppendLine("{"); // {
+            WriteMethodBodyContext subcontext = context.Clone();
+            subcontext.DoneMethods.UnionWith(subcontext.Methods);
+            subcontext.DoneMethods.ExceptWith(methods);
+            WriteMethodBody_30_ByObjType(subcontext, cnt); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
+            sb.AppendLine("}"); // }
+            foreach (var method in methods)
+            {
+                var pexinfo = context.GetMethodEx(method);
+                if (pexinfo.ArgTypes.Count == cnt && (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueType))
+                {
+                    context.DoneMethods.Add(method);
+                }
+            }
+        }
         internal static void WriteMethodBody_10_ByArgCnt(this WriteMethodBodyContext context)
         {
             var sb = context.sb;
             var methods = context.GetUndoneMethods();
-            SortedDictionary<int, IList<MethodBase>> byfixed = new SortedDictionary<int, IList<MethodBase>>();
-            SortedDictionary<int, IList<MethodBase>> unfixed = new SortedDictionary<int, IList<MethodBase>>();
-            Dictionary<MethodBase, int> paramspos = new Dictionary<MethodBase, int>();
+            SortedDictionary<int, IList<MethodBase>> bycnt_valuetype = new SortedDictionary<int, IList<MethodBase>>();
+            SortedDictionary<int, IList<MethodBase>> bycnt_nullable = new SortedDictionary<int, IList<MethodBase>>();
+
+            var paramposes = from method in methods
+                             let exinfo = context.GetMethodEx(method)
+                             where exinfo.LastArgIsParam
+                             select exinfo.ArgTypes.Count - 1;
+            int minparampos = paramposes.Count() == 0 ? int.MaxValue : paramposes.Min();
+            var vtmethods = from method in methods
+                            let exinfo = context.GetMethodEx(method)
+                            let types = exinfo.ArgTypes
+                            let argcnt = types.Count
+                            where !exinfo.LastArgIsParam
+                            where argcnt == 0 || types[argcnt - 1].IsValueType
+                            select method;
+
+            if (vtmethods.Count() == 0)
+            {
+                minparampos = 0;
+            }
 
             foreach (var method in methods)
             {
                 var exinfo = context.GetMethodEx(method);
                 var types = exinfo.ArgTypes;
                 var argcnt = types.Count;
-                if (exinfo.LastArgIsParam)
+                if (!exinfo.LastArgIsParam && (argcnt == 0 || types[argcnt - 1].IsValueType || argcnt >= minparampos))
                 {
                     IList<MethodBase> list;
-                    if (!unfixed.TryGetValue(argcnt, out list))
+                    if (!bycnt_valuetype.TryGetValue(argcnt, out list))
                     {
                         list = new List<MethodBase>();
-                        unfixed[argcnt] = list;
-                    }
-                    list.Add(method);
-                    paramspos[method] = argcnt;
-                    --argcnt;
-                }
-                {
-                    IList<MethodBase> list;
-                    if (!byfixed.TryGetValue(argcnt, out list))
-                    {
-                        list = new List<MethodBase>();
-                        byfixed[argcnt] = list;
+                        bycnt_valuetype[argcnt] = list;
                     }
                     list.Add(method);
                 }
             }
 
-            bool shouldelse = false;
-            int paramsStartedPos = -1;
-            MethodBase pending = null;
-            var fixedmax = byfixed.Keys.Max();
-            for (int i = 0; i <= fixedmax; ++i)
+            int maxcnt = bycnt_valuetype.Count == 0 ? 0 : bycnt_valuetype.Keys.Last();
+            foreach (var method in methods)
             {
-                if (byfixed.ContainsKey(i))
+                var exinfo = context.GetMethodEx(method);
+                var types = exinfo.ArgTypes;
+                var argcnt = types.Count;
+                if (exinfo.LastArgIsParam || argcnt > 0 && !types[argcnt - 1].IsValueType && argcnt < minparampos)
                 {
-                    if (paramsStartedPos >= 0)
+                    int max_non_null = -1;
+                    for (int i = argcnt - 2; i >= 0; --i)
                     {
-                        WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
+                        var argtype = types[i];
+                        if (argtype.IsValueType || i >= minparampos)
+                        {
+                            max_non_null = i;
+                            break;
+                        }
                     }
-                    paramsStartedPos = -1;
-                    pending = null;
+                    ++max_non_null;
 
-                    var list = byfixed[i];
-                    var fixedlist = from method in list
-                                    where !context.GetMethodEx(method).LastArgIsParam
-                                    select method;
-                    if (fixedlist.Count() == 1)
+                    for (int vcnt = max_non_null; vcnt <= maxcnt; ++vcnt)
                     {
-                        pending = fixedlist.First();
-                        if (list.All(checking =>
+                        if (bycnt_valuetype.ContainsKey(vcnt))
                         {
-                            if (checking != pending)
+                            if (vcnt > argcnt && !exinfo.LastArgIsParam)
                             {
-                                var checkingInfo = context.GetMethodEx(checking);
-                                var pendingInfo = context.GetMethodEx(pending);
-                                for (int j = 0; j <= i; ++j)
+                                break;
+                            }
+                            if (!(vcnt == argcnt && exinfo.LastArgIsParam))
+                            {
+                                Types vtypes = new Types();
+                                for (int i = 0; i < vcnt; ++i)
                                 {
-                                    if (checkingInfo.ArgTypes[j] != pendingInfo.ArgTypes[j])
+                                    Type argType;
+                                    if (i < argcnt - 1 || !exinfo.LastArgIsParam)
                                     {
-                                        return false;
+                                        argType = types[i];
                                     }
+                                    else
+                                    {
+                                        argType = types[argcnt - 1].GetElementType();
+                                    }
+                                    vtypes.Add(argType);
+                                }
+                                if (bycnt_valuetype[vcnt].Any(vtmethod =>
+                                {
+                                    var vtex = context.GetMethodEx(vtmethod);
+                                    var vtargs = vtex.ArgTypes;
+                                    return IsExplicitCall(vtypes, vtargs);
+                                }))
+                                {
+                                    continue;
                                 }
                             }
-                            return true;
-                        }))
-                        {
-                            var unfixedcheching = (from kvp in unfixed
-                                                   where kvp.Key <= i
-                                                   from method in kvp.Value
-                                                   select method).ToArray();
-                            if (unfixedcheching.Length == 0 || unfixedcheching.All(checking =>
+
+                            IList<MethodBase> list;
+                            if (!bycnt_nullable.TryGetValue(vcnt, out list))
                             {
-                                if (checking != pending)
-                                {
-                                    var checkingInfo = context.GetMethodEx(checking);
-                                    var pendingInfo = context.GetMethodEx(pending);
-                                    for (int j = 0; j <= i; ++j)
-                                    {
-                                        Type checkingType;
-                                        if (j >= checkingInfo.ArgTypes.Count - 1)
-                                        {
-                                            checkingType = checkingInfo.ArgTypes[checkingInfo.ArgTypes.Count - 1].GetElementType();
-                                        }
-                                        else
-                                        {
-                                            checkingType = checkingInfo.ArgTypes[j];
-                                        }
-                                        if (checkingType != pendingInfo.ArgTypes[j])
-                                        {
-                                            return false;
-                                        }
-                                    }
-                                }
-                                return true;
-                            }))
-                            {
-                                WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
+                                list = new List<MethodBase>();
+                                bycnt_nullable[vcnt] = list;
                             }
+                            list.Add(method);
                         }
-                        pending = null;
                     }
-                    else
+                }
+            }
+
+            List<int> selectedcounts = new List<int>();
+            foreach (var kvp in bycnt_valuetype)
+            {
+                int argcnt = kvp.Key;
+                //IList<MethodBase> nullables = null;
+                //bycnt_nullable.TryGetValue(argcnt, out nullables);
+                //if (nullables == null || kvp.Value.Count >= nullables.Count)
+                {
+                    selectedcounts.Add(argcnt);
+                }
+            }
+            selectedcounts.Sort((k1, k2) =>
+            {
+                var vcnt1 = bycnt_valuetype[k1].Count;
+                var vcnt2 = bycnt_valuetype[k2].Count;
+                if (vcnt1 == vcnt2)
+                {
+                    int ncnt1 = 0;
+                    int ncnt2 = 0;
+                    IList<MethodBase> nms1;
+                    IList<MethodBase> nms2;
+                    if (bycnt_nullable.TryGetValue(k1, out nms1))
                     {
-                        if (list.Count == 1)
-                        {
-                            paramsStartedPos = i;
-                            pending = list[0];
-                        }
+                        ncnt1 = nms1.Count;
                     }
+                    if (bycnt_nullable.TryGetValue(k2, out nms2))
+                    {
+                        ncnt2 = nms2.Count;
+                    }
+                    return ncnt1 - ncnt2;
+                }
+                return vcnt1 - vcnt2;
+            });
+
+            bool shouldelse = false;
+            foreach (var argcnt in selectedcounts)
+            {
+                List<MethodBase> branchMethods = new List<MethodBase>(bycnt_valuetype[argcnt]);
+                IList<MethodBase> nullables = null;
+                if (bycnt_nullable.TryGetValue(argcnt, out nullables))
+                {
+                    branchMethods.AddRange(nullables);
+                }
+
+                if (branchMethods.Count == 1)
+                {
+                    WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, argcnt, branchMethods[0]);
                 }
                 else
                 {
-                    var pcnt = (from kvp in unfixed
-                                where kvp.Key <= i
-                                select kvp.Value.Count).Sum();
-                    if (pcnt == 1)
-                    {
-                        if (paramsStartedPos < 0)
-                        {
-                            paramsStartedPos = i;
-                            pending = (from kvp in unfixed
-                                       where kvp.Key <= i
-                                       select kvp.Value).First().First();
-                        }
-                    }
-                    else
-                    {
-                        if (paramsStartedPos >= 0)
-                        {
-                            WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
-                        }
-                        paramsStartedPos = -1;
-                        pending = null;
-                    }
+                    WriteMethodBody_10_ByArgCnt_Branch(context, ref shouldelse, argcnt, branchMethods);
                 }
-            }
-
-            if (paramsStartedPos >= 0)
-            {
-                WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, int.MaxValue, pending);
-                paramsStartedPos = -1;
-                pending = null;
-            }
-            else
-            {
-                var pcnt = (from kvp in unfixed
-                            where kvp.Key <= fixedmax + 1
-                            select kvp.Value.Count).Sum();
-                if (pcnt == 1)
+                foreach (var method in bycnt_valuetype[argcnt])
                 {
-                    pending = (from kvp in unfixed
-                               where kvp.Key <= fixedmax + 1
-                               select kvp.Value).First().First();
-                    WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, fixedmax + 1, int.MaxValue, pending);
-                    pending = null;
+                    context.DoneMethods.Add(method);
                 }
             }
+            // TODO: params: (oldtop > XXX) or (oldtop > n && oldtop < m) when there is only params funcs fit.
+
+            //SortedDictionary<int, IList<MethodBase>> byfixed = new SortedDictionary<int, IList<MethodBase>>();
+            //SortedDictionary<int, IList<MethodBase>> unfixed = new SortedDictionary<int, IList<MethodBase>>();
+            //Dictionary<MethodBase, int> paramspos = new Dictionary<MethodBase, int>();
+
+            //foreach (var method in methods)
+            //{
+            //    var exinfo = context.GetMethodEx(method);
+            //    var types = exinfo.ArgTypes;
+            //    var argcnt = types.Count;
+            //    if (exinfo.LastArgIsParam)
+            //    {
+            //        IList<MethodBase> list;
+            //        if (!unfixed.TryGetValue(argcnt, out list))
+            //        {
+            //            list = new List<MethodBase>();
+            //            unfixed[argcnt] = list;
+            //        }
+            //        list.Add(method);
+            //        paramspos[method] = argcnt;
+            //        --argcnt;
+            //    }
+            //    {
+            //        IList<MethodBase> list;
+            //        if (!byfixed.TryGetValue(argcnt, out list))
+            //        {
+            //            list = new List<MethodBase>();
+            //            byfixed[argcnt] = list;
+            //        }
+            //        list.Add(method);
+            //    }
+            //}
+
+            //bool shouldelse = false;
+            //int paramsStartedPos = -1;
+            //MethodBase pending = null;
+            //var fixedmax = byfixed.Keys.Max();
+            //for (int i = 0; i <= fixedmax; ++i)
+            //{
+            //    if (byfixed.ContainsKey(i))
+            //    {
+            //        if (paramsStartedPos >= 0)
+            //        {
+            //            WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
+            //        }
+            //        paramsStartedPos = -1;
+            //        pending = null;
+
+            //        var list = byfixed[i];
+            //        var fixedlist = from method in list
+            //                        where !context.GetMethodEx(method).LastArgIsParam
+            //                        select method;
+            //        if (fixedlist.Count() == 1)
+            //        {
+            //            pending = fixedlist.First();
+            //            if (list.All(checking =>
+            //            {
+            //                if (checking != pending)
+            //                {
+            //                    var checkingInfo = context.GetMethodEx(checking);
+            //                    var pendingInfo = context.GetMethodEx(pending);
+            //                    for (int j = 0; j <= i; ++j)
+            //                    {
+            //                        if (checkingInfo.ArgTypes[j] != pendingInfo.ArgTypes[j])
+            //                        {
+            //                            return false;
+            //                        }
+            //                    }
+            //                }
+            //                return true;
+            //            }))
+            //            {
+            //                var unfixedcheching = (from kvp in unfixed
+            //                                       where kvp.Key <= i
+            //                                       from method in kvp.Value
+            //                                       select method).ToArray();
+            //                if (unfixedcheching.Length == 0 || unfixedcheching.All(checking =>
+            //                {
+            //                    if (checking != pending)
+            //                    {
+            //                        var checkingInfo = context.GetMethodEx(checking);
+            //                        var pendingInfo = context.GetMethodEx(pending);
+            //                        for (int j = 0; j <= i; ++j)
+            //                        {
+            //                            Type checkingType;
+            //                            if (j >= checkingInfo.ArgTypes.Count - 1)
+            //                            {
+            //                                checkingType = checkingInfo.ArgTypes[checkingInfo.ArgTypes.Count - 1].GetElementType();
+            //                            }
+            //                            else
+            //                            {
+            //                                checkingType = checkingInfo.ArgTypes[j];
+            //                            }
+            //                            if (checkingType != pendingInfo.ArgTypes[j])
+            //                            {
+            //                                return false;
+            //                            }
+            //                        }
+            //                    }
+            //                    return true;
+            //                }))
+            //                {
+            //                    WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
+            //                }
+            //            }
+            //            pending = null;
+            //        }
+            //        else
+            //        {
+            //            if (list.Count == 1)
+            //            {
+            //                paramsStartedPos = i;
+            //                pending = list[0];
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        var pcnt = (from kvp in unfixed
+            //                    where kvp.Key <= i
+            //                    select kvp.Value.Count).Sum();
+            //        if (pcnt == 1)
+            //        {
+            //            if (paramsStartedPos < 0)
+            //            {
+            //                paramsStartedPos = i;
+            //                pending = (from kvp in unfixed
+            //                           where kvp.Key <= i
+            //                           select kvp.Value).First().First();
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (paramsStartedPos >= 0)
+            //            {
+            //                WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
+            //            }
+            //            paramsStartedPos = -1;
+            //            pending = null;
+            //        }
+            //    }
+            //}
+
+            //if (paramsStartedPos >= 0)
+            //{
+            //    WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, int.MaxValue, pending);
+            //    paramsStartedPos = -1;
+            //    pending = null;
+            //}
+            //else
+            //{
+            //    var pcnt = (from kvp in unfixed
+            //                where kvp.Key <= fixedmax + 1
+            //                select kvp.Value.Count).Sum();
+            //    if (pcnt == 1)
+            //    {
+            //        pending = (from kvp in unfixed
+            //                   where kvp.Key <= fixedmax + 1
+            //                   select kvp.Value).First().First();
+            //        WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, fixedmax + 1, int.MaxValue, pending);
+            //        pending = null;
+            //    }
+            //}
 
             if (context.Methods.Count > context.DoneMethods.Count)
             {
@@ -5453,7 +5841,7 @@ namespace Capstones.UnityEditorEx
                     else
                     {
                         //WriteMethodBody_15_ByArgCntAndParamType(context);
-                        WriteMethodBody_30_ByObjType(context); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
+                        WriteMethodBody_30_ByObjType(context, -1, new HashSet<int>(selectedcounts)); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
                     }
                     sb.AppendLine("}");
                 }
@@ -5679,7 +6067,7 @@ namespace Capstones.UnityEditorEx
             WriteMethodBody_30_ByObjType(context);
             sb.AppendLine("}");
         }
-        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<Type>> processed, int index, Type type)
+        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<TypeOrLuaType>> processed, int index, TypeOrLuaType type)
         {
             if (index >= processed.Count)
             {
@@ -5687,7 +6075,7 @@ namespace Capstones.UnityEditorEx
             }
             return processed[index].Contains(type);
         }
-        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<Type>> processed, int index)
+        internal static bool WriteMethodBody_30_ByObjType_HasProcessed(List<HashSet<TypeOrLuaType>> processed, int index)
         {
             if (index >= processed.Count)
             {
@@ -5695,23 +6083,23 @@ namespace Capstones.UnityEditorEx
             }
             return processed[index].Count > 0;
         }
-        internal static void WriteMethodBody_30_ByObjType_MarkProcessed(List<HashSet<Type>> processed, int index, Type type)
+        internal static void WriteMethodBody_30_ByObjType_MarkProcessed(List<HashSet<TypeOrLuaType>> processed, int index, TypeOrLuaType type)
         {
             if (index < processed.Count)
             {
                 processed[index].Add(type);
             }
         }
-        internal static List<HashSet<Type>> WriteMethodBody_30_ByObjType_CopyProcessed(List<HashSet<Type>> processed)
+        internal static List<HashSet<TypeOrLuaType>> WriteMethodBody_30_ByObjType_CopyProcessed(List<HashSet<TypeOrLuaType>> processed)
         {
-            var newp = new List<HashSet<Type>>();
+            var newp = new List<HashSet<TypeOrLuaType>>();
             for (int i = 0; i < processed.Count; ++i)
             {
-                newp.Add(new HashSet<Type>(processed[i]));
+                newp.Add(new HashSet<TypeOrLuaType>(processed[i]));
             }
             return newp;
         }
-        internal static void WriteMethodBody_30_ByObjType_WriteIndexAndType(this WriteMethodBodyContext context, List<HashSet<Type>> processed, int index, Type type)
+        internal static void WriteMethodBody_30_ByObjType_WriteIndexAndType(this WriteMethodBodyContext context, List<HashSet<TypeOrLuaType>> processed, int index, TypeOrLuaType type)
         {
             var sb = context.sb;
 
@@ -5728,48 +6116,52 @@ namespace Capstones.UnityEditorEx
                 sb.Append(index);
                 sb.AppendLine(");");
             }
-            if (type.IsValueType || type.IsSealed)
+            if (type.ClrType != null)
             {
-                sb.Append("if (___ot");
-                sb.Append(index);
-                sb.Append(" == typeof(");
-                sb.WriteType(type);
-                sb.Append(")");
-                string luatypestr;
-                if (TryGetLuaType(type, out luatypestr))
+                if (type.ClrType.IsValueType || type.ClrType.IsSealed)
                 {
-                    var ltype = nativeRevMap[luatypestr];
-                    if (ltype != type)
+                    sb.Append("if (");
+                    if (type.LuaType != null)
                     {
-                        sb.Append(" || ___lt");
+                        sb.Append("___lt");
                         sb.Append(index);
                         sb.Append(" == lua.");
-                        sb.Append(luatypestr);
+                        sb.Append(type.LuaType);
+                        sb.Append(" || ");
                     }
-                }
-                sb.AppendLine(")");
-            }
-            else
-            {
-                if (type == typeof(object))
-                {
-                    sb.Append("if (___ot");
-                    sb.Append(index);
-                    sb.Append(" != null)");
-                    sb.AppendLine();
-                }
-                else
-                {
-                    sb.Append("if (___ot");
+                    sb.Append("___ot");
                     sb.Append(index);
                     sb.Append(" == typeof(");
                     sb.WriteType(type);
-                    sb.Append(") || typeof(");
-                    sb.WriteType(type);
-                    sb.Append(").IsAssignableFrom(___ot");
-                    sb.Append(index);
-                    sb.AppendLine("))");
+                    sb.Append(")");
+                    sb.AppendLine(")");
                 }
+                else
+                {
+                    if (type == typeof(object))
+                    {
+                        sb.Append("if (___ot");
+                        sb.Append(index);
+                        sb.Append(" != null)");
+                        sb.AppendLine();
+                    }
+                    else
+                    {
+                        sb.Append("if (typeof(");
+                        sb.WriteType(type);
+                        sb.Append(").IsAssignableFrom(___ot");
+                        sb.Append(index);
+                        sb.AppendLine("))");
+                    }
+                }
+            }
+            else
+            {
+                sb.Append("if (___lt");
+                sb.Append(index);
+                sb.Append(" == lua.");
+                sb.Append(type.LuaType);
+                sb.AppendLine(")");
             }
         }
         //internal static void WriteMethodBody_30_ByObjType_WriteIndexAndType(this WriteMethodBodyContext context, List<HashSet<Type>> processed, int index, Type type, IEnumerable<Type> convertTypes)
@@ -5857,7 +6249,28 @@ namespace Capstones.UnityEditorEx
         {
             return Types.Compare(new Types() { t1 }, new Types() { t2 });
         }
-        internal static void WriteMethodBody_30_ByObjType_WorkStep(this WriteMethodBodyContext context, HashSet<MethodOverload> submethods, List<HashSet<Type>> processed)
+        internal static int WriteMethodBody_30_ByObjType_CompareType(TypeOrLuaType t1, TypeOrLuaType t2)
+        {
+            bool isLua1 = t1.ClrType == null;
+            bool isLua2 = t2.ClrType == null;
+            if (isLua1 && isLua2)
+            {
+                return string.Compare(t1.LuaType, t2.LuaType);
+            }
+            else if (!isLua1 && !isLua2)
+            {
+                return WriteMethodBody_30_ByObjType_CompareType(t1.ClrType, t2.ClrType);
+            }
+            else if (isLua1)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+        internal static void WriteMethodBody_30_ByObjType_WorkStep(this WriteMethodBodyContext context, HashSet<MethodOverload> submethods, List<HashSet<TypeOrLuaType>> processed)
         {
             var sb = context.sb;
             if (submethods.Count <= 0)
@@ -5870,6 +6283,17 @@ namespace Capstones.UnityEditorEx
                 sb.AppendLine(";");
                 return;
             }
+            else
+            {
+                var first = submethods.First();
+                if (submethods.All(overload => overload.Method == first.Method && overload.LabelOffset == first.LabelOffset))
+                {
+                    sb.Append("goto Label_");
+                    sb.Append(context.GetMethodEx(first).Label + first.LabelOffset);
+                    sb.AppendLine(";");
+                    return;
+                }
+            }
 
             var subprocessed = WriteMethodBody_30_ByObjType_CopyProcessed(processed);
             var ByObjType = context.ByObjType;
@@ -5880,7 +6304,7 @@ namespace Capstones.UnityEditorEx
             int minindex = -1;
             int mincnt = int.MaxValue;
             //int maxtype = int.MaxValue;
-            Type mintype = null;
+            TypeOrLuaType mintype = new TypeOrLuaType();
             MethodOverload[] partmethods = null;
             //HashSet<Type> minSelectableTypes = null;
 
@@ -5890,6 +6314,7 @@ namespace Capstones.UnityEditorEx
             }
 
             int min_max_group_ele_cnt = int.MaxValue;
+            int min_max_group_cnt = int.MinValue;
             for (int i = 0; i < ByObjTypeCnt; ++i)
             {
                 var map = ByObjType[i];
@@ -5903,7 +6328,8 @@ namespace Capstones.UnityEditorEx
                              let subgroup = from overload in kvp.Value
                                             where submethods.Contains(overload)
                                             select overload
-                             where subgroup.Any(overload => overload.ArgTypes[i] == kvp.Key)
+                             where subgroup.Any(overload => kvp.Key.ClrType != null && overload.ArgTypes[i] == kvp.Key.ClrType || kvp.Key.ClrType == null && GetLuaType(overload.ArgTypes[i]) == kvp.Key.LuaType)
+                             //where !submethods.SetEquals(subgroup) // this is normally for lua-type. if we can not split group by lua-type, we should ignore this.
                              let cnt = subgroup.Count()
                              where cnt > 0
                              select new { Type = kvp.Key, Group = subgroup };
@@ -5921,10 +6347,13 @@ namespace Capstones.UnityEditorEx
                                          select subgroup.Group.Count()).Max();
                 max_group_ele_cnt = Math.Max(max_group_ele_cnt, rest.Count);
 
-                if (max_group_ele_cnt < min_max_group_ele_cnt)
+                if (max_group_ele_cnt < min_max_group_ele_cnt
+                    || max_group_ele_cnt == min_max_group_ele_cnt && (min_max_group_cnt == 1 && groups.Count() > min_max_group_cnt || min_max_group_cnt > 1 && groups.Count() > 1 && groups.Count() < min_max_group_cnt) // this is normally for lua-type. Consider: if lua-type cannot split group but the 1st arg is "this"(all-same-type).
+                    )
                 {
                     minindex = i;
                     min_max_group_ele_cnt = max_group_ele_cnt;
+                    min_max_group_cnt = groups.Count();
                     //minSelectableTypes = selectableTypes;
                 }
             }
@@ -5942,7 +6371,11 @@ namespace Capstones.UnityEditorEx
                     //{
                     //    continue;
                     //}
-                    if (mintype != null && kvp.Key.IsAssignableFrom(mintype))
+                    if (mintype.ClrType != null && kvp.Key.ClrType != null  && kvp.Key.ClrType.IsAssignableFrom(mintype.ClrType))
+                    {
+                        continue;
+                    }
+                    if (mintype.ClrType == null && mintype.LuaType != null && kvp.Key.ClrType != null)
                     {
                         continue;
                     }
@@ -5954,7 +6387,11 @@ namespace Capstones.UnityEditorEx
 
                     var restset = new HashSet<MethodOverload>(kvp.Value);
                     restset.IntersectWith(submethods);
-                    if (!restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key))
+                    //if (submethods.SetEquals(restset))
+                    //{ // this is normally for lua-type. if we can not split group by lua-type, we should ignore this.
+                    //    continue;
+                    //}
+                    if (kvp.Key.ClrType != null && !restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key.ClrType) || !restset.Any())
                     {
                         continue;
                     }
@@ -5967,32 +6404,39 @@ namespace Capstones.UnityEditorEx
                     Array.Sort(rest, WriteMethodBody_30_ByObjType_CompareArgs);
 
                     int comparecnt = rest.Length;
-                    if (rest.All(overload =>
+                    if (kvp.Key.ClrType != null)
                     {
-                        var overloadex = context.GetMethodEx(overload);
-                        return overloadex.LastArgIsParam
-                            && minindex == overloadex.ArgTypes.Count - 1;
-                    }))
-                    {
-                        if (rest.Any(overload =>
+                        if (rest.All(overload =>
                         {
                             var overloadex = context.GetMethodEx(overload);
-                            return overloadex.ArgTypes[minindex] == kvp.Key;
+                            return overloadex.LastArgIsParam
+                                && minindex == overloadex.ArgTypes.Count - 1;
                         }))
                         {
-                            comparecnt += submethods.Count;
+                            if (rest.Any(overload =>
+                            {
+                                var overloadex = context.GetMethodEx(overload);
+                                return overloadex.ArgTypes[minindex] == kvp.Key.ClrType;
+                            }))
+                            {
+                                comparecnt += submethods.Count;
+                            }
                         }
                     }
 
                     bool found = false;
-                    if (comparecnt < mincnt)
+                    if (mintype.LuaType == null && kvp.Key.LuaType != null)
+                    {
+                        found = true;
+                    }
+                    else if (comparecnt < mincnt)
                     {
                         found = true;
                     }
                     else if (comparecnt == mincnt)
                     {
-                        var compresult = WriteMethodBody_30_ByObjType_CompareType(kvp.Key, mintype);
-                        if (compresult > 0)
+                        //var compresult = WriteMethodBody_30_ByObjType_CompareType(kvp.Key, mintype);
+                        //if (compresult > 0) // we have already sorted the map
                         {
                             found = true;
                         }
@@ -6014,16 +6458,20 @@ namespace Capstones.UnityEditorEx
                     }
                 }
             }
-            mincnt = partmethods.Length;
 
             if (minindex >= 0)
             {
+                mincnt = partmethods.Length;
                 WriteMethodBody_30_ByObjType_MarkProcessed(subprocessed, minindex, mintype);
                 var subsub = new HashSet<MethodOverload>(submethods);
                 subsub.ExceptWith(partmethods);
                 foreach (var kvp in ByObjType[minindex])
                 {
                     if (kvp.Key == mintype)
+                    {
+                        continue;
+                    }
+                    if (kvp.Key.ClrType == null && mintype.ClrType != null && GetLuaType(mintype.ClrType) == kvp.Key.LuaType)
                     {
                         continue;
                     }
@@ -6034,7 +6482,7 @@ namespace Capstones.UnityEditorEx
 
                     var restset = new HashSet<MethodOverload>(kvp.Value);
                     restset.IntersectWith(submethods);
-                    if (!restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key))
+                    if (kvp.Key.ClrType != null && !restset.Any(overload => overload.ArgTypes[minindex] == kvp.Key.ClrType) || !restset.Any())
                     {
                         continue;
                     }
@@ -6045,66 +6493,86 @@ namespace Capstones.UnityEditorEx
                     subsub.UnionWith(restset);
                 }
 
-                if (mincnt == 1)
+                if (mincnt == submethods.Count)
                 {
-                    var method = partmethods.First();
-                    var ex = context.GetMethodEx(method);
-                    WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
-                    sb.AppendLine("{");
-                    sb.Append("goto Label_");
-                    sb.Append(ex.Label + method.LabelOffset);
-                    sb.AppendLine(";");
-                    sb.AppendLine("}");
-
-                    WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
-                }
-                else
-                {
-                    if (mincnt == submethods.Count)
+                    if (subsub.Count > 0)
                     {
-                        if ((from overload in partmethods
-                             group overload by overload.Method into g
-                             select g).Count() == 1)
+                        WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
+                        sb.AppendLine("{");
+                    }
+                    if ((from overload in partmethods
+                         group overload by overload.Method into g
+                         select g).Count() == 1)
+                    {
+                        var labeloffsets = from overload in partmethods
+                                           group overload by overload.LabelOffset into g
+                                           select g.Key;
+                        int labeloffset = 0;
+                        if (labeloffsets.Count() == 1)
                         {
-                            var labeloffsets = from overload in partmethods
-                                               group overload by overload.LabelOffset into g
-                                               select g.Key;
-                            int labeloffset = 0;
-                            if (labeloffsets.Count() == 1)
-                            {
-                                labeloffset = labeloffsets.First();
-                            }
+                            labeloffset = labeloffsets.First();
+                        }
 
-                            // all the same method
-                            sb.Append("goto Label_");
-                            var ex = context.GetMethodEx(partmethods.First());
-                            sb.Append(ex.Label + labeloffset);
-                            sb.AppendLine(";");
-                        }
-                        else
-                        {
-                            // we can not split any further. we just sort and write the most common one.
-                            //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
-                            var selected = partmethods.Last();
-                            sb.Append("goto Label_");
-                            var ex = context.GetMethodEx(selected);
-                            sb.Append(ex.Label);
-                            sb.AppendLine(";");
-                        }
+                        // all the same method
+                        sb.Append("goto Label_");
+                        var ex = context.GetMethodEx(partmethods.First());
+                        sb.Append(ex.Label + labeloffset);
+                        sb.AppendLine(";");
                     }
                     else
                     {
-                        //var realtypes = from overload in partmethods
-                        //                where overload.ArgTypes.Count > minindex
-                        //                let type = overload.ArgTypes[minindex]
-                        //                group type by type into g
-                        //                select g.Key;
-                        //WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype, realtypes);
+                        // we can not split any further. we just sort and write the most common one.
+                        //WriteMethodBody_35_ByObjTypeExplicit(context, submethods, parsedTypeIndex);
+                        var selected = partmethods.Last();
+                        sb.Append("goto Label_");
+                        var ex = context.GetMethodEx(selected);
+                        sb.Append(ex.Label);
+                        sb.AppendLine(";");
+                    }
+                    if (subsub.Count > 0)
+                    {
+                        sb.AppendLine("}");
+                        sb.AppendLine("else");
+                        sb.AppendLine("{");
+                        WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
+                        sb.AppendLine("}");
+                    }
+                }
+                else
+                {
+                    //var realtypes = from overload in partmethods
+                    //                where overload.ArgTypes.Count > minindex
+                    //                let type = overload.ArgTypes[minindex]
+                    //                group type by type into g
+                    //                select g.Key;
+                    //WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype, realtypes);
 
+                    var subprocessedelse = WriteMethodBody_30_ByObjType_CopyProcessed(subprocessed);
+                    if (mintype.ClrType == null)
+                    {
+                        // LuaType
+                        var minluatype = mintype.LuaType;
+                        foreach (var kvp in ByObjType[minindex])
+                        {
+                            if (kvp.Key.ClrType != null)
+                            {
+                                if (GetLuaType(kvp.Key.ClrType) == minluatype)
+                                {
+                                    WriteMethodBody_30_ByObjType_MarkProcessed(subprocessedelse, minindex, kvp.Key);
+                                }
+                            }
+                        }
+                    }
+                    if (subsub.Count > 0)
+                    {
                         WriteMethodBody_30_ByObjType_WriteIndexAndType(context, processed, minindex, mintype);
                         sb.AppendLine("{");
-                        WriteMethodBody_30_ByObjType_WorkStep(context, new HashSet<MethodOverload>(partmethods), subprocessed);
+                    }
+                    WriteMethodBody_30_ByObjType_WorkStep(context, new HashSet<MethodOverload>(partmethods), subprocessedelse);
+                    if (subsub.Count > 0)
+                    {
                         sb.AppendLine("}");
+                        sb.AppendLine("else");
                         sb.AppendLine("{");
                         WriteMethodBody_30_ByObjType_WorkStep(context, subsub, subprocessed);
                         sb.AppendLine("}");
@@ -6124,20 +6592,28 @@ namespace Capstones.UnityEditorEx
                 sb.AppendLine(";");
             }
         }
-        internal static void WriteMethodBody_30_ByObjType(this WriteMethodBodyContext context)
+        internal static void WriteMethodBody_30_ByObjType(this WriteMethodBodyContext context, int argcnt = -1, HashSet<int> doneArgCnts = null)
         {
             var sb = context.sb;
             var methods = context.Overloads;
             var byObjType = context.ByObjType;
 
-            List<HashSet<Type>> processed = new List<HashSet<Type>>();
+            List<HashSet<TypeOrLuaType>> processed = new List<HashSet<TypeOrLuaType>>();
             for (int i = 0; i < byObjType.Count; ++i)
             {
-                processed.Add(new HashSet<Type>());
+                processed.Add(new HashSet<TypeOrLuaType>());
             }
             var submethods = new HashSet<MethodOverload>(from overload in methods
                                                          where !context.DoneMethods.Contains(overload)
+                                                         where argcnt < 0 || overload.ArgTypes.Count == argcnt
+                                                         where doneArgCnts == null || !doneArgCnts.Contains(overload.ArgTypes.Count)
                                                          select overload);
+            if (argcnt >= 0)
+            {
+                submethods.RemoveWhere(method => (from overload in submethods
+                                                  where overload.ArgTypes == method.ArgTypes && method.LabelOffset > 0 && overload.LabelOffset == 0
+                                                  select overload).Any());
+            }
             WriteMethodBody_30_ByObjType_WorkStep(context, submethods, processed);
         }
         //internal static void WriteMethodBody_35_ByObjTypeExplicit(this WriteMethodBodyContext context, HashSet<MethodBase> methods, HashSet<int> parsedTypeIndex)

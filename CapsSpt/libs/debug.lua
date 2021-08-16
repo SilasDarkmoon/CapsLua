@@ -315,3 +315,12 @@ function vardump(object, label, israw)
 
     return result
 end
+
+local function ppcall(f, ...)
+    local rvs = table.pack(xpcall(f, printe, ...))
+    if rvs[1] then
+        return unpack(rvs, 2, rvs.n)
+    else
+        return nil
+    end
+end
