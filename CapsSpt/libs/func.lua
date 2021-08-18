@@ -1167,7 +1167,7 @@ function isolate(tab, env)
         local results = table.pack()
         while true do
             func, args = coroutine.yield(results)
-            results = table.pack(func(table.unpack(args)))
+            results = table.pack(ppcall(func, table.unpack(args)))
         end
     end)
     local success, message = coroutine.resume(emuthd)
