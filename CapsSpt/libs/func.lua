@@ -193,6 +193,134 @@ local function class_instancebase(self)
     end
 end
 
+local function class_findfunction_inclass(class, func)
+    for k, v in pairs(class) do
+        if v == func then
+            return k
+        end
+    end
+end
+
+local function class_findfunction_inparent(class, func, name)
+    if class then
+        if not name then
+            while class do
+                name = class_findfunction_inclass(class, func)
+                if name then
+                    break
+                end
+                class = class.super            
+            end
+            if not name then
+                return
+            end
+        else
+            while class do
+                if class[name] == func then
+                    break
+                end
+                class = class.super
+            end
+            if not class then
+                return
+            end
+        end
+        while class do
+            local super = class.super
+            if not super then
+                break
+            end
+            if super[name] ~= func then
+                break
+            end
+            class = super
+        end
+        return class, name
+    end
+end
+
+local function class_findfunction(self, func, name)
+    local class = self.class
+    return class_findfunction_inparent(class, func, name)
+end
+
+local class_instancecallbasefunc_name
+local function class_instancecallbasefunc(self, name, ...)
+    local old_class_instancecallbasefunc_name = class_instancecallbasefunc_name
+
+    local info = debug.getinfo(2)
+    local func = info.func
+    local caller_name
+    if info.name == "__base_func" then
+        caller_name = old_class_instancecallbasefunc_name
+    end
+    local caller_class = self.class
+    if caller_name == nil then
+        caller_name = info.name
+        caller_class = class_findfunction(self, func, caller_name)
+        if not caller_class then
+            caller_class = class_findfunction(self, func, nil)
+        end
+    else
+        caller_class = class_findfunction(self, func, caller_name)
+    end
+
+    local results
+    if caller_class then
+        local super = caller_class.super
+        if super then
+            class_instancecallbasefunc_name = name
+            local __base_func = super[name]
+            if type(__base_func) == "function" then
+                results = table.pack(__base_func(self, ...))
+            end
+        end
+    end
+
+    class_instancecallbasefunc_name = old_class_instancecallbasefunc_name
+    if results then
+        return table.unpack(results)
+    end
+end
+
+local function class_instancecallbase(self, ...)
+    old_class_instancecallbasefunc_name = class_instancecallbasefunc_name
+
+    local info = debug.getinfo(2)
+    local func = info.func
+    local caller_name
+    if info.name == "__base_func" then
+        caller_name = old_class_instancecallbasefunc_name
+    end
+    local caller_class = self.class
+    if caller_name == nil then
+        caller_name = info.name
+        caller_class = class_findfunction(self, func, caller_name)
+        if not caller_class then
+            caller_class, caller_name = class_findfunction(self, func, nil)
+        end
+    else
+        caller_class = class_findfunction(self, func, caller_name)
+    end
+
+    local results
+    if caller_class then
+        local super = caller_class.super
+        if super then
+            class_instancecallbasefunc_name = caller_name
+            local __base_func = super[caller_name]
+            if type(__base_func) == "function" then
+                results = table.pack(__base_func(self, ...))
+            end
+        end
+    end
+
+    class_instancecallbasefunc_name = old_class_instancecallbasefunc_name
+    if results then
+        return table.unpack(results)
+    end
+end
+
 local function class_isSubClassOf(cls, parent)
     if not parent then return false end
     while cls do
@@ -340,6 +468,8 @@ function class(super, classname)
     end
 
     cls.base = class_instancebase
+    cls.callbase = class_instancecallbase
+    cls.callbasefunc = class_instancecallbasefunc
     cls.isSubClassOf = class_isSubClassOf
     cls.isTypeOf = class_isTypeOf
 
