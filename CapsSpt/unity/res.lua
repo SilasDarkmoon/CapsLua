@@ -9,6 +9,21 @@ local Canvas = UnityEngine.Canvas
 
 res = {}
 
+res.preProcess = nil
+res.postProcess = nil
+
+function res.DoPreProcess(arg)
+    if res.preProcess ~= nil and type(res.preProcess) == 'function' then
+        res.preProcess(arg)
+    end
+end
+
+function res.DoPostProcess(arg)
+    if res.postProcess ~= nil and type(res.postProcess) == 'function' then
+        res.postProcess(arg)
+    end
+end
+
 --#region Instantiate and Scene Tree
 function res.GetLuaScript(obj)
     if obj and obj ~= clr.null then
