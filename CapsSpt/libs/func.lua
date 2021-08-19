@@ -1233,3 +1233,23 @@ function isolate(tab, env)
     return iso
     -- TODO: for pairs/ipairs, next, #, __call, ..., make it a udtable?
 end
+
+local pclock_extra
+local pclock_last
+local pclock_lasttime
+function os.pclock()
+    local curclock = os.clock()
+    local curtime = os.time()
+    if not pclock_last then
+        pclock_extra = 0
+    elseif pclock_last > curclock then
+        local delta = os.difftime(curtime, pclock_lasttime)
+        if delta <= 0 then
+            delta = 0.001
+            pclock_extra = pclock_extra + (pclock_last + delta - curclock)
+        end
+    end
+    pclock_last = curclock
+    pclock_lasttime = curtime
+    return curclock + pclock_extra
+end
