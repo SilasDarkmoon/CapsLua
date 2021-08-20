@@ -1,5 +1,6 @@
 ﻿
 local tonumber_ = tonumber
+tonumberraw = tonumber_
 --[[--
 
 Convert to number.
