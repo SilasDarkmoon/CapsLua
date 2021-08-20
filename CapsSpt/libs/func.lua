@@ -1,5 +1,5 @@
 ﻿
-local tonumber_ = tonumber
+local tonumber_ = tonumberraw or tonumber
 tonumberraw = tonumber_
 --[[--
 
