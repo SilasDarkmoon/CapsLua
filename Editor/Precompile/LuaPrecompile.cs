@@ -1117,6 +1117,16 @@ namespace Capstones.UnityEditorEx
                     lines.Add("var val = GetLuaRaw(l, index);");
                     lines.Add("l.PushLua(val);");
                     lines.Add("}");
+                    string luatype;
+                    if (!LuaPrecompileWriter.nativeTypeMap.TryGetValue(type, out luatype))
+                    {
+                        luatype = "LUA_TTABLE";
+                    }
+                    sbline.Clear();
+                    sbline.Append("public int LuaType { get { return lua.");
+                    sbline.Append(luatype);
+                    sbline.Append("; } }");
+                    lines.Add(sbline.ToString());
 
                     lines.Add("");
                     sbline.Remove(0, sbline.Length);

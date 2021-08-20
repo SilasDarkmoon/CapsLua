@@ -1661,6 +1661,8 @@ namespace Capstones.LuaLib
                 var val = GetLuaChecked(l, index);
                 l.pushnumber(ConvertToNum(val));
             }
+
+            public int LuaType { get { return lua.LUA_TNUMBER; } }
         }
 
         public class TypeHubCreator<THubSub> where THubSub : TypeHubBase, new()

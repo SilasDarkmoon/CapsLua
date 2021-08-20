@@ -347,6 +347,10 @@ namespace Capstones.LuaLib
                     return null;
                 }
             }
+            else if (type == typeof(bool))
+            {
+                return ConvertUtils.ToBoolean(obj);
+            }
             else if (IsConvertible(type) && IsConvertible(obj))
             {
                 try

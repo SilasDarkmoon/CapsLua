@@ -338,17 +338,20 @@ namespace Capstones.LuaExt
                             ILuaNative dnative = dsub as ILuaNative;
                             if (dnative != null)
                             {
-                                if (l.IsObject(1))
+                                if (snative.LuaType == dnative.LuaType)
                                 {
-                                    snative.Unwrap(l, 1);
-                                    dnative.Wrap(l, -1);
-                                    l.remove(-2);
-                                    return 1;
-                                }
-                                else
-                                {
-                                    dnative.Wrap(l, 1);
-                                    return 1;
+                                    if (l.IsObject(1))
+                                    {
+                                        snative.Unwrap(l, 1);
+                                        dnative.Wrap(l, -1);
+                                        l.remove(-2);
+                                        return 1;
+                                    }
+                                    else
+                                    {
+                                        dnative.Wrap(l, 1);
+                                        return 1;
+                                    }
                                 }
                             }
                         }

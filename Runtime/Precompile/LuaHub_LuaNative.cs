@@ -12,6 +12,7 @@ namespace Capstones.LuaLib
     {
         void Wrap(IntPtr l, int index);
         void Unwrap(IntPtr l, int index);
+        int LuaType { get; }
     }
 
     public static partial class LuaHub

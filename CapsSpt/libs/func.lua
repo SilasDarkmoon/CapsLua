@@ -32,8 +32,42 @@ Convert to boolean.
 @return boolean
 
 ]]
+local falsestrings = {
+    [""] = true,
+    ["n"] = true,
+    ["no"] = true,
+    ["f"] = true,
+    ["false"] = true,
+}
 function tobool(v)
-    return (v ~= nil and v ~= false)
+    if not v then
+        return false
+    end
+    local tv = type(v)
+    if clr then
+        if clr.isobj(v) then
+            return clr.unwrap(clr.as(v, clr.System.Boolean))
+        elseif tv == "userdata" then
+            return v ~= clr.topointer(0)
+        end
+    end
+    if tv == "boolean" then
+        return v
+    elseif tv == "string" then
+        local nv = tonumber_(v)
+        if nv then
+            return nv ~= 0
+        end
+        local lower = string.lower(v)
+        if falsestrings[lower] then
+            return false
+        else
+            return true
+        end
+    else
+        local nv = tonumber_(v)
+        return nv == nil or nv ~= 0
+    end
 end
 
 --[[--
