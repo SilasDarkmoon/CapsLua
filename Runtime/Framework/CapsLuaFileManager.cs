@@ -294,8 +294,12 @@ namespace Capstones.LuaLib
 
                                     for (int z = 0; z < allobbs.Length; ++z)
                                     {
-                                        var zip = allobbs[z];
+                                        if (!PlatDependant.IsFileExist(ResManager.AllObbPaths[z]))
+                                        { // means the obb is to be downloaded.
+                                            continue;
+                                        }
 
+                                        var zip = allobbs[z];
                                         int retryTimes = 10;
                                         int entryindex = 0;
                                         for (int i = 0; i < retryTimes; ++i)
@@ -805,8 +809,12 @@ namespace Capstones.LuaLib
 
                                 for (int z = allobbs.Length - 1; z >= 0; --z)
                                 {
+                                    if (!PlatDependant.IsFileExist(ResManager.AllObbPaths[z]))
+                                    { // means the obb is to be downloaded.
+                                        continue;
+                                    }
+                                    
                                     var zip = allobbs[z];
-
                                     int retryTimes = 10;
                                     for (int i = 0; i < retryTimes; ++i)
                                     {
