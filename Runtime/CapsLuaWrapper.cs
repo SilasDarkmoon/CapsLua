@@ -543,20 +543,27 @@ namespace Capstones.LuaWrap
                 _Binding = value;
                 if (!ReferenceEquals(value, null))
                 {
-                    if (_CachedFields != null)
+                    var l = L;
+                    using (var lr = l.CreateStackRecover())
                     {
-                        var l = L;
-                        using (var lr = l.CreateStackRecover())
+                        l.PushLua(value);
+                        if (l.IsUserDataTable(-1))
                         {
-                            l.PushLua(value);
+                            l.PushUserDataTableRaw(-1);
+                            l.remove(-2);
+                            l.pushvalue(-1);
+                            _Binding = new BaseLua(l, l.refer());
+                        }
+                        if (_CachedFields != null)
+                        {
                             foreach (var kvp in _CachedFields)
                             {
                                 l.PushString(kvp.Key);
                                 l.PushLua(kvp.Value);
                                 l.settable(-3);
                             }
+                            _CachedFields = null;
                         }
-                        _CachedFields = null;
                     }
                 }
             }

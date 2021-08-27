@@ -47,6 +47,21 @@ namespace Capstones.LuaLib
             }
             return false;
         }
+        public static void PushUserDataTableRaw(this IntPtr l, int index)
+        {
+            l.pushvalue(index);
+            while (l.IsUserDataTable(-1))
+            { // udt
+                if (!l.getmetatable(-1))
+                {
+                    break;
+                }
+                // udt meta
+                l.GetField(-1, "__raw"); // udt meta raw
+                l.insert(-3);
+                l.pop(2); // raw
+            }
+        }
         public static bool IsObject(this IntPtr l, int index)
         {
             if (l.IsUserData(index))
