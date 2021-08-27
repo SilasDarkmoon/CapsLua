@@ -204,14 +204,28 @@ end
 --#endregion Res Cache
 
 function res.GetCurrentEventSystem()
-    local eventSystemComp = EventSystem.current
-    if eventSystemComp == nil or eventSystemComp == clr.null then
-        local esObj = GameObject.Find("UICameraAndEventSystem(Clone)/EventSystem")
-        if esObj ~= nil and esObj ~= clr.null then
-            eventSystemComp = esObj:GetComponent(EventSystem)
+    if res.currentEventSystem and res.currentEventSystem ~= clr.null then
+        return res.currentEventSystem
+    end
+
+    local esObj = GameObject.Find("UICameraAndEventSystem(Clone)/EventSystem")
+    if esObj ~= nil and esObj ~= clr.null then
+        local eventSystemComp = esObj:GetComponent(EventSystem)
+        if eventSystemComp and eventSystemComp ~= clr.null then
+            res.currentEventSystem = eventSystemComp
+            return eventSystemComp
         end
     end
-    return eventSystemComp
+    
+    local eventSystemComp = EventSystem.current
+    if eventSystemComp and eventSystemComp ~= clr.null then
+        res.currentEventSystem = eventSystemComp
+        return eventSystemComp
+    end
+
+    --TODO: Find first disabled EventSystem.
+    res.currentEventSystem = nil
+    return nil
 end
 
 function res.SetCurrentEventSystemEnabled(enabled)
