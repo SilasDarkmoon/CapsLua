@@ -88,6 +88,10 @@ namespace Capstones.LuaExt
             L.SetField(-2, "array"); // clr
             L.pushcfunction(ClrDelDict); // clr func
             L.SetField(-2, "dict"); // clr
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+            L.pushcfunction(ClrDelTuple); // clr func
+            L.SetField(-2, "tuple"); // clr
+#endif
             L.pushcfunction(ClrDelTable); // clr func
             L.SetField(-2, "table"); // clr
             L.pushcfunction(ClrDelNext); // clr func
@@ -114,6 +118,9 @@ namespace Capstones.LuaExt
         internal static readonly lua.CFunction ClrDelUnextend = new lua.CFunction(ClrFuncUnextend);
         internal static readonly lua.CFunction ClrDelArray = new lua.CFunction(ClrFuncArray);
         internal static readonly lua.CFunction ClrDelDict = new lua.CFunction(ClrFuncDict);
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        internal static readonly lua.CFunction ClrDelTuple = new lua.CFunction(ClrFuncTuple);
+#endif
         internal static readonly lua.CFunction ClrDelTable = new lua.CFunction(ClrFuncTable);
         internal static readonly lua.CFunction ClrDelNext = new lua.CFunction(ClrFuncNext);
         internal static readonly lua.CFunction ClrDelPairs = new lua.CFunction(ClrFuncPairs);
@@ -530,6 +537,119 @@ namespace Capstones.LuaExt
             }
             return 0;
         }
+
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncTuple(IntPtr l)
+        {
+            if (l.istable(1))
+            {
+                object rv;
+                var argcnt = l.gettop();
+                var tuplelen = l.getn(1);
+                if (tuplelen <= 0)
+                {
+                    rv = new ValueTuple();
+                }
+                else
+                {
+                    Type[] types = new Type[tuplelen];
+                    object[] values = new object[tuplelen];
+                    for (int i = 0; i < tuplelen; ++i)
+                    {
+                        l.pushnumber(i + 1);
+                        l.rawget(1);
+                        object value = l.GetLua(-1);
+                        l.pop(1);
+                        Type type = null;
+                        var typepos = i + 2;
+                        if (typepos <= argcnt)
+                        {
+                            l.GetLua(typepos, out type);
+                        }
+                        if (type == null)
+                        {
+                            if (value == null)
+                            {
+                                type = typeof(object);
+                            }
+                            else
+                            {
+                                type = value.GetType();
+                            }
+                        }
+                        types[i] = type;
+                        values[i] = value;
+                    }
+                    rv = CreateTuple(new ArraySegment<Type>(types), new ArraySegment<object>(values));
+                }
+                l.PushLuaObject(rv);
+                return 1;
+            }
+            return 0;
+        }
+        private static object CreateTuple(ArraySegment<Type> types, ArraySegment<object> values)
+        {
+            if (types.Count >= _TupleTypes.Length)
+            {
+                var rest_types = new ArraySegment<Type>(types.Array, types.Offset + (_TupleTypes.Length - 1), types.Count - (_TupleTypes.Length - 1));
+                var rest_values = new ArraySegment<object>(values.Array, values.Offset + (_TupleTypes.Length - 1), values.Count - (_TupleTypes.Length - 1));
+                var vrest = CreateTuple(rest_types, rest_values);
+                var rtype = typeof(ValueTuple<,,,,,,,>).MakeGenericType(
+                    types.Array[types.Offset + 0]
+                    , types.Array[types.Offset + 1]
+                    , types.Array[types.Offset + 2]
+                    , types.Array[types.Offset + 3]
+                    , types.Array[types.Offset + 4]
+                    , types.Array[types.Offset + 5]
+                    , types.Array[types.Offset + 6]
+                    , vrest.GetType()
+                    );
+                return Activator.CreateInstance(rtype,
+                    values.Array[values.Offset + 0]
+                    , values.Array[values.Offset + 1]
+                    , values.Array[values.Offset + 2]
+                    , values.Array[values.Offset + 3]
+                    , values.Array[values.Offset + 4]
+                    , values.Array[values.Offset + 5]
+                    , values.Array[values.Offset + 6]
+                    , vrest
+                    );
+            }
+            else if (types.Count == 0)
+            {
+                return new ValueTuple();
+            }
+            else
+            {
+                var gtype = _TupleTypes[types.Count];
+                var rtypes = new Type[types.Count];
+                for (int i = 0; i < types.Count; ++i)
+                {
+                    rtypes[i] = types.Array[types.Offset + i];
+                }
+                var rvalues = new object[values.Count];
+                for (int i = 0; i < values.Count; ++i)
+                {
+                    rvalues[i] = values.Array[values.Offset + i];
+                }
+                var rtype = gtype.MakeGenericType(rtypes);
+                return Activator.CreateInstance(rtype, rvalues);
+            }
+        }
+        private static Type[] _TupleTypes = new[]
+        {
+            typeof(ValueTuple),
+            typeof(ValueTuple<>),
+            typeof(ValueTuple<,>),
+            typeof(ValueTuple<,,>),
+            typeof(ValueTuple<,,,>),
+            typeof(ValueTuple<,,,,>),
+            typeof(ValueTuple<,,,,,>),
+            typeof(ValueTuple<,,,,,,>),
+            //typeof(ValueTuple<,,,,,,,>),
+        };
+#endif
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncTable(IntPtr l)
