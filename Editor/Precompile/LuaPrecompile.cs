@@ -5103,8 +5103,36 @@ namespace Capstones.UnityEditorEx
                         }
                         sb.AppendLine(");");
                     }
-                    sb.AppendLine("l.PushLua(rv);");
-                    int rvcnt = 1;
+                    int rvcnt;
+                    if (real.IsSpecialName)
+                    {
+                        sb.AppendLine("l.PushLua(rv);");
+                        rvcnt = 1;
+                    }
+                    else
+                    {
+                        if (LuaHub.ValueTuplePush.IsValueTuple(real.ReturnType) || LuaHub.TuplePush.IsTuple(real.ReturnType))
+                        {
+                            int gcnt = 0;
+                            if (real.ReturnType.IsGenericType)
+                            {
+                                gcnt = real.ReturnType.GetGenericArguments().Length;
+                            }
+                            for (int g = 0; g < gcnt; ++g)
+                            {
+                                sb.Append("l.PushLua(rv.Item");
+                                sb.Append(g + 1);
+                                sb.Append(");");
+                                sb.AppendLine();
+                            }
+                            rvcnt = gcnt;
+                        }
+                        else
+                        {
+                            sb.AppendLine("l.PushLua(rv);");
+                            rvcnt = 1;
+                        }
+                    }
                     for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
                     {
                         if (exinfo.IsArgRefOrOut(i))
@@ -5343,8 +5371,36 @@ namespace Capstones.UnityEditorEx
                         sb.Append(i);
                     }
                     sb.AppendLine(");");
-                    sb.AppendLine("l.PushLua(rv);");
-                    int rvcnt = 1;
+                    int rvcnt;
+                    if (real.IsSpecialName)
+                    {
+                        sb.AppendLine("l.PushLua(rv);");
+                        rvcnt = 1;
+                    }
+                    else
+                    {
+                        if (LuaHub.ValueTuplePush.IsValueTuple(real.ReturnType) || LuaHub.TuplePush.IsTuple(real.ReturnType))
+                        {
+                            int gcnt = 0;
+                            if (real.ReturnType.IsGenericType)
+                            {
+                                gcnt = real.ReturnType.GetGenericArguments().Length;
+                            }
+                            for (int g = 0; g < gcnt; ++g)
+                            {
+                                sb.Append("l.PushLua(rv.Item");
+                                sb.Append(g + 1);
+                                sb.Append(");");
+                                sb.AppendLine();
+                            }
+                            rvcnt = gcnt;
+                        }
+                        else
+                        {
+                            sb.AppendLine("l.PushLua(rv);");
+                            rvcnt = 1;
+                        }
+                    }
                     for (int i = 1; i < exinfo.ArgTypes.Count; ++i)
                     {
                         if (exinfo.IsArgRefOrOut(i))

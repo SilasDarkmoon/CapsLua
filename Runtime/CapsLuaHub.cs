@@ -1324,6 +1324,523 @@ namespace Capstones.LuaLib
                 val = l.GetLua<ulong>(index);
             }
         }
-#endregion
+        #endregion
+
+        #region C# Tuples
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        public static object CreateTuple(ArraySegment<Type> types, ArraySegment<object> values)
+        {
+            if (types.Count >= _TupleTypes.Length)
+            {
+                var rest_types = new ArraySegment<Type>(types.Array, types.Offset + (_TupleTypes.Length - 1), types.Count - (_TupleTypes.Length - 1));
+                var rest_values = new ArraySegment<object>(values.Array, values.Offset + (_TupleTypes.Length - 1), values.Count - (_TupleTypes.Length - 1));
+                var vrest = CreateTuple(rest_types, rest_values);
+                var rtype = typeof(ValueTuple<,,,,,,,>).MakeGenericType(
+                    types.Array[types.Offset + 0]
+                    , types.Array[types.Offset + 1]
+                    , types.Array[types.Offset + 2]
+                    , types.Array[types.Offset + 3]
+                    , types.Array[types.Offset + 4]
+                    , types.Array[types.Offset + 5]
+                    , types.Array[types.Offset + 6]
+                    , vrest.GetType()
+                    );
+                try
+                {
+                    return Activator.CreateInstance(rtype,
+                        values.Array[values.Offset + 0]
+                        , values.Array[values.Offset + 1]
+                        , values.Array[values.Offset + 2]
+                        , values.Array[values.Offset + 3]
+                        , values.Array[values.Offset + 4]
+                        , values.Array[values.Offset + 5]
+                        , values.Array[values.Offset + 6]
+                        , vrest
+                        );
+                }
+                catch (System.ExecutionEngineException)
+                {
+                    var tuple = Activator.CreateInstance(rtype);
+                    for (int i = 0; i < _TupleTypes.Length - 1; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        rtype.GetField(fieldName).SetValue(tuple, values.Array[values.Offset + i]);
+                    }
+                    {
+                        var fieldName = "Rest";
+                        rtype.GetField(fieldName).SetValue(tuple, vrest);
+                    }
+                    return tuple;
+                }
+            }
+            else if (types.Count == 0)
+            {
+                return new ValueTuple();
+            }
+            else
+            {
+                var gtype = _TupleTypes[types.Count];
+                var rtypes = new Type[types.Count];
+                for (int i = 0; i < types.Count; ++i)
+                {
+                    rtypes[i] = types.Array[types.Offset + i];
+                }
+                var rvalues = new object[values.Count];
+                for (int i = 0; i < values.Count; ++i)
+                {
+                    rvalues[i] = values.Array[values.Offset + i];
+                }
+                var rtype = gtype.MakeGenericType(rtypes);
+                try
+                {
+                    return Activator.CreateInstance(rtype, rvalues);
+                }
+                catch (System.ExecutionEngineException)
+                {
+                    var tuple = Activator.CreateInstance(rtype);
+                    for (int i = 0; i < rvalues.Length; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        rtype.GetField(fieldName).SetValue(tuple, rvalues[i]);
+                    }
+                    return tuple;
+                }
+            }
+        }
+        private static Type[] _TupleTypes = new[]
+        {
+            typeof(ValueTuple),
+            typeof(ValueTuple<>),
+            typeof(ValueTuple<,>),
+            typeof(ValueTuple<,,>),
+            typeof(ValueTuple<,,,>),
+            typeof(ValueTuple<,,,,>),
+            typeof(ValueTuple<,,,,,>),
+            typeof(ValueTuple<,,,,,,>),
+            //typeof(ValueTuple<,,,,,,,>),
+        };
+
+        public interface ITuplePush
+        {
+            int PushLua(IntPtr l, object o);
+        }
+        public class TuplePush : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                return 0;
+            }
+
+            public static int PushTuple(IntPtr l, object o)
+            {
+                var otype = o.GetType();
+                if (!UnityEngineEx.PlatDependant.IsGenericType(otype))
+                {
+                    return 0;
+                }
+                var oldtop = l.gettop();
+                try
+                {
+                    var gpars = otype.GetGenericArguments();
+                    var gpush = _TuplePushTypes[gpars.Length];
+                    var rpush = gpush.MakeGenericType(gpars);
+                    var ipush = (ITuplePush)System.Activator.CreateInstance(rpush);
+                    return ipush.PushLua(l, o);
+                }
+                catch (System.ExecutionEngineException)
+                {
+                    l.settop(oldtop);
+                    return PushTupleReflected(l, o);
+                }
+            }
+            public static int PushTupleReflected(IntPtr l, object o)
+            {
+                var otype = o.GetType();
+                var gpars = otype.GetGenericArguments();
+                if (gpars.Length >= _TuplePushTypes.Length - 1)
+                {
+                    for (int i = 0; i < _TuplePushTypes.Length - 2; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        l.PushLua(value);
+                    }
+                    {
+                        var fieldName = "Rest";
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        return PushTuple(l, value) + _TuplePushTypes.Length - 2;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < gpars.Length; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        l.PushLua(value);
+                    }
+                    return gpars.Length;
+                }
+            }
+            private static Type[] _TuplePushTypes = new[]
+            {
+                typeof(TuplePush),
+                typeof(TuplePush<>),
+                typeof(TuplePush<,>),
+                typeof(TuplePush<,,>),
+                typeof(TuplePush<,,,>),
+                typeof(TuplePush<,,,,>),
+                typeof(TuplePush<,,,,,>),
+                typeof(TuplePush<,,,,,,>),
+                typeof(TuplePush<,,,,,,,>),
+            };
+
+            public static bool IsTuple(Type type)
+            {
+                if (UnityEngineEx.PlatDependant.IsGenericType(type))
+                {
+                    return _TupleTypes.Contains(type.GetGenericTypeDefinition());
+                }
+                else
+                {
+                    return type == typeof(Tuple);
+                }
+            }
+            private static HashSet<Type> _TupleTypes = new HashSet<Type>()
+            {
+                typeof(Tuple),
+                typeof(Tuple<>),
+                typeof(Tuple<,>),
+                typeof(Tuple<,,>),
+                typeof(Tuple<,,,>),
+                typeof(Tuple<,,,,>),
+                typeof(Tuple<,,,,,>),
+                typeof(Tuple<,,,,,,>),
+                typeof(Tuple<,,,,,,,>),
+            };
+        }
+        private class TuplePush<T1> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1>;
+                l.PushLua(real.Item1);
+                return 1;
+            }
+        }
+        private class TuplePush<T1, T2> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                return 2;
+            }
+        }
+        private class TuplePush<T1, T2, T3> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                return 3;
+            }
+        }
+        private class TuplePush<T1, T2, T3, T4> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3, T4>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                return 4;
+            }
+        }
+        private class TuplePush<T1, T2, T3, T4, T5> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3, T4, T5>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                return 5;
+            }
+        }
+        private class TuplePush<T1, T2, T3, T4, T5, T6> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3, T4, T5, T6>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                return 6;
+            }
+        }
+        private class TuplePush<T1, T2, T3, T4, T5, T6, T7> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3, T4, T5, T6, T7>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                l.PushLua(real.Item7);
+                return 7;
+            }
+        }
+        private class TuplePush<T1, T2, T3, T4, T5, T6, T7, TRest> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = o as System.Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                l.PushLua(real.Item7);
+                int nrest = TuplePush.PushTuple(l, real.Rest);
+                return 7 + nrest;
+            }
+        }
+        public class ValueTuplePush : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                return 0;
+            }
+
+            public static int PushTuple(IntPtr l, object o)
+            {
+                var otype = o.GetType();
+                if (!UnityEngineEx.PlatDependant.IsGenericType(otype))
+                {
+                    return 0;
+                }
+                var oldtop = l.gettop();
+                try
+                {
+                    var gpars = otype.GetGenericArguments();
+                    var gpush = _ValueTuplePushTypes[gpars.Length];
+                    var rpush = gpush.MakeGenericType(gpars);
+                    var ipush = (ITuplePush)System.Activator.CreateInstance(rpush);
+                    return ipush.PushLua(l, o);
+                }
+                catch (System.ExecutionEngineException)
+                {
+                    l.settop(oldtop);
+                    return PushTupleReflected(l, o);
+                }
+            }
+            public static int PushTupleReflected(IntPtr l, object o)
+            {
+                var otype = o.GetType();
+                var gpars = otype.GetGenericArguments();
+                if (gpars.Length >= _ValueTuplePushTypes.Length - 1)
+                {
+                    for (int i = 0; i < _ValueTuplePushTypes.Length - 2; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        l.PushLua(value);
+                    }
+                    {
+                        var fieldName = "Rest";
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        return PushTuple(l, value) + _ValueTuplePushTypes.Length - 2;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < gpars.Length; ++i)
+                    {
+                        var fieldName = "Item" + (i + 1);
+                        var value = otype.GetField(fieldName).GetValue(o);
+                        l.PushLua(value);
+                    }
+                    return gpars.Length;
+                }
+            }
+            private static Type[] _ValueTuplePushTypes = new[]
+            {
+                typeof(ValueTuplePush),
+                typeof(ValueTuplePush<>),
+                typeof(ValueTuplePush<,>),
+                typeof(ValueTuplePush<,,>),
+                typeof(ValueTuplePush<,,,>),
+                typeof(ValueTuplePush<,,,,>),
+                typeof(ValueTuplePush<,,,,,>),
+                typeof(ValueTuplePush<,,,,,,>),
+                typeof(ValueTuplePush<,,,,,,,>),
+            };
+
+
+            public static bool IsValueTuple(Type type)
+            {
+                if (UnityEngineEx.PlatDependant.IsGenericType(type))
+                {
+                    return _ValueTupleTypes.Contains(type.GetGenericTypeDefinition());
+                }
+                else
+                {
+                    return type == typeof(ValueTuple);
+                }
+            }
+            private static HashSet<Type> _ValueTupleTypes = new HashSet<Type>()
+            {
+                typeof(ValueTuple),
+                typeof(ValueTuple<>),
+                typeof(ValueTuple<,>),
+                typeof(ValueTuple<,,>),
+                typeof(ValueTuple<,,,>),
+                typeof(ValueTuple<,,,,>),
+                typeof(ValueTuple<,,,,,>),
+                typeof(ValueTuple<,,,,,,>),
+                typeof(ValueTuple<,,,,,,,>),
+            };
+        }
+        private class ValueTuplePush<T1> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1>)o;
+                l.PushLua(real.Item1);
+                return 1;
+            }
+        }
+        private class ValueTuplePush<T1, T2> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                return 2;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                return 3;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3, T4> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3, T4>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                return 4;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3, T4, T5> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3, T4, T5>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                return 5;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3, T4, T5, T6> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3, T4, T5, T6>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                return 6;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3, T4, T5, T6, T7> : ITuplePush
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3, T4, T5, T6, T7>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                l.PushLua(real.Item7);
+                return 7;
+            }
+        }
+        private class ValueTuplePush<T1, T2, T3, T4, T5, T6, T7, TRest> : ITuplePush where TRest : struct
+        {
+            public int PushLua(IntPtr l, object o)
+            {
+                var real = (System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)o;
+                l.PushLua(real.Item1);
+                l.PushLua(real.Item2);
+                l.PushLua(real.Item3);
+                l.PushLua(real.Item4);
+                l.PushLua(real.Item5);
+                l.PushLua(real.Item6);
+                l.PushLua(real.Item7);
+                int nrest = ValueTuplePush.PushTuple(l, real.Rest);
+                return 7 + nrest;
+            }
+        }
+        public static int PushValueOrTuple(IntPtr l, object o)
+        {
+            if (o == null)
+            {
+                l.pushnil();
+                return 1;
+            }
+            else
+            {
+                var otype = o.GetType();
+                if (ValueTuplePush.IsValueTuple(otype))
+                {
+                    return ValueTuplePush.PushTuple(l, o);
+                }
+                else if (TuplePush.IsTuple(otype))
+                {
+                    return TuplePush.PushTuple(l, o);
+                }
+                else
+                {
+                    l.PushLua(o);
+                    return 1;
+                }
+            }
+        }
+#endif
+        #endregion
     }
 }
