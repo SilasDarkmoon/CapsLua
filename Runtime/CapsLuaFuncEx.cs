@@ -10072,3 +10072,1618 @@ namespace Capstones.LuaWrap
         }
     }
 }
+
+#region C# Tuples
+namespace Capstones.LuaWrap
+{
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+    public static class LuaTupleUtils
+    {
+        private static Type[] _TupleTypes = new[]
+        {
+            null,//typeof(Tuple),
+            typeof(Tuple<>),
+            typeof(Tuple<,>),
+            typeof(Tuple<,,>),
+            typeof(Tuple<,,,>),
+            typeof(Tuple<,,,,>),
+            typeof(Tuple<,,,,,>),
+            typeof(Tuple<,,,,,,>),
+            typeof(Tuple<,,,,,,,>),
+        };
+        public static bool IsTuple(Type type)
+        {
+            if (type.IsGenericType())
+            {
+                var gargs = type.GetGenericArguments();
+                if (gargs.Length >= _TupleTypes.Length)
+                {
+                    return false;
+                }
+                return _TupleTypes[gargs.Length] == type.GetGenericTypeDefinition();
+            }
+            return false;
+        }
+        private static Type[] _ValueTupleTypes = new[]
+        {
+            typeof(ValueTuple),
+            typeof(ValueTuple<>),
+            typeof(ValueTuple<,>),
+            typeof(ValueTuple<,,>),
+            typeof(ValueTuple<,,,>),
+            typeof(ValueTuple<,,,,>),
+            typeof(ValueTuple<,,,,,>),
+            typeof(ValueTuple<,,,,,,>),
+            typeof(ValueTuple<,,,,,,,>),
+        };
+        public static bool IsValueTuple(Type type)
+        {
+            if (type.IsGenericType())
+            {
+                var gargs = type.GetGenericArguments();
+                if (gargs.Length >= _ValueTupleTypes.Length)
+                {
+                    return false;
+                }
+                return _ValueTupleTypes[gargs.Length] == type.GetGenericTypeDefinition();
+            }
+            else
+            {
+                return type == typeof(ValueTuple);
+            }
+        }
+        private static Type[] _LuaPackTypes = new[]
+        {
+            typeof(LuaPack),
+            typeof(LuaPack<>),
+            typeof(LuaPack<,>),
+            typeof(LuaPack<,,>),
+            typeof(LuaPack<,,,>),
+            typeof(LuaPack<,,,,>),
+            typeof(LuaPack<,,,,,>),
+            typeof(LuaPack<,,,,,,>),
+            typeof(LuaPackEx<,,,,,,,>),
+        };
+
+        public interface ITupleTrans
+        {
+            object ConvertToLuaPack(object t);
+            object ConvertFromLuaPack(object p);
+            Type TupleType { get; }
+            Type LuaPackType { get; }
+            bool IsValueTuple { get; }
+        }
+        public interface ITupleTrans<TT, TL> : ITupleTrans
+        {
+            TL ConvertToLuaPack(TT t);
+            TT ConvertFromLuaPack(TL p);
+        }
+
+        public class DelegatedTupleTrans : ITupleTrans
+        {
+            public Func<object, object> FuncConvertToLuaPack;
+            public Func<object, object> FuncConvertFromLuaPack;
+
+            protected bool _IsValueTuple;
+            public bool IsValueTuple { get { return _IsValueTuple; } }
+            protected Type _TupleType;
+            public Type TupleType { get { return _TupleType; } }
+            protected Type _LuaPackType;
+            public Type LuaPackType { get { return _LuaPackType; } }
+
+            public virtual object ConvertToLuaPack(object t)
+            {
+                if (FuncConvertToLuaPack != null)
+                {
+                    return FuncConvertToLuaPack(t);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            public virtual object ConvertFromLuaPack(object p)
+            {
+                if (FuncConvertFromLuaPack != null)
+                {
+                    return FuncConvertFromLuaPack(p);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        public class DelegatedTupleTrans<TT, TL> : DelegatedTupleTrans, ITupleTrans<TT, TL>
+        {
+            public DelegatedTupleTrans()
+            {
+                TupleTransCache[(typeof(TT), typeof(TL))] = this;
+                //TupleTypesMap[typeof(TT)] = typeof(TL);
+                TupleTypesMap[typeof(TL)] = typeof(TT);
+
+                _TupleType = typeof(TT);
+                _LuaPackType = typeof(TL);
+                _IsValueTuple = IsValueTuple(_TupleType);
+            }
+
+            public Func<TT, TL> FuncConvertToLuaPackGeneric;
+            public Func<TL, TT> FuncConvertFromLuaPackGeneric;
+
+            public TL ConvertToLuaPack(TT t)
+            {
+                if (FuncConvertToLuaPackGeneric != null)
+                {
+                    return FuncConvertToLuaPackGeneric(t);
+                }
+                else
+                {
+                    return (TL)base.ConvertToLuaPack(t);
+                }
+            }
+            public TT ConvertFromLuaPack(TL p)
+            {
+                if (FuncConvertFromLuaPackGeneric != null)
+                {
+                    return FuncConvertFromLuaPackGeneric(p);
+                }
+                else
+                {
+                    return (TT)base.ConvertFromLuaPack(p);
+                }
+            }
+
+            public override object ConvertToLuaPack(object t)
+            {
+                if (FuncConvertToLuaPackGeneric != null)
+                {
+                    return FuncConvertToLuaPackGeneric((TT)t);
+                }
+                else
+                {
+                    return base.ConvertToLuaPack(t);
+                }
+            }
+            public override object ConvertFromLuaPack(object p)
+            {
+                if (FuncConvertFromLuaPackGeneric != null)
+                {
+                    return FuncConvertFromLuaPackGeneric((TL)p);
+                }
+                else
+                {
+                    return base.ConvertFromLuaPack(p);
+                }
+            }
+        }
+        public class TupleTrans<T1> : ITupleTrans<Tuple<T1>, LuaPack<T1>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1>), typeof(LuaPack<T1>))] = this;
+                TupleTypesMap[typeof(Tuple<T1>)] = typeof(LuaPack<T1>);
+                TupleTypesMap[typeof(LuaPack<T1>)] = typeof(Tuple<T1>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1> ConvertToLuaPack(Tuple<T1> t)
+            {
+                return new LuaPack<T1>(t.Item1);
+            }
+            public Tuple<T1> ConvertFromLuaPack(LuaPack<T1> p)
+            {
+                return new Tuple<T1>(p.t0);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1>)p);
+            }
+        }
+        public class TupleTrans<T1, T2> : ITupleTrans<Tuple<T1, T2>, LuaPack<T1, T2>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2>), typeof(LuaPack<T1, T2>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2>)] = typeof(LuaPack<T1, T2>);
+                TupleTypesMap[typeof(LuaPack<T1, T2>)] = typeof(Tuple<T1, T2>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2> ConvertToLuaPack(Tuple<T1, T2> t)
+            {
+                return new LuaPack<T1, T2>(t.Item1, t.Item2);
+            }
+            public Tuple<T1, T2> ConvertFromLuaPack(LuaPack<T1, T2> p)
+            {
+                return new Tuple<T1, T2>(p.t0, p.t1);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3> : ITupleTrans<Tuple<T1, T2, T3>, LuaPack<T1, T2, T3>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3>), typeof(LuaPack<T1, T2, T3>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3>)] = typeof(LuaPack<T1, T2, T3>);
+                TupleTypesMap[typeof(LuaPack<T1, T2, T3>)] = typeof(Tuple<T1, T2, T3>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2, T3> ConvertToLuaPack(Tuple<T1, T2, T3> t)
+            {
+                return new LuaPack<T1, T2, T3>(t.Item1, t.Item2, t.Item3);
+            }
+            public Tuple<T1, T2, T3> ConvertFromLuaPack(LuaPack<T1, T2, T3> p)
+            {
+                return new Tuple<T1, T2, T3>(p.t0, p.t1, p.t2);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3, T4> : ITupleTrans<Tuple<T1, T2, T3, T4>, LuaPack<T1, T2, T3, T4>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3, T4>), typeof(LuaPack<T1, T2, T3, T4>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3, T4>)] = typeof(LuaPack<T1, T2, T3, T4>);
+                TupleTypesMap[typeof(LuaPack<T1, T2, T3, T4>)] = typeof(Tuple<T1, T2, T3, T4>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3, T4>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2, T3, T4> ConvertToLuaPack(Tuple<T1, T2, T3, T4> t)
+            {
+                return new LuaPack<T1, T2, T3, T4>(t.Item1, t.Item2, t.Item3, t.Item4);
+            }
+            public Tuple<T1, T2, T3, T4> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4> p)
+            {
+                return new Tuple<T1, T2, T3, T4>(p.t0, p.t1, p.t2, p.t3);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3, T4>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3, T4, T5> : ITupleTrans<Tuple<T1, T2, T3, T4, T5>, LuaPack<T1, T2, T3, T4, T5>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3, T4, T5>), typeof(LuaPack<T1, T2, T3, T4, T5>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3, T4, T5>)] = typeof(LuaPack<T1, T2, T3, T4, T5>);
+                TupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5>)] = typeof(Tuple<T1, T2, T3, T4, T5>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3, T4, T5>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2, T3, T4, T5> ConvertToLuaPack(Tuple<T1, T2, T3, T4, T5> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5);
+            }
+            public Tuple<T1, T2, T3, T4, T5> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5> p)
+            {
+                return new Tuple<T1, T2, T3, T4, T5>(p.t0, p.t1, p.t2, p.t3, p.t4);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3, T4, T5>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3, T4, T5, T6> : ITupleTrans<Tuple<T1, T2, T3, T4, T5, T6>, LuaPack<T1, T2, T3, T4, T5, T6>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3, T4, T5, T6>), typeof(LuaPack<T1, T2, T3, T4, T5, T6>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3, T4, T5, T6>)] = typeof(LuaPack<T1, T2, T3, T4, T5, T6>);
+                TupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5, T6>)] = typeof(Tuple<T1, T2, T3, T4, T5, T6>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3, T4, T5, T6>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2, T3, T4, T5, T6> ConvertToLuaPack(Tuple<T1, T2, T3, T4, T5, T6> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5, T6>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6);
+            }
+            public Tuple<T1, T2, T3, T4, T5, T6> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5, T6> p)
+            {
+                return new Tuple<T1, T2, T3, T4, T5, T6>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3, T4, T5, T6>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5, T6>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3, T4, T5, T6, T7> : ITupleTrans<Tuple<T1, T2, T3, T4, T5, T6, T7>, LuaPack<T1, T2, T3, T4, T5, T6, T7>>
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3, T4, T5, T6, T7>), typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3, T4, T5, T6, T7>)] = typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>);
+                TupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>)] = typeof(Tuple<T1, T2, T3, T4, T5, T6, T7>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3, T4, T5, T6, T7>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPack<T1, T2, T3, T4, T5, T6, T7> ConvertToLuaPack(Tuple<T1, T2, T3, T4, T5, T6, T7> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5, T6, T7>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7);
+            }
+            public Tuple<T1, T2, T3, T4, T5, T6, T7> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5, T6, T7> p)
+            {
+                return new Tuple<T1, T2, T3, T4, T5, T6, T7>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3, T4, T5, T6, T7>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5, T6, T7>)p);
+            }
+        }
+        public class TupleTrans<T1, T2, T3, T4, T5, T6, T7, TRestT, TRestL> : ITupleTrans<Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>, LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>> where TRestL : struct, ILuaPack
+        {
+            public TupleTrans()
+            {
+                TupleTransCache[(typeof(Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>), typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>))] = this;
+                TupleTypesMap[typeof(Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>)] = typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>);
+                TupleTypesMap[typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>)] = typeof(Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>);
+            }
+            public Type TupleType { get { return typeof(Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7, TRestL>); } }
+            public bool IsValueTuple { get { return false; } }
+
+            public LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL> ConvertToLuaPack(Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT> t)
+            {
+                return new LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, TupleTrans.ConvertToLuaPack<TRestT, TRestL>(t.Rest));
+            }
+            public Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT> ConvertFromLuaPack(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL> p)
+            {
+                return new Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, TupleTrans.ConvertFromLuaPack<TRestT, TRestL>(p.trest));
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((Tuple<T1, T2, T3, T4, T5, T6, T7, TRestT>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>)p);
+            }
+        }
+        public class ValueTupleTrans : ITupleTrans<ValueTuple, LuaPack>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple), typeof(LuaPack))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple)] = typeof(LuaPack);
+                ValueTupleTypesMap[typeof(LuaPack)] = typeof(ValueTuple);
+            }
+            public Type TupleType { get { return typeof(ValueTuple); } }
+            public Type LuaPackType { get { return typeof(LuaPack); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack ConvertToLuaPack(ValueTuple t)
+            {
+                return new LuaPack();
+            }
+            public ValueTuple ConvertFromLuaPack(LuaPack p)
+            {
+                return new ValueTuple();
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack)p);
+            }
+        }
+        public class ValueTupleTrans<T1> : ITupleTrans<ValueTuple<T1>, LuaPack<T1>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1>), typeof(LuaPack<T1>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1>)] = typeof(LuaPack<T1>);
+                ValueTupleTypesMap[typeof(LuaPack<T1>)] = typeof(ValueTuple<T1>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1> ConvertToLuaPack(ValueTuple<T1> t)
+            {
+                return new LuaPack<T1>(t.Item1);
+            }
+            public ValueTuple<T1> ConvertFromLuaPack(LuaPack<T1> p)
+            {
+                return new ValueTuple<T1>(p.t0);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2> : ITupleTrans<ValueTuple<T1, T2>, LuaPack<T1, T2>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2>), typeof(LuaPack<T1, T2>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2>)] = typeof(LuaPack<T1, T2>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2>)] = typeof(ValueTuple<T1, T2>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2> ConvertToLuaPack(ValueTuple<T1, T2> t)
+            {
+                return new LuaPack<T1, T2>(t.Item1, t.Item2);
+            }
+            public ValueTuple<T1, T2> ConvertFromLuaPack(LuaPack<T1, T2> p)
+            {
+                return new ValueTuple<T1, T2>(p.t0, p.t1);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3> : ITupleTrans<ValueTuple<T1, T2, T3>, LuaPack<T1, T2, T3>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3>), typeof(LuaPack<T1, T2, T3>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3>)] = typeof(LuaPack<T1, T2, T3>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2, T3>)] = typeof(ValueTuple<T1, T2, T3>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2, T3> ConvertToLuaPack(ValueTuple<T1, T2, T3> t)
+            {
+                return new LuaPack<T1, T2, T3>(t.Item1, t.Item2, t.Item3);
+            }
+            public ValueTuple<T1, T2, T3> ConvertFromLuaPack(LuaPack<T1, T2, T3> p)
+            {
+                return new ValueTuple<T1, T2, T3>(p.t0, p.t1, p.t2);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3, T4> : ITupleTrans<ValueTuple<T1, T2, T3, T4>, LuaPack<T1, T2, T3, T4>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3, T4>), typeof(LuaPack<T1, T2, T3, T4>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3, T4>)] = typeof(LuaPack<T1, T2, T3, T4>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2, T3, T4>)] = typeof(ValueTuple<T1, T2, T3, T4>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3, T4>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2, T3, T4> ConvertToLuaPack(ValueTuple<T1, T2, T3, T4> t)
+            {
+                return new LuaPack<T1, T2, T3, T4>(t.Item1, t.Item2, t.Item3, t.Item4);
+            }
+            public ValueTuple<T1, T2, T3, T4> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4> p)
+            {
+                return new ValueTuple<T1, T2, T3, T4>(p.t0, p.t1, p.t2, p.t3);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3, T4>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3, T4, T5> : ITupleTrans<ValueTuple<T1, T2, T3, T4, T5>, LuaPack<T1, T2, T3, T4, T5>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3, T4, T5>), typeof(LuaPack<T1, T2, T3, T4, T5>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3, T4, T5>)] = typeof(LuaPack<T1, T2, T3, T4, T5>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5>)] = typeof(ValueTuple<T1, T2, T3, T4, T5>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3, T4, T5>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2, T3, T4, T5> ConvertToLuaPack(ValueTuple<T1, T2, T3, T4, T5> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5);
+            }
+            public ValueTuple<T1, T2, T3, T4, T5> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5> p)
+            {
+                return new ValueTuple<T1, T2, T3, T4, T5>(p.t0, p.t1, p.t2, p.t3, p.t4);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3, T4, T5>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3, T4, T5, T6> : ITupleTrans<ValueTuple<T1, T2, T3, T4, T5, T6>, LuaPack<T1, T2, T3, T4, T5, T6>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3, T4, T5, T6>), typeof(LuaPack<T1, T2, T3, T4, T5, T6>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3, T4, T5, T6>)] = typeof(LuaPack<T1, T2, T3, T4, T5, T6>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5, T6>)] = typeof(ValueTuple<T1, T2, T3, T4, T5, T6>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3, T4, T5, T6>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2, T3, T4, T5, T6> ConvertToLuaPack(ValueTuple<T1, T2, T3, T4, T5, T6> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5, T6>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6);
+            }
+            public ValueTuple<T1, T2, T3, T4, T5, T6> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5, T6> p)
+            {
+                return new ValueTuple<T1, T2, T3, T4, T5, T6>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3, T4, T5, T6>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5, T6>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3, T4, T5, T6, T7> : ITupleTrans<ValueTuple<T1, T2, T3, T4, T5, T6, T7>, LuaPack<T1, T2, T3, T4, T5, T6, T7>>
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7>), typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7>)] = typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>);
+                ValueTupleTypesMap[typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>)] = typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPack<T1, T2, T3, T4, T5, T6, T7> ConvertToLuaPack(ValueTuple<T1, T2, T3, T4, T5, T6, T7> t)
+            {
+                return new LuaPack<T1, T2, T3, T4, T5, T6, T7>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7);
+            }
+            public ValueTuple<T1, T2, T3, T4, T5, T6, T7> ConvertFromLuaPack(LuaPack<T1, T2, T3, T4, T5, T6, T7> p)
+            {
+                return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6);
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3, T4, T5, T6, T7>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPack<T1, T2, T3, T4, T5, T6, T7>)p);
+            }
+        }
+        public class ValueTupleTrans<T1, T2, T3, T4, T5, T6, T7, TRestT, TRestL> : ITupleTrans<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>, LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>> where TRestL : struct, ILuaPack where TRestT : struct
+        {
+            public ValueTupleTrans()
+            {
+                TupleTransCache[(typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>), typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>))] = this;
+                ValueTupleTypesMap[typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>)] = typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>);
+                ValueTupleTypesMap[typeof(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>)] = typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>);
+            }
+            public Type TupleType { get { return typeof(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>); } }
+            public Type LuaPackType { get { return typeof(LuaPack<T1, T2, T3, T4, T5, T6, T7, TRestL>); } }
+            public bool IsValueTuple { get { return true; } }
+
+            public LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL> ConvertToLuaPack(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT> t)
+            {
+                return new LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>(t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6, t.Item7, TupleTrans.ConvertToLuaPack<TRestT, TRestL>(t.Rest));
+            }
+            public ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT> ConvertFromLuaPack(LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL> p)
+            {
+                return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>(p.t0, p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, TupleTrans.ConvertFromLuaPack<TRestT, TRestL>(p.trest));
+            }
+
+            public object ConvertToLuaPack(object t)
+            {
+                return ConvertToLuaPack((ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRestT>)t);
+            }
+            public object ConvertFromLuaPack(object p)
+            {
+                return ConvertFromLuaPack((LuaPackEx<T1, T2, T3, T4, T5, T6, T7, TRestL>)p);
+            }
+        }
+        //public class TupleTransPlain<T1, T2, T3, T4, T5, T6, T7, T8> : 
+
+        private static Type[] _TupleTransTypes = new[]
+        {
+            null,
+            typeof(TupleTrans<>),
+            typeof(TupleTrans<,>),
+            typeof(TupleTrans<,,>),
+            typeof(TupleTrans<,,,>),
+            typeof(TupleTrans<,,,,>),
+            typeof(TupleTrans<,,,,,>),
+            typeof(TupleTrans<,,,,,,>),
+            typeof(TupleTrans<,,,,,,,,>),
+        };
+        private static Type[] _ValueTupleTransTypes = new[]
+        {
+            typeof(ValueTupleTrans),
+            typeof(ValueTupleTrans<>),
+            typeof(ValueTupleTrans<,>),
+            typeof(ValueTupleTrans<,,>),
+            typeof(ValueTupleTrans<,,,>),
+            typeof(ValueTupleTrans<,,,,>),
+            typeof(ValueTupleTrans<,,,,,>),
+            typeof(ValueTupleTrans<,,,,,,>),
+            typeof(ValueTupleTrans<,,,,,,,,>),
+        };
+
+        private static Dictionary<(Type tt, Type tl), ITupleTrans> _TupleTransCache;
+        public static Dictionary<(Type tt, Type tl), ITupleTrans> TupleTransCache
+        {
+            get
+            {
+                if (_TupleTransCache == null)
+                {
+                    _TupleTransCache = new Dictionary<(Type tt, Type tl), ITupleTrans>();
+                }
+                return _TupleTransCache;
+            }
+        }
+        private static Dictionary<Type, Type> _TupleTypesMap;
+        public static Dictionary<Type, Type> TupleTypesMap
+        {
+            get
+            {
+                if (_TupleTypesMap == null)
+                {
+                    _TupleTypesMap = new Dictionary<Type, Type>();
+                }
+                return _TupleTypesMap;
+            }
+        }
+        private static Dictionary<Type, Type> _ValueTupleTypesMap;
+        public static Dictionary<Type, Type> ValueTupleTypesMap
+        {
+            get
+            {
+                if (_ValueTupleTypesMap == null)
+                {
+                    _ValueTupleTypesMap = new Dictionary<Type, Type>();
+                }
+                return _ValueTupleTypesMap;
+            }
+        }
+
+        public static class TupleTrans
+        {
+            public static TL ConvertToLuaPack<TT, TL>(TT t) where TL : struct, ILuaPack
+            {
+                ITupleTrans cached;
+                if (_TupleTransCache != null && _TupleTransCache.TryGetValue((typeof(TT), typeof(TL)), out cached))
+                {
+                    var typedtrans = cached as ITupleTrans<TT, TL>;
+                    if (typedtrans != null)
+                    {
+                        return typedtrans.ConvertToLuaPack(t);
+                    }
+                    else
+                    {
+                        return (TL)cached.ConvertToLuaPack(t);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var trans = MakeTransForTuple(typeof(TT));
+                        var gtrans = trans as ITupleTrans<TT, TL>;
+                        if (gtrans != null)
+                        {
+                            return gtrans.ConvertToLuaPack(t);
+                        }
+                        else if (trans != null)
+                        {
+                            return (TL)trans.ConvertToLuaPack(t);
+                        }
+                    }
+                    catch (ExecutionEngineException)
+                    {
+                        var rv = (TL)TupleTransReflected.CreateLuaPack(t);
+                        bool isValueTuple = IsValueTuple(typeof(TT));
+                        var trans = new DelegatedTupleTrans();
+                        trans.FuncConvertToLuaPack = TupleTransReflected.CreateLuaPack;
+                        trans.FuncConvertFromLuaPack = isValueTuple ? new Func<object, object>(TupleTransReflected.CreateValueTuple) : new Func<object, object>(TupleTransReflected.CreateTuple);
+                        TupleTransCache[(typeof(TT), typeof(TL))] = trans;
+                        return rv;
+                    }
+                }
+                return default(TL);
+            }
+            public static TT ConvertFromLuaPack<TT, TL>(TL p) where TL : struct, ILuaPack
+            {
+                ITupleTrans cached;
+                if (_TupleTransCache != null && _TupleTransCache.TryGetValue((typeof(TT), typeof(TL)), out cached))
+                {
+                    var typedtrans = cached as ITupleTrans<TT, TL>;
+                    if (typedtrans != null)
+                    {
+                        return typedtrans.ConvertFromLuaPack(p);
+                    }
+                    else
+                    {
+                        return (TT)cached.ConvertFromLuaPack(p);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var trans = MakeTransForTuple(typeof(TT));
+                        var gtrans = trans as ITupleTrans<TT, TL>;
+                        if (gtrans != null)
+                        {
+                            return gtrans.ConvertFromLuaPack(p);
+                        }
+                        else if (trans != null)
+                        {
+                            return (TT)trans.ConvertFromLuaPack(p);
+                        }
+                    }
+                    catch (ExecutionEngineException)
+                    {
+                        bool isValueTuple = IsValueTuple(typeof(TT));
+                        Func<object, object> func = isValueTuple ? new Func<object, object>(TupleTransReflected.CreateValueTuple) : new Func<object, object>(TupleTransReflected.CreateTuple);
+                        var rv = (TT)func(p);
+                        var trans = new DelegatedTupleTrans();
+                        trans.FuncConvertToLuaPack = TupleTransReflected.CreateLuaPack;
+                        trans.FuncConvertFromLuaPack = func;
+                        TupleTransCache[(typeof(TT), typeof(TL))] = trans;
+                        return rv;
+                    }
+                }
+                return default(TT);
+            }
+            public static Type GetConvertedType(Type t)
+            {
+                return GetConvertedType(t, true);
+            }
+            public static Type GetConvertedType(Type t, bool isValueTuple)
+            {
+                if (IsValueTuple(t))
+                {
+                    Type ltype;
+                    if (_ValueTupleTypesMap != null && _ValueTupleTypesMap.TryGetValue(t, out ltype))
+                    {
+                        return ltype;
+                    }
+                    try
+                    {
+                        ltype = MakeTransForTuple(t).LuaPackType;
+                        return ltype;
+                    }
+                    catch (ExecutionEngineException)
+                    {
+                        ltype = TupleTransReflected.GetLuaPackType(t);
+                        ValueTupleTypesMap[ltype] = t;
+                        ValueTupleTypesMap[t] = ltype;
+                        return ltype;
+                    }
+                }
+                else if (IsTuple(t))
+                {
+                    Type ltype;
+                    if (_TupleTypesMap != null && _TupleTypesMap.TryGetValue(t, out ltype))
+                    {
+                        return ltype;
+                    }
+                    try
+                    {
+                        ltype = MakeTransForTuple(t).LuaPackType;
+                        return ltype;
+                    }
+                    catch (ExecutionEngineException)
+                    {
+                        ltype = TupleTransReflected.GetLuaPackType(t);
+                        TupleTypesMap[ltype] = t;
+                        TupleTypesMap[t] = ltype;
+                        return ltype;
+                    }
+                }
+                else if (typeof(ILuaPack).IsAssignableFrom(t))
+                {
+                    if (isValueTuple)
+                    {
+                        Type ttype;
+                        if (_ValueTupleTypesMap != null && _ValueTupleTypesMap.TryGetValue(t, out ttype))
+                        {
+                            return ttype;
+                        }
+                        try
+                        {
+                            ttype = MakeTransForLuaPack(t, isValueTuple).TupleType;
+                            return ttype;
+                        }
+                        catch (ExecutionEngineException)
+                        {
+                            ttype = TupleTransReflected.GetValueTupleType(t);
+                            ValueTupleTypesMap[ttype] = t;
+                            ValueTupleTypesMap[t] = ttype;
+                            return ttype;
+                        }
+                    }
+                    else
+                    {
+                        Type ttype;
+                        if (_TupleTypesMap != null && _TupleTypesMap.TryGetValue(t, out ttype))
+                        {
+                            return ttype;
+                        }
+                        try
+                        {
+                            ttype = MakeTransForLuaPack(t, isValueTuple).TupleType;
+                            return ttype;
+                        }
+                        catch (ExecutionEngineException)
+                        {
+                            ttype = TupleTransReflected.GetTupleType(t);
+                            TupleTypesMap[ttype] = t;
+                            TupleTypesMap[t] = ttype;
+                            return ttype;
+                        }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            public static ILuaPack ConvertToLuaPack(object t)
+            {
+                if (t == null)
+                {
+                    return null;
+                }
+                var ttype = t.GetType();
+                var ltype = GetConvertedType(ttype);
+                if (ltype == null)
+                {
+                    return t as ILuaPack;
+                }
+                else
+                {
+                    object rv = null;
+                    var trans = _TupleTransCache[(ttype, ltype)];
+                    if (trans != null)
+                    {
+                        try
+                        {
+                            rv = trans.ConvertToLuaPack(t);
+                        }
+                        catch (ExecutionEngineException)
+                        { }
+                    }
+                    if (rv == null)
+                    {
+                        rv = TupleTransReflected.CreateLuaPack(t);
+                    }
+                    return rv as ILuaPack;
+                }
+            }
+            public static object ConvertToTuple(object p)
+            {
+                return ConvertToTuple(p, true);
+            }
+            public static object ConvertToTuple(object p, bool isValueTuple)
+            {
+                if (p == null)
+                {
+                    return null;
+                }
+                var ltype = p.GetType();
+                var ttype = GetConvertedType(ltype, isValueTuple);
+                if (ttype == null)
+                {
+                    return p;
+                }
+                else
+                {
+                    object rv = null;
+                    var trans = _TupleTransCache[(ttype, ltype)];
+                    if (trans != null)
+                    {
+                        try
+                        {
+                            rv = trans.ConvertFromLuaPack(p);
+                        }
+                        catch (ExecutionEngineException)
+                        { }
+                    }
+                    if (rv == null)
+                    {
+                        rv = TupleTransReflected.CreateTuple(p, isValueTuple);
+                    }
+                    return rv;
+                }
+            }
+
+            private static ITupleTrans MakeTrans(Type t)
+            {
+                if (IsValueTuple(t) || IsTuple(t))
+                {
+                    return MakeTransForTuple(t);
+                }
+                else if (typeof(ILuaPack).IsAssignableFrom(t))
+                {
+                    return MakeTransForLuaPack(t);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            private static ITupleTrans MakeTransForLuaPack(Type ptype)
+            {
+                return MakeTransForLuaPack(ptype, true);
+            }
+            private static ITupleTrans MakeTransForLuaPack(Type ptype, bool isValueTuple)
+            {
+                if (!ptype.IsGenericType())
+                {
+                    if (isValueTuple)
+                    {
+                        return new ValueTupleTrans();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else if (ptype.GetGenericTypeDefinition() == typeof(LuaPackEx<,,,,,,,>))
+                {
+                    var ttypes = isValueTuple ? _ValueTupleTransTypes : _TupleTransTypes;
+                    var gargs = ptype.GetGenericArguments();
+                    var gargstrans = new Type[9];
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        gargstrans[i] = gargs[i];
+                    }
+                    gargstrans[8] = gargs[7];
+                    var resttrans = MakeTransForLuaPack(gargs[7]);
+                    if (resttrans != null)
+                    {
+                        gargstrans[7] = resttrans.TupleType;
+                    }
+                    else
+                    {
+                        gargstrans[7] = gargs[7];
+                    }
+                    var transtype = ttypes[8].MakeGenericType(gargstrans);
+                    return Activator.CreateInstance(transtype) as ITupleTrans;
+                }
+                else
+                {
+                    var ttypes = isValueTuple ? _ValueTupleTransTypes : _TupleTransTypes;
+                    var gargs = ptype.GetGenericArguments();
+                    if (gargs.Length <= 7)
+                    {
+                        var transtype = ttypes[gargs.Length].MakeGenericType(gargs);
+                        return Activator.CreateInstance(transtype) as ITupleTrans;
+                    }
+                    else
+                    {
+                        var ttype = TupleTransReflected.GetTupleType(new ArraySegment<Type>(gargs), isValueTuple);
+                        DelegatedTupleTrans trans;
+                        try
+                        {
+                            var gtranstype = typeof(DelegatedTupleTrans<,>).MakeGenericType(ttype, ptype);
+                            trans = (DelegatedTupleTrans)Activator.CreateInstance(gtranstype);
+                        }
+                        catch (System.ExecutionEngineException)
+                        {
+                            trans = new DelegatedTupleTrans();
+                            TupleTransCache[(ttype, ptype)] = trans;
+                            //TupleTypesMap[typeof(TT)] = typeof(TL);
+                            TupleTypesMap[ptype] = ttype;
+                        }
+                        trans.FuncConvertToLuaPack = ConvertToLuaPack;
+                        trans.FuncConvertFromLuaPack = isValueTuple ? new Func<object, object>(TupleTransReflected.CreateValueTuple) : new Func<object, object>(TupleTransReflected.CreateTuple);
+                        return trans;
+                    }
+                }
+            }
+            private static ITupleTrans MakeTransForTuple(Type ttype)
+            {
+                if (IsValueTuple(ttype))
+                {
+                    if (!ttype.IsGenericType())
+                    {
+                        return new ValueTupleTrans();
+                    }
+                    Type transtype;
+                    var gargs = ttype.GetGenericArguments();
+                    if (gargs.Length <= 7)
+                    {
+                        transtype = _ValueTupleTransTypes[gargs.Length].MakeGenericType(gargs);
+                    }
+                    else
+                    {
+                        var gargstrans = new Type[9];
+                        for (int i = 0; i < 8; ++i)
+                        {
+                            gargstrans[i] = gargs[i];
+                        }
+                        var resttrans = MakeTransForTuple(gargs[7]);
+                        if (resttrans != null)
+                        {
+                            gargstrans[8] = resttrans.LuaPackType;
+                        }
+                        else
+                        {
+                            gargstrans[8] = gargs[7];
+                        }
+                        transtype = typeof(ValueTupleTrans<,,,,,,,,>).MakeGenericType(gargstrans);
+                    }
+                    return Activator.CreateInstance(transtype) as ITupleTrans;
+                }
+                else if (IsTuple(ttype))
+                {
+                    Type transtype;
+                    var gargs = ttype.GetGenericArguments();
+                    if (gargs.Length <= 7)
+                    {
+                        transtype = _TupleTransTypes[gargs.Length].MakeGenericType(gargs);
+                    }
+                    else
+                    {
+                        var gargstrans = new Type[9];
+                        for (int i = 0; i < 8; ++i)
+                        {
+                            gargstrans[i] = gargs[i];
+                        }
+                        var resttrans = MakeTransForTuple(gargs[7]);
+                        if (resttrans != null)
+                        {
+                            gargstrans[8] = resttrans.LuaPackType;
+                        }
+                        else
+                        {
+                            gargstrans[8] = gargs[7];
+                        }
+                        transtype = typeof(TupleTrans<,,,,,,,,>).MakeGenericType(gargstrans);
+                    }
+                    return Activator.CreateInstance(transtype) as ITupleTrans;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        private static class TupleTransReflected
+        {
+            public static object CreateTuple(ArraySegment<Type> types, ArraySegment<object> values, bool isValueTuple)
+            {
+                if (types.Count > 7)
+                {
+                    var rest_types = new ArraySegment<Type>(types.Array, types.Offset + 7, types.Count - 7);
+                    var rest_values = new ArraySegment<object>(values.Array, values.Offset + 7, values.Count - 7);
+                    var vrest = CreateTuple(rest_types, rest_values, isValueTuple);
+                    var gtype = isValueTuple ? typeof(ValueTuple<,,,,,,,>) : typeof(Tuple<,,,,,,,>);
+                    var rtype = gtype.MakeGenericType(
+                        types.Array[types.Offset + 0]
+                        , types.Array[types.Offset + 1]
+                        , types.Array[types.Offset + 2]
+                        , types.Array[types.Offset + 3]
+                        , types.Array[types.Offset + 4]
+                        , types.Array[types.Offset + 5]
+                        , types.Array[types.Offset + 6]
+                        , vrest.GetType()
+                        );
+                    try
+                    {
+                        return Activator.CreateInstance(rtype,
+                            values.Array[values.Offset + 0]
+                            , values.Array[values.Offset + 1]
+                            , values.Array[values.Offset + 2]
+                            , values.Array[values.Offset + 3]
+                            , values.Array[values.Offset + 4]
+                            , values.Array[values.Offset + 5]
+                            , values.Array[values.Offset + 6]
+                            , vrest
+                            );
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var tuple = Activator.CreateInstance(rtype);
+                        for (int i = 0; i < 7; ++i)
+                        {
+                            var fieldName = "Item" + (i + 1);
+                            rtype.GetField(fieldName).SetValue(tuple, values.Array[values.Offset + i]);
+                        }
+                        {
+                            var fieldName = "Rest";
+                            rtype.GetField(fieldName).SetValue(tuple, vrest);
+                        }
+                        return tuple;
+                    }
+                }
+                else if (types.Count == 0)
+                {
+                    return isValueTuple ? new ValueTuple() : (object)null;
+                }
+                else
+                {
+                    var gtype = isValueTuple ? _ValueTupleTypes[types.Count] : _TupleTypes[types.Count];
+                    var rtypes = new Type[types.Count];
+                    for (int i = 0; i < types.Count; ++i)
+                    {
+                        rtypes[i] = types.Array[types.Offset + i];
+                    }
+                    var rvalues = new object[values.Count];
+                    for (int i = 0; i < values.Count; ++i)
+                    {
+                        rvalues[i] = values.Array[values.Offset + i];
+                    }
+                    var rtype = gtype.MakeGenericType(rtypes);
+                    try
+                    {
+                        return Activator.CreateInstance(rtype, rvalues);
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var tuple = Activator.CreateInstance(rtype);
+                        for (int i = 0; i < rvalues.Length; ++i)
+                        {
+                            var fieldName = "Item" + (i + 1);
+                            rtype.GetField(fieldName).SetValue(tuple, rvalues[i]);
+                        }
+                        return tuple;
+                    }
+                }
+            }
+            public static object CreateTuple(object p, bool isValueTuple)
+            {
+                if (p == null)
+                {
+                    return null;
+                }
+                var ltype = p.GetType();
+                if (!ltype.IsGenericType())
+                {
+                    return isValueTuple ? new ValueTuple() : (object)null;
+                }
+                var lpack = p as ILuaPack;
+                if (lpack == null)
+                {
+                    return null;
+                }
+                var values = new object[lpack.Length];
+                var types = new Type[lpack.Length];
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    values[i] = lpack[i];
+                    types[i] = lpack.GetType(i);
+                }
+                return CreateTuple(new ArraySegment<Type>(types), new ArraySegment<object>(values), isValueTuple);
+            }
+            public static object CreateTuple(object p)
+            {
+                return CreateTuple(p, false);
+            }
+            public static object CreateValueTuple(object p)
+            {
+                return CreateTuple(p, true);
+            }
+            public static object CreateLuaPack(ArraySegment<Type> types, ArraySegment<object> values)
+            {
+                if (types.Count > 7)
+                {
+                    var rest_types = new ArraySegment<Type>(types.Array, types.Offset + 7, types.Count - 7);
+                    var rest_values = new ArraySegment<object>(values.Array, values.Offset + 7, values.Count - 7);
+                    var vrest = CreateLuaPack(rest_types, rest_values);
+                    var gtype = typeof(LuaPackEx<,,,,,,,>);
+                    var rtype = gtype.MakeGenericType(
+                        types.Array[types.Offset + 0]
+                        , types.Array[types.Offset + 1]
+                        , types.Array[types.Offset + 2]
+                        , types.Array[types.Offset + 3]
+                        , types.Array[types.Offset + 4]
+                        , types.Array[types.Offset + 5]
+                        , types.Array[types.Offset + 6]
+                        , vrest.GetType()
+                        );
+                    try
+                    {
+                        return Activator.CreateInstance(rtype,
+                            values.Array[values.Offset + 0]
+                            , values.Array[values.Offset + 1]
+                            , values.Array[values.Offset + 2]
+                            , values.Array[values.Offset + 3]
+                            , values.Array[values.Offset + 4]
+                            , values.Array[values.Offset + 5]
+                            , values.Array[values.Offset + 6]
+                            , vrest
+                            );
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var pack = Activator.CreateInstance(rtype) as ILuaPack;
+                        if (pack != null)
+                        {
+                            for (int i = 0; i < values.Count; ++i)
+                            {
+                                var val = values.Array[values.Offset + i];
+                                pack[i] = val;
+                            }
+                        }
+                        return pack;
+                    }
+                }
+                else if (types.Count == 0)
+                {
+                    return new LuaPack();
+                }
+                else
+                {
+                    var gtype = _LuaPackTypes[types.Count];
+                    var rtypes = new Type[types.Count];
+                    for (int i = 0; i < types.Count; ++i)
+                    {
+                        rtypes[i] = types.Array[types.Offset + i];
+                    }
+                    var rvalues = new object[values.Count];
+                    for (int i = 0; i < values.Count; ++i)
+                    {
+                        rvalues[i] = values.Array[values.Offset + i];
+                    }
+                    var rtype = gtype.MakeGenericType(rtypes);
+                    try
+                    {
+                        return Activator.CreateInstance(rtype, rvalues);
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var pack = Activator.CreateInstance(rtype) as ILuaPack;
+                        if (pack != null)
+                        {
+                            for (int i = 0; i < rvalues.Length; ++i)
+                            {
+                                pack[i] = rvalues[i];
+                            }
+                        }
+                        return pack;
+                    }
+                }
+            }
+            public static object CreateLuaPack(object t)
+            {
+                if (t == null)
+                {
+                    return null;
+                }
+                var ttype = t.GetType();
+                if (!ttype.IsGenericType())
+                {
+                    return new LuaPack();
+                }
+                var gargs = ttype.GetGenericArguments();
+                if (gargs.Length > 7)
+                {
+                    var values = new object[7];
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        values[i] = ttype.GetField("Item" + (i + 1)).GetValue(t);
+                    }
+                    var vrest = CreateLuaPack(ttype.GetField("Rest").GetValue(t));
+                    var gtype = typeof(LuaPackEx<,,,,,,,>);
+                    var rtype = gtype.MakeGenericType(
+                        gargs[0]
+                        , gargs[1]
+                        , gargs[2]
+                        , gargs[3]
+                        , gargs[4]
+                        , gargs[5]
+                        , gargs[6]
+                        , vrest.GetType()
+                        );
+                    try
+                    {
+                        return Activator.CreateInstance(rtype,
+                            values[0]
+                            , values[1]
+                            , values[2]
+                            , values[3]
+                            , values[4]
+                            , values[5]
+                            , values[6]
+                            , vrest
+                            );
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var pack = Activator.CreateInstance(rtype) as ILuaPack;
+                        if (pack != null)
+                        {
+                            for (int i = 0; i < values.Length; ++i)
+                            {
+                                var val = values[i];
+                                pack[i] = val;
+                            }
+                            rtype.GetField("trest").SetValue(pack, vrest);
+                        }
+                        return pack;
+                    }
+                }
+                else
+                {
+                    var gtype = _LuaPackTypes[gargs.Length];
+                    var rtypes = gargs;
+                    var rvalues = new object[gargs.Length];
+                    for (int i = 0; i < gargs.Length; ++i)
+                    {
+                        rvalues[i] = ttype.GetField("Item" + (i + 1)).GetValue(t);
+                    }
+                    var rtype = gtype.MakeGenericType(rtypes);
+                    try
+                    {
+                        return Activator.CreateInstance(rtype, rvalues);
+                    }
+                    catch (System.ExecutionEngineException)
+                    {
+                        var pack = Activator.CreateInstance(rtype) as ILuaPack;
+                        if (pack != null)
+                        {
+                            for (int i = 0; i < rvalues.Length; ++i)
+                            {
+                                pack[i] = rvalues[i];
+                            }
+                        }
+                        return pack;
+                    }
+                }
+            }
+            public static Type GetTupleType(ArraySegment<Type> types, bool isValueTuple)
+            {
+                if (types.Count > 7)
+                {
+                    var rest_types = new ArraySegment<Type>(types.Array, types.Offset + 7, types.Count - 7);
+                    var trest = GetTupleType(rest_types, isValueTuple);
+                    var gtype = isValueTuple ? typeof(ValueTuple<,,,,,,,>) : typeof(Tuple<,,,,,,,>);
+                    var rtype = gtype.MakeGenericType(
+                        types.Array[types.Offset + 0]
+                        , types.Array[types.Offset + 1]
+                        , types.Array[types.Offset + 2]
+                        , types.Array[types.Offset + 3]
+                        , types.Array[types.Offset + 4]
+                        , types.Array[types.Offset + 5]
+                        , types.Array[types.Offset + 6]
+                        , trest
+                        );
+                    return rtype;
+                }
+                else if (types.Count == 0)
+                {
+                    return isValueTuple ? typeof(ValueTuple) : null;
+                }
+                else
+                {
+                    var gtype = isValueTuple ? _ValueTupleTypes[types.Count] : _TupleTypes[types.Count];
+                    var rtypes = new Type[types.Count];
+                    for (int i = 0; i < types.Count; ++i)
+                    {
+                        rtypes[i] = types.Array[types.Offset + i];
+                    }
+                    var rtype = gtype.MakeGenericType(rtypes);
+                    return rtype;
+                }
+            }
+            public static Type GetTupleType(Type ltype, bool isValueTuple)
+            {
+                if (ltype == null)
+                {
+                    return null;
+                }
+                if (!ltype.IsGenericType())
+                {
+                    return isValueTuple ? typeof(ValueTuple) : null;
+                }
+                if (ltype.GetGenericTypeDefinition() == typeof(LuaPackEx<,,,,,,,>))
+                {
+                    var gtype = isValueTuple ? typeof(ValueTuple<,,,,,,,>) : typeof(Tuple<,,,,,,,>);
+                    var gargs = ltype.GetGenericArguments();
+                    gargs[7] = GetTupleType(gargs[7], isValueTuple);
+                    return gtype.MakeGenericType(gargs);
+                }
+                else
+                {
+                    var gargs = ltype.GetGenericArguments();
+                    return GetTupleType(new ArraySegment<Type>(gargs), isValueTuple);
+
+                }
+            }
+            public static Type GetTupleType(Type ltype)
+            {
+                return GetTupleType(ltype, false);
+            }
+            public static Type GetValueTupleType(Type ltype)
+            {
+                return GetTupleType(ltype, true);
+            }
+            public static Type GetLuaPackType(ArraySegment<Type> types)
+            {
+                if (types.Count > 7)
+                {
+                    var rest_types = new ArraySegment<Type>(types.Array, types.Offset + 7, types.Count - 7);
+                    var trest = GetLuaPackType(rest_types);
+                    var gtype = typeof(LuaPackEx<,,,,,,,>);
+                    var rtype = gtype.MakeGenericType(
+                        types.Array[types.Offset + 0]
+                        , types.Array[types.Offset + 1]
+                        , types.Array[types.Offset + 2]
+                        , types.Array[types.Offset + 3]
+                        , types.Array[types.Offset + 4]
+                        , types.Array[types.Offset + 5]
+                        , types.Array[types.Offset + 6]
+                        , trest
+                        );
+                    return rtype;
+                }
+                else if (types.Count == 0)
+                {
+                    return typeof(LuaPack);
+                }
+                else
+                {
+                    var gtype = _LuaPackTypes[types.Count];
+                    var rtypes = new Type[types.Count];
+                    for (int i = 0; i < types.Count; ++i)
+                    {
+                        rtypes[i] = types.Array[types.Offset + i];
+                    }
+                    var rtype = gtype.MakeGenericType(rtypes);
+                    return rtype;
+                }
+            }
+            public static Type GetLuaPackType(Type ttype)
+            {
+                if (ttype == null)
+                {
+                    return null;
+                }
+                if (!ttype.IsGenericType())
+                {
+                    return typeof(LuaPack);
+                }
+                var gargs = ttype.GetGenericArguments();
+                if (gargs.Length > 7)
+                {
+                    gargs[7] = GetLuaPackType(gargs[7]);
+                    var gtype = typeof(LuaPackEx<,,,,,,,>);
+                    return gtype.MakeGenericType(gargs);
+                }
+                else
+                {
+                    return GetLuaPackType(new ArraySegment<Type>(gargs));
+                }
+            }
+        }
+
+        public static object CreateTuple(Type[] types, object[] values)
+        {
+            return TupleTransReflected.CreateTuple(new ArraySegment<Type>(types), new ArraySegment<object>(values), true);
+        }
+        public static object CreateTuple(Type[] types, object[] values, bool isValueTuple)
+        {
+            return TupleTransReflected.CreateTuple(new ArraySegment<Type>(types), new ArraySegment<object>(values), isValueTuple);
+        }
+        public static int PushValueOrTuple(IntPtr l, object o)
+        {
+            if (o == null)
+            {
+                l.pushnil();
+                return 1;
+            }
+            else
+            {
+                var otype = o.GetType();
+                if (IsValueTuple(otype) || IsTuple(otype))
+                {
+                    ILuaPack lpack = TupleTrans.ConvertToLuaPack(o);
+                    if (lpack != null)
+                    {
+                        lpack.PushToLua(l);
+                        return lpack.Length;
+                    }
+                    else
+                    {
+                        l.PushLua(o);
+                        return 1;
+                    }
+                }
+                else
+                {
+                    l.PushLua(o);
+                    return 1;
+                }
+            }
+        }
+    }
+#endif
+}
+#endregion

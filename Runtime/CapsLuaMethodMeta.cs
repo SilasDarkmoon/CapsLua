@@ -962,14 +962,18 @@ namespace Capstones.LuaLib
                 // see http://stackoverflow.com/questions/4357729/use-reflection-to-invoke-an-overridden-base-method
                 // the temporary solution is we should declare public non-virtual method in the derived class and call base.XXX in this method and we can call this method.
                 result = _Method.Invoke(tar, rargs);
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
                 if (_Method.IsSpecialName)
                 {
                     l.PushLua(result);
                 }
                 else
                 {
-                    LuaHub.PushValueOrTuple(l, result);
+                    LuaWrap.LuaTupleUtils.PushValueOrTuple(l, result);
                 }
+#else
+                l.PushLua(result);
+#endif
                 if (_OutParamIndices != null && rargs != null)
                 {
                     for (int ii = 0; ii < _OutParamIndices.Count; ++ii)
@@ -1164,14 +1168,18 @@ namespace Capstones.LuaLib
                 // see http://stackoverflow.com/questions/4357729/use-reflection-to-invoke-an-overridden-base-method
                 // the temporary solution is we should declare public non-virtual method in the derived class and call base.XXX in this method and we can call this method.
                 result = _Method.Invoke(tar, rargs);
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
                 if (_Method.IsSpecialName)
                 {
                     l.PushLua(result);
                 }
                 else
                 {
-                    LuaHub.PushValueOrTuple(l, result);
+                    LuaWrap.LuaTupleUtils.PushValueOrTuple(l, result);
                 }
+#else
+                l.PushLua(result);
+#endif
                 if (_OutParamIndices != null && rargs != null)
                 {
                     for (int ii = 0; ii < _OutParamIndices.Count; ++ii)
@@ -1364,14 +1372,18 @@ namespace Capstones.LuaLib
                 // see http://stackoverflow.com/questions/4357729/use-reflection-to-invoke-an-overridden-base-method
                 // the temporary solution is we should declare public non-virtual method in the derived class and call base.XXX in this method and we can call this method.
                 result = _Method.Invoke(tar, rargs);
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
                 if (_Method.IsSpecialName)
                 {
                     l.PushLua(result);
                 }
                 else
                 {
-                    LuaHub.PushValueOrTuple(l, result);
+                    LuaWrap.LuaTupleUtils.PushValueOrTuple(l, result);
                 }
+#else
+                l.PushLua(result);
+#endif
                 l.UpdateData(1, tar);
                 if (_OutParamIndices != null && rargs != null)
                 {

@@ -564,27 +564,42 @@ namespace Capstones.LuaExt
                         l.rawget(1);
                         object value = l.GetLua(-1);
                         l.pop(1);
+
                         Type type = null;
-                        var typepos = i + 2;
-                        if (typepos <= argcnt)
+                        if (value == null)
                         {
-                            l.GetLua(typepos, out type);
+                            type = typeof(object);
                         }
-                        if (type == null)
+                        else
                         {
-                            if (value == null)
-                            {
-                                type = typeof(object);
-                            }
-                            else
-                            {
-                                type = value.GetType();
-                            }
+                            type = value.GetType();
                         }
+
                         types[i] = type;
                         values[i] = value;
                     }
-                    rv = LuaHub.CreateTuple(new ArraySegment<Type>(types), new ArraySegment<object>(values));
+                    if (l.istable(2))
+                    {
+                        for (int i = 0; i < tuplelen; ++i)
+                        {
+                            l.pushnumber(i + 1);
+                            l.rawget(2);
+                            Type type;
+                            l.GetLua(-1, out type);
+                            l.pop(1);
+                            if (type != null)
+                            {
+                                types[i] = type;
+                                values[i] = values[i].ConvertTypeRaw(type);
+                            }
+                        }
+                    }
+                    bool isValueTuple = true;
+                    if (!l.isnoneornil(3))
+                    {
+                        l.GetLua(3, out isValueTuple);
+                    }
+                    rv = LuaWrap.LuaTupleUtils.CreateTuple(types, values, isValueTuple);
                 }
                 l.PushLuaObject(rv);
                 return 1;
@@ -595,7 +610,7 @@ namespace Capstones.LuaExt
         public static int ClrFuncUntuple(IntPtr l)
         {
             var o = l.GetLua(1);
-            return LuaHub.PushValueOrTuple(l, o);
+            return LuaWrap.LuaTupleUtils.PushValueOrTuple(l, o);
         }
 #endif
 

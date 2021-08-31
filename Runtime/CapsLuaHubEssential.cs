@@ -242,6 +242,24 @@ namespace Capstones.LuaLib
                     return true;
                 }
             }
+            else
+            {
+                bool hasNullableType = false;
+                if (curtype.IsGenericType() && curtype.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+                {
+                    hasNullableType = true;
+                    curtype = curtype.GetGenericArguments()[0];
+                }
+                if (totype.IsGenericType() && totype.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+                {
+                    hasNullableType = true;
+                    totype = totype.GetGenericArguments()[0];
+                }
+                if (hasNullableType)
+                {
+                    return CanConvertRaw(curtype, totype);
+                }
+            }
             return false;
         }
         public static object ConvertTypeRaw(this object obj, Type type)
@@ -361,6 +379,11 @@ namespace Capstones.LuaLib
                 {
                     return null;
                 }
+            }
+            else if (type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+            {
+                var gtype = type.GetGenericArguments()[0];
+                return ConvertTypeRaw(obj, gtype);
             }
             return null;
         }

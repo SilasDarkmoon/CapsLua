@@ -4796,6 +4796,60 @@ namespace Capstones.UnityEditorEx
                 sb.Append("return 0;");
             }
         }
+#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER || NET_4_6 || NET_STANDARD_2_0
+        internal static int WriteMethodBody_Return_GetTupleLength(Type type)
+        {
+            if (!LuaWrap.LuaTupleUtils.IsValueTuple(type) && !LuaWrap.LuaTupleUtils.IsTuple(type))
+            {
+                return 1;
+            }
+            if (!type.IsGenericType)
+            {
+                return 0;
+            }
+            var gargs = type.GetGenericArguments();
+            int gcnt = gargs.Length;
+            if (gcnt == 8)
+            {
+                gcnt = 7 + WriteMethodBody_Return_GetTupleLength(gargs[7]);
+            }
+            return gcnt;
+        }
+        internal static int WriteMethodBody_Return(System.Text.StringBuilder sb, MethodInfo minfo)
+        {
+            if (minfo.IsSpecialName)
+            {
+                sb.AppendLine("l.PushLua(rv);");
+                return 1;
+            }
+            else
+            {
+                if (LuaWrap.LuaTupleUtils.IsValueTuple(minfo.ReturnType) || LuaWrap.LuaTupleUtils.IsTuple(minfo.ReturnType))
+                {
+                    int gcnt = WriteMethodBody_Return_GetTupleLength(minfo.ReturnType);
+                    for (int g = 0; g < gcnt; ++g)
+                    {
+                        sb.Append("l.PushLua(rv.Item");
+                        sb.Append(g + 1);
+                        sb.Append(");");
+                        sb.AppendLine();
+                    }
+                    return gcnt;
+                }
+                else
+                {
+                    sb.AppendLine("l.PushLua(rv);");
+                    return 1;
+                }
+            }
+        }
+#else
+        internal static int WriteMethodBody_Return(System.Text.StringBuilder sb, MethodInfo minfo)
+        {
+            sb.AppendLine("l.PushLua(rv);");
+            return 1;
+        }
+#endif
         internal static void WriteMethodBody_0_Single(this WriteMethodBodyContext context, MethodBase method, WriteMethodBodyParamsTreatment treatParams)
         {
             bool isObsolete = false;
@@ -5103,36 +5157,7 @@ namespace Capstones.UnityEditorEx
                         }
                         sb.AppendLine(");");
                     }
-                    int rvcnt;
-                    if (real.IsSpecialName)
-                    {
-                        sb.AppendLine("l.PushLua(rv);");
-                        rvcnt = 1;
-                    }
-                    else
-                    {
-                        if (LuaHub.ValueTuplePush.IsValueTuple(real.ReturnType) || LuaHub.TuplePush.IsTuple(real.ReturnType))
-                        {
-                            int gcnt = 0;
-                            if (real.ReturnType.IsGenericType)
-                            {
-                                gcnt = real.ReturnType.GetGenericArguments().Length;
-                            }
-                            for (int g = 0; g < gcnt; ++g)
-                            {
-                                sb.Append("l.PushLua(rv.Item");
-                                sb.Append(g + 1);
-                                sb.Append(");");
-                                sb.AppendLine();
-                            }
-                            rvcnt = gcnt;
-                        }
-                        else
-                        {
-                            sb.AppendLine("l.PushLua(rv);");
-                            rvcnt = 1;
-                        }
-                    }
+                    int rvcnt = WriteMethodBody_Return(sb, real);
                     for (int i = 0; i < exinfo.ArgTypes.Count; ++i)
                     {
                         if (exinfo.IsArgRefOrOut(i))
@@ -5371,36 +5396,7 @@ namespace Capstones.UnityEditorEx
                         sb.Append(i);
                     }
                     sb.AppendLine(");");
-                    int rvcnt;
-                    if (real.IsSpecialName)
-                    {
-                        sb.AppendLine("l.PushLua(rv);");
-                        rvcnt = 1;
-                    }
-                    else
-                    {
-                        if (LuaHub.ValueTuplePush.IsValueTuple(real.ReturnType) || LuaHub.TuplePush.IsTuple(real.ReturnType))
-                        {
-                            int gcnt = 0;
-                            if (real.ReturnType.IsGenericType)
-                            {
-                                gcnt = real.ReturnType.GetGenericArguments().Length;
-                            }
-                            for (int g = 0; g < gcnt; ++g)
-                            {
-                                sb.Append("l.PushLua(rv.Item");
-                                sb.Append(g + 1);
-                                sb.Append(");");
-                                sb.AppendLine();
-                            }
-                            rvcnt = gcnt;
-                        }
-                        else
-                        {
-                            sb.AppendLine("l.PushLua(rv);");
-                            rvcnt = 1;
-                        }
-                    }
+                    int rvcnt = WriteMethodBody_Return(sb, real);
                     for (int i = 1; i < exinfo.ArgTypes.Count; ++i)
                     {
                         if (exinfo.IsArgRefOrOut(i))
