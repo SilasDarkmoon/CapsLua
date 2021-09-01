@@ -1527,15 +1527,30 @@ namespace Capstones.LuaLib
         {
             IntPtr ILuaPush<T?>.PushLua(IntPtr l, T? val)
             {
-                throw new NotImplementedException();
+                if (val == null)
+                {
+                    l.pushnil();
+                }
+                else
+                {
+                    PushLua(l, (T)val);
+                }
+                return IntPtr.Zero;
             }
             void ILuaTrans<T?>.SetData(IntPtr l, int index, T? val)
             {
-                throw new NotImplementedException();
+                SetData(l, index, (object)val);
             }
             T? ILuaTrans<T?>.GetLua(IntPtr l, int index)
             {
-                throw new NotImplementedException();
+                if (l.isnoneornil(index))
+                {
+                    return null;
+                }
+                else
+                {
+                    return GetLua(l, index);
+                }
             }
         }
 
