@@ -1467,9 +1467,9 @@ namespace Capstones.LuaLib
             public TypeHubCommonPrecompiled() : base(typeof(T)) { }
         }
 
-        public abstract class TypeHubValueTypePrecompiled<T> : TypeHubValueType, ILuaTrans, ILuaTrans<T>, ILuaPush<T>
+        public abstract class TypeHubClonedValuePrecompiled<T> : TypeHubValueType, ILuaTrans, ILuaTrans<T>, ILuaPush<T>
         {
-            public TypeHubValueTypePrecompiled() : base(typeof(T))
+            public TypeHubClonedValuePrecompiled() : base(typeof(T))
             {
                 PutIntoCache();
                 RegPrecompiledStatic();
@@ -1509,14 +1509,37 @@ namespace Capstones.LuaLib
                     return default(T);
                 }
             }
+            public virtual T GetLuaChecked(IntPtr l, int index)
+            {
+                if (l.istable(index))
+                {
+                    return GetLua(l, index);
+                }
+                return default(T);
+            }
 
             public virtual IntPtr PushLua(IntPtr l, T val)
             {
                 return PushLua(l, (object)val);
             }
         }
+        public abstract class TypeHubValueTypePrecompiled<T> : TypeHubClonedValuePrecompiled<T>, ILuaTrans<T?>, ILuaPush<T?> where T : struct
+        {
+            IntPtr ILuaPush<T?>.PushLua(IntPtr l, T? val)
+            {
+                throw new NotImplementedException();
+            }
+            void ILuaTrans<T?>.SetData(IntPtr l, int index, T? val)
+            {
+                throw new NotImplementedException();
+            }
+            T? ILuaTrans<T?>.GetLua(IntPtr l, int index)
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        public abstract class TypeHubEnumPrecompiled<T> : TypeHubValueTypePrecompiled<T>, ILuaNative
+        public abstract class TypeHubEnumPrecompiled<T> : TypeHubValueTypePrecompiled<T>, ILuaNative where T : struct
         {
             public TypeHubEnumPrecompiled()
             {
@@ -1611,7 +1634,7 @@ namespace Capstones.LuaLib
                 l.pop(2); // X
                 return rv;
             }
-            public T GetLuaChecked(IntPtr l, int index)
+            public override T GetLuaChecked(IntPtr l, int index)
             {
                 if (l.istable(index))
                 {

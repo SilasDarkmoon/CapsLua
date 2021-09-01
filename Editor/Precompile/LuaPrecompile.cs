@@ -1160,22 +1160,6 @@ namespace Capstones.UnityEditorEx
                     lines.Add("l.pop(2); // X");
                     lines.Add("return rv;");
                     lines.Add("}");
-                    sbline.Remove(0, sbline.Length);
-                    sbline.Append("public static ");
-                    sbline.Append(sb_type);
-                    sbline.Append(" GetLuaChecked(IntPtr l, int index)");
-                    lines.Add(sbline.ToString());
-                    lines.Add("{");
-                    lines.Add("if (l.istable(index))");
-                    lines.Add("{");
-                    lines.Add("return GetLuaRaw(l, index);");
-                    lines.Add("}");
-                    sbline.Remove(0, sbline.Length);
-                    sbline.Append("return default(");
-                    sbline.Append(sb_type);
-                    sbline.Append(");");
-                    lines.Add(sbline.ToString());
-                    lines.Add("}");
                     // write override methods END
                 }
                 else if (type.IsEnum)
@@ -1248,22 +1232,6 @@ namespace Capstones.UnityEditorEx
                     lines.Add("public override object GetLuaObject(IntPtr l, int index)");
                     lines.Add("{");
                     lines.Add("return GetLuaRaw(l, index);");
-                    lines.Add("}");
-                    sbline.Remove(0, sbline.Length);
-                    sbline.Append("public static ");
-                    sbline.Append(sb_type);
-                    sbline.Append(" GetLuaChecked(IntPtr l, int index)");
-                    lines.Add(sbline.ToString());
-                    lines.Add("{");
-                    lines.Add("if (l.istable(index))");
-                    lines.Add("{");
-                    lines.Add("return GetLuaRaw(l, index);");
-                    lines.Add("}");
-                    sbline.Remove(0, sbline.Length);
-                    sbline.Append("return default(");
-                    sbline.Append(sb_type);
-                    sbline.Append(");");
-                    lines.Add(sbline.ToString());
                     lines.Add("}");
 
                     lines.Add("");
@@ -1556,15 +1524,7 @@ namespace Capstones.UnityEditorEx
                 sbline.Append("val = ");
                 if (type.IsValueType)
                 {
-                    if (type.IsEnum)
-                    {
-                        sbline.Append(instance);
-                    }
-                    else
-                    {
-                        sbline.Append("TypeHubPrecompiled_");
-                        sbline.Append(filename);
-                    }
+                    sbline.Append(instance);
                     sbline.Append(".GetLuaChecked(l, index);");
                 }
                 else
@@ -1759,14 +1719,7 @@ namespace Capstones.UnityEditorEx
                                     fromlines.Insert(convtage++, "try");
                                     fromlines.Insert(convtage++, "{");
                                     fromlines.Insert(convtage++, sb_from + " p0;");
-                                    if (fromtype.IsValueType)
-                                    {
-                                        fromlines.Insert(convtage++, "p0 = GetLuaChecked(l, index);");
-                                    }
-                                    else
-                                    {
-                                        fromlines.Insert(convtage++, "l.GetLua(index, out p0);");
-                                    }
+                                    fromlines.Insert(convtage++, "l.GetLua(index, out p0);");
                                     fromlines.Insert(convtage++, "l.PushLuaExplicit<" + sb_to + ">((" + sb_to + ")p0);");
                                     fromlines.Insert(convtage++, "return 1;");
                                     fromlines.Insert(convtage++, "}");
@@ -1840,14 +1793,7 @@ namespace Capstones.UnityEditorEx
                                     lines.Insert(convtage++, "try");
                                     lines.Insert(convtage++, "{");
                                     lines.Insert(convtage++, sb_from + " p0;");
-                                    if (fromtype.IsValueType)
-                                    {
-                                        lines.Insert(convtage++, "p0 = GetLuaChecked(l, index);");
-                                    }
-                                    else
-                                    {
-                                        lines.Insert(convtage++, "l.GetLua(index, out p0);");
-                                    }
+                                    lines.Insert(convtage++, "l.GetLua(index, out p0);");
                                     lines.Insert(convtage++, "l.PushLuaExplicit<" + sb_to + ">((" + sb_to + ")p0);");
                                     lines.Insert(convtage++, "return 1;");
                                     lines.Insert(convtage++, "}");
@@ -2670,14 +2616,7 @@ namespace Capstones.UnityEditorEx
                                     var sb_type = new System.Text.StringBuilder();
                                     sb_type.WriteType(type);
                                     lines.Insert(efunc++, sb_type + " tar;");
-                                    if (type.IsValueType)
-                                    {
-                                        lines.Insert(efunc++, "tar = GetLuaChecked(l, 1);");
-                                    }
-                                    else
-                                    {
-                                        lines.Insert(efunc++, "l.GetLua(1, out tar);");
-                                    }
+                                    lines.Insert(efunc++, "l.GetLua(1, out tar);");
                                     lines.Insert(efunc++, "var rv = tar." + memberName + ";");
                                 }
                                 lines.Insert(efunc++, "l.PushLua(rv);");
@@ -2714,14 +2653,7 @@ namespace Capstones.UnityEditorEx
                                     var sb_rtype = new System.Text.StringBuilder();
                                     sb_rtype.WriteType(retype);
                                     lines.Insert(efunc++, sb_type + " tar;");
-                                    if (type.IsValueType)
-                                    {
-                                        lines.Insert(efunc++, "tar = GetLuaChecked(l, 1);");
-                                    }
-                                    else
-                                    {
-                                        lines.Insert(efunc++, "l.GetLua(1, out tar);");
-                                    }
+                                    lines.Insert(efunc++, "l.GetLua(1, out tar);");
                                     lines.Insert(efunc++, sb_rtype + " val;");
                                     lines.Insert(efunc++, "l.GetLua(2, out val);");
                                     lines.Insert(efunc++, "tar." + memberName + " = val;");
@@ -5208,11 +5140,7 @@ namespace Capstones.UnityEditorEx
                     sb.Append(" p");
                     sb.Append(i);
                     sb.AppendLine(";");
-                    if (i == 0 && method.ReflectedType.IsValueType && !method.ReflectedType.IsEnum)
-                    {
-                        sb.AppendLine("p0 = GetLuaChecked(l, 1);");
-                    }
-                    else if (i == exinfo.ArgTypes.Count - 1 && treatParams == WriteMethodBodyParamsTreatment.Params)
+                    if (i == exinfo.ArgTypes.Count - 1 && treatParams == WriteMethodBodyParamsTreatment.Params)
                     {
                         var paramstype = arg.GetElementType();
                         sb.Append("var paramscnt = l.gettop() - ");

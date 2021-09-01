@@ -1024,7 +1024,7 @@ namespace Capstones.LuaLib
                 {
                     if (luatype == lua.LUA_TNUMBER || luatype == lua.LUA_TSTRING)
                     {
-                        var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubEnumPrecompiled<T>;
+                        var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubClonedValuePrecompiled<T>;
                         if (hub != null)
                         {
                             val = hub.GetLuaChecked(l, index);
@@ -1344,6 +1344,9 @@ namespace Capstones.LuaLib
                 val = l.GetLua<ulong>(index);
             }
         }
+        #endregion
+
+        #region Nullables
         #endregion
     }
 }
