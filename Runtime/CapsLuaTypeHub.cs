@@ -1675,10 +1675,15 @@ namespace Capstones.LuaLib
                 }
                 public override T GetLua(IntPtr l, int index)
                 {
-                    l.pushvalue(index);
-                    var result = _Hub.ConvertFromNum(l.tonumber(-1));
-                    l.pop(1);
-                    return result;
+                    if (l.IsNumber(index))
+                    {
+                        return _Hub.ConvertFromNum(l.tonumber(index));
+                    }
+                    else if (l.IsString(index))
+                    {
+                        return EnumUtils.ConvertStrToEnum<T>(l.GetString(index));
+                    }
+                    return default(T);
                 }
                 public override IntPtr PushLua(IntPtr l, T val)
                 {

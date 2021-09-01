@@ -57,7 +57,15 @@ namespace Capstones.LuaLib
         {
             public override bool GetLua(IntPtr l, int index)
             {
-                return l.toboolean(index);
+                if (l.isboolean(index))
+                {
+                    return l.toboolean(index);
+                }
+                else if (l.IsNumber(index))
+                {
+                    return l.tonumber(index) != 0.0;
+                }
+                return false;
             }
             public override IntPtr PushLua(IntPtr l, bool val)
             {
@@ -70,7 +78,14 @@ namespace Capstones.LuaLib
         {
             public override byte GetLua(IntPtr l, int index)
             {
-                return (byte)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (byte)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, byte val)
             {
@@ -83,7 +98,14 @@ namespace Capstones.LuaLib
         {
             public override byte[] GetLua(IntPtr l, int index)
             {
-                return l.tolstring(index);
+                if (l.IsString(index))
+                {
+                    return l.tolstring(index);
+                }
+                else
+                {
+                    return null;
+                }
             }
             public override IntPtr PushLua(IntPtr l, byte[] val)
             {
@@ -99,7 +121,19 @@ namespace Capstones.LuaLib
         {
             public override char GetLua(IntPtr l, int index)
             {
-                return (char)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (char)l.tonumber(index);
+                }
+                else if (l.IsString(index))
+                {
+                    var str = l.GetString(index);
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        return str[0];
+                    }
+                }
+                return '\0';
             }
             public override IntPtr PushLua(IntPtr l, char val)
             {
@@ -112,7 +146,14 @@ namespace Capstones.LuaLib
         {
             public override decimal GetLua(IntPtr l, int index)
             {
-                return (decimal)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (decimal)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, decimal val)
             {
@@ -125,7 +166,14 @@ namespace Capstones.LuaLib
         {
             public override double GetLua(IntPtr l, int index)
             {
-                return l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, double val)
             {
@@ -138,7 +186,14 @@ namespace Capstones.LuaLib
         {
             public override float GetLua(IntPtr l, int index)
             {
-                return (float)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (float)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, float val)
             {
@@ -151,7 +206,14 @@ namespace Capstones.LuaLib
         {
             public override int GetLua(IntPtr l, int index)
             {
-                return (int)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (int)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, int val)
             {
@@ -164,7 +226,18 @@ namespace Capstones.LuaLib
         {
             public override IntPtr GetLua(IntPtr l, int index)
             {
-                return l.touserdata(index);
+                if (l.isuserdata(index))
+                {
+                    return l.touserdata(index);
+                }
+                else if (l.isnumber(index))
+                {
+                    return new IntPtr((long)l.tonumber(index));
+                }
+                else
+                {
+                    return l.topointer(index);
+                }
             }
             public override IntPtr PushLua(IntPtr l, IntPtr val)
             {
@@ -177,7 +250,14 @@ namespace Capstones.LuaLib
         {
             public override long GetLua(IntPtr l, int index)
             {
-                return (long)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (long)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, long val)
             {
@@ -190,7 +270,14 @@ namespace Capstones.LuaLib
         {
             public override sbyte GetLua(IntPtr l, int index)
             {
-                return (sbyte)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (sbyte)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, sbyte val)
             {
@@ -203,7 +290,14 @@ namespace Capstones.LuaLib
         {
             public override short GetLua(IntPtr l, int index)
             {
-                return (short)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (short)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, short val)
             {
@@ -232,7 +326,14 @@ namespace Capstones.LuaLib
         {
             public override uint GetLua(IntPtr l, int index)
             {
-                return (uint)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (uint)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, uint val)
             {
@@ -245,7 +346,14 @@ namespace Capstones.LuaLib
         {
             public override ulong GetLua(IntPtr l, int index)
             {
-                return (ulong)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (ulong)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, ulong val)
             {
@@ -258,7 +366,14 @@ namespace Capstones.LuaLib
         {
             public override ushort GetLua(IntPtr l, int index)
             {
-                return (ushort)l.tonumber(index);
+                if (l.IsNumber(index))
+                {
+                    return (ushort)l.tonumber(index);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             public override IntPtr PushLua(IntPtr l, ushort val)
             {
