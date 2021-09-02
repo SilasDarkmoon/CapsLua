@@ -6108,17 +6108,36 @@ namespace Capstones.UnityEditorEx
             }
             if (type.ClrType != null)
             {
-                if (type.ClrType.IsValueType || type.ClrType.IsSealed)
+                sb.Append("if (");
+                if (type.LuaType != null)
                 {
-                    sb.Append("if (");
-                    if (type.LuaType != null)
-                    {
+                    sb.Append("___lt");
+                    sb.Append(index);
+                    sb.Append(" == lua.");
+                    sb.Append(type.LuaType);
+                    sb.Append(" || ");
+                }
+                else if (typeof(LuaWrap.LuaState).IsAssignableFrom(type.ClrType))
+                {
+                    sb.Append("___lt");
+                    sb.Append(index);
+                    sb.Append(" == lua.LUA_TTHREAD || ");
+                }
+                else if (Types.IsLuaWrapper(type.ClrType))
+                {
+                    if (typeof(Delegate).IsAssignableFrom(type))
+                    { // delegates
                         sb.Append("___lt");
                         sb.Append(index);
-                        sb.Append(" == lua.");
-                        sb.Append(type.LuaType);
-                        sb.Append(" || ");
+                        sb.Append(" == lua.LUA_TFUNCTION || ");
                     }
+                    // LuaWrapper
+                    sb.Append("___ot");
+                    sb.Append(index);
+                    sb.Append(" == typeof(Capstones.LuaWrap.LuaTable) || ");
+                }
+                if (type.ClrType.IsValueType || type.ClrType.IsSealed)
+                {
                     //if (Nullable.GetUnderlyingType(type.ClrType) != null)
                     //{ // this is nullable
                     //    var rtype = Nullable.GetUnderlyingType(type.ClrType)
@@ -6128,43 +6147,31 @@ namespace Capstones.UnityEditorEx
                     sb.Append(" == typeof(");
                     sb.WriteType(type);
                     sb.Append(")");
-                    sb.AppendLine(")");
                 }
                 else
                 {
                     if (type == typeof(object))
                     {
-                        sb.Append("if (___ot");
+                        sb.Append("___ot");
                         sb.Append(index);
-                        sb.Append(" != null)");
-                        sb.AppendLine();
+                        sb.Append(" != null");
                     }
                     else
                     {
-                        sb.Append("if (");
-                        if (typeof(Delegate).IsAssignableFrom(type) || typeof(LuaWrap.BaseLua).IsAssignableFrom(type) || typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
-                        {
-                            if (typeof(Delegate).IsAssignableFrom(type))
-                            { // delegates
-                                sb.Append("___lt");
-                                sb.Append(index);
-                                sb.Append(" == lua.LUA_TFUNCTION || ");
-                            }
-                            // LuaWrapper
-                            sb.Append("___lt");
-                            sb.Append(index);
-                            sb.Append(" == lua.LUA_TTABLE || ");
-                            sb.Append("___lt");
-                            sb.Append(index);
-                            sb.Append(" == lua.LUA_TUSERDATA || ");
-                        }
                         sb.Append("typeof(");
                         sb.WriteType(type);
                         sb.Append(").IsAssignableFrom(___ot");
                         sb.Append(index);
-                        sb.AppendLine("))");
+                        sb.Append(")");
                     }
                 }
+                if (typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
+                {
+                    sb.Append(" || typeof(Capstones.LuaWrap.ILuaWrapper).IsAssignableFrom(___ot");
+                    sb.Append(index);
+                    sb.Append(")");
+                }
+                sb.AppendLine(")");
             }
             else
             {
@@ -6386,7 +6393,7 @@ namespace Capstones.UnityEditorEx
                     {
                         continue;
                     }
-                    if (mintype.ClrType == null && mintype.LuaType != null && kvp.Key.ClrType != null)
+                    if (mintype.LuaType != null && kvp.Key.LuaType == null)
                     {
                         continue;
                     }
