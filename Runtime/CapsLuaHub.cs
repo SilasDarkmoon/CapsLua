@@ -508,6 +508,17 @@ namespace Capstones.LuaLib
         {
             l.pushboolean((bool)val);
         }
+        public static void PushLua(this IntPtr l, bool? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, string val)
         {
             if (val == null)
@@ -523,55 +534,213 @@ namespace Capstones.LuaLib
         {
             l.pushlightuserdata(val);
         }
+        public static void PushLua(this IntPtr l, IntPtr? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
+        public static void PushLua(this IntPtr l, UIntPtr val)
+        {
+            l.pushlightuserdata((IntPtr)(ulong)val);
+        }
+        public static void PushLua(this IntPtr l, UIntPtr? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, byte val)
         {
             l.pushnumber(val);
+        }
+        public static void PushLua(this IntPtr l, byte? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, char val)
         {
             l.pushnumber(val);
         }
+        public static void PushLua(this IntPtr l, char? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, decimal val)
         {
             l.pushnumber((double)val);
+        }
+        public static void PushLua(this IntPtr l, decimal? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, double val)
         {
             l.pushnumber(val);
         }
+        public static void PushLua(this IntPtr l, double? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, short val)
         {
             l.pushnumber(val);
+        }
+        public static void PushLua(this IntPtr l, short? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, int val)
         {
             l.pushnumber(val);
         }
+        public static void PushLua(this IntPtr l, int? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, long val)
         {
             l.pushnumber(val);
+        }
+        public static void PushLua(this IntPtr l, long? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, sbyte val)
         {
             l.pushnumber(val);
         }
+        public static void PushLua(this IntPtr l, sbyte? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, float val)
         {
             l.pushnumber(val);
+        }
+        public static void PushLua(this IntPtr l, float? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, ushort val)
         {
             l.pushnumber(val);
         }
+        public static void PushLua(this IntPtr l, ushort? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
         public static void PushLua(this IntPtr l, uint val)
         {
             l.pushnumber(val);
+        }
+        public static void PushLua(this IntPtr l, uint? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
         }
         public static void PushLua(this IntPtr l, ulong val)
         {
             l.pushnumber(val);
         }
-#endregion
+        public static void PushLua(this IntPtr l, ulong? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                PushLua(l, val.Value);
+            }
+        }
+        #endregion
 
         public static Type GetLuaRawObjectType(this IntPtr l, int index)
         {
@@ -1201,6 +1370,41 @@ namespace Capstones.LuaLib
             val = IntPtr.Zero;
             return;
         }
+        public static void GetLua(this IntPtr l, int index, out IntPtr? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                IntPtr raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out UIntPtr val)
+        {
+            IntPtr raw;
+            GetLua(l, index, out raw);
+            val = (UIntPtr)(ulong)raw;
+            return;
+        }
+        public static void GetLua(this IntPtr l, int index, out UIntPtr? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                UIntPtr raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out bool val)
         {
             if (l.isboolean(index))
@@ -1211,6 +1415,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<bool>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out bool? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                bool raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out byte val)
         {
@@ -1223,6 +1441,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<byte>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out byte? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                byte raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out char val)
         {
             if (l.IsNumber(index))
@@ -1233,6 +1465,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<char>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out char? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                char raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out decimal val)
         {
@@ -1245,6 +1491,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<decimal>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out decimal? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                decimal raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out double val)
         {
             if (l.IsNumber(index))
@@ -1255,6 +1515,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<double>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out double? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                double raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out short val)
         {
@@ -1267,6 +1541,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<short>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out short? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                short raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out int val)
         {
             if (l.IsNumber(index))
@@ -1277,6 +1565,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<int>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out int? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                int raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out long val)
         {
@@ -1289,6 +1591,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<long>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out long? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                long raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out sbyte val)
         {
             if (l.IsNumber(index))
@@ -1299,6 +1615,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<sbyte>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out sbyte? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                sbyte raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out float val)
         {
@@ -1311,6 +1641,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<float>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out float? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                float raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out ushort val)
         {
             if (l.IsNumber(index))
@@ -1321,6 +1665,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<ushort>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out ushort? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                ushort raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         public static void GetLua(this IntPtr l, int index, out uint val)
         {
@@ -1333,6 +1691,20 @@ namespace Capstones.LuaLib
                 val = l.GetLua<uint>(index);
             }
         }
+        public static void GetLua(this IntPtr l, int index, out uint? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                uint raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
+        }
         public static void GetLua(this IntPtr l, int index, out ulong val)
         {
             if (l.IsNumber(index))
@@ -1343,6 +1715,20 @@ namespace Capstones.LuaLib
             {
                 val = l.GetLua<ulong>(index);
             }
+        }
+        public static void GetLua(this IntPtr l, int index, out ulong? val)
+        {
+            if (l.isnoneornil(index))
+            {
+                val = null;
+            }
+            else
+            {
+                ulong raw;
+                GetLua(l, index, out raw);
+                val = raw;
+            }
+            return;
         }
         #endregion
 

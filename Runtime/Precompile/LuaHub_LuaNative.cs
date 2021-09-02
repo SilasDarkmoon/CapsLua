@@ -53,7 +53,37 @@ namespace Capstones.LuaLib
                 return false;
             }
         }
-        private class LuaPushNative_bool : LuaPushNativeBase<bool>
+        public abstract class LuaPushNativeValueType<T> : LuaPushNativeBase<T>, ILuaPush<T?>, ILuaTrans<T?> where T : struct
+        {
+            IntPtr ILuaPush<T?>.PushLua(IntPtr l, T? val)
+            {
+                if (val == null)
+                {
+                    l.pushnil();
+                }
+                else
+                {
+                    PushLua(l, (T)val);
+                }
+                return IntPtr.Zero;
+            }
+            void ILuaTrans<T?>.SetData(IntPtr l, int index, T? val)
+            {
+                // no meaning.
+            }
+            T? ILuaTrans<T?>.GetLua(IntPtr l, int index)
+            {
+                if (l.isnoneornil(index))
+                {
+                    return null;
+                }
+                else
+                {
+                    return GetLua(l, index);
+                }
+            }
+        }
+        private class LuaPushNative_bool : LuaPushNativeValueType<bool>
         {
             public override bool GetLua(IntPtr l, int index)
             {
@@ -74,7 +104,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_bool ___tpn_bool = new LuaPushNative_bool();
-        private class LuaPushNative_byte : LuaPushNativeBase<byte>
+        private class LuaPushNative_byte : LuaPushNativeValueType<byte>
         {
             public override byte GetLua(IntPtr l, int index)
             {
@@ -117,7 +147,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_bytes ___tpn_bytes = new LuaPushNative_bytes();
-        private class LuaPushNative_char : LuaPushNativeBase<char>
+        private class LuaPushNative_char : LuaPushNativeValueType<char>
         {
             public override char GetLua(IntPtr l, int index)
             {
@@ -142,7 +172,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_char ___tpn_char = new LuaPushNative_char();
-        private class LuaPushNative_decimal : LuaPushNativeBase<decimal>
+        private class LuaPushNative_decimal : LuaPushNativeValueType<decimal>
         {
             public override decimal GetLua(IntPtr l, int index)
             {
@@ -162,7 +192,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_decimal ___tpn_decimal = new LuaPushNative_decimal();
-        private class LuaPushNative_double : LuaPushNativeBase<double>
+        private class LuaPushNative_double : LuaPushNativeValueType<double>
         {
             public override double GetLua(IntPtr l, int index)
             {
@@ -182,7 +212,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_double ___tpn_double = new LuaPushNative_double();
-        private class LuaPushNative_float : LuaPushNativeBase<float>
+        private class LuaPushNative_float : LuaPushNativeValueType<float>
         {
             public override float GetLua(IntPtr l, int index)
             {
@@ -202,7 +232,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_float ___tpn_float = new LuaPushNative_float();
-        private class LuaPushNative_int : LuaPushNativeBase<int>
+        private class LuaPushNative_int : LuaPushNativeValueType<int>
         {
             public override int GetLua(IntPtr l, int index)
             {
@@ -222,7 +252,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_int ___tpn_int = new LuaPushNative_int();
-        private class LuaPushNative_IntPtr : LuaPushNativeBase<IntPtr>
+        private class LuaPushNative_IntPtr : LuaPushNativeValueType<IntPtr>
         {
             public override IntPtr GetLua(IntPtr l, int index)
             {
@@ -246,7 +276,31 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_IntPtr ___tpn_IntPtr = new LuaPushNative_IntPtr();
-        private class LuaPushNative_long : LuaPushNativeBase<long>
+        private class LuaPushNative_UIntPtr : LuaPushNativeValueType<UIntPtr>
+        {
+            public override UIntPtr GetLua(IntPtr l, int index)
+            {
+                if (l.isuserdata(index))
+                {
+                    return (UIntPtr)(ulong)l.touserdata(index);
+                }
+                else if (l.isnumber(index))
+                {
+                    return new UIntPtr((ulong)l.tonumber(index));
+                }
+                else
+                {
+                    return (UIntPtr)(ulong)l.topointer(index);
+                }
+            }
+            public override IntPtr PushLua(IntPtr l, UIntPtr val)
+            {
+                l.pushlightuserdata((IntPtr)(ulong)val);
+                return IntPtr.Zero;
+            }
+        }
+        private static LuaPushNative_UIntPtr ___tpn_UIntPtr = new LuaPushNative_UIntPtr();
+        private class LuaPushNative_long : LuaPushNativeValueType<long>
         {
             public override long GetLua(IntPtr l, int index)
             {
@@ -266,7 +320,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_long ___tpn_long = new LuaPushNative_long();
-        private class LuaPushNative_sbyte : LuaPushNativeBase<sbyte>
+        private class LuaPushNative_sbyte : LuaPushNativeValueType<sbyte>
         {
             public override sbyte GetLua(IntPtr l, int index)
             {
@@ -286,7 +340,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_sbyte ___tpn_sbyte = new LuaPushNative_sbyte();
-        private class LuaPushNative_short : LuaPushNativeBase<short>
+        private class LuaPushNative_short : LuaPushNativeValueType<short>
         {
             public override short GetLua(IntPtr l, int index)
             {
@@ -322,7 +376,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_string ___tpn_string = new LuaPushNative_string();
-        private class LuaPushNative_uint : LuaPushNativeBase<uint>
+        private class LuaPushNative_uint : LuaPushNativeValueType<uint>
         {
             public override uint GetLua(IntPtr l, int index)
             {
@@ -342,7 +396,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_uint ___tpn_uint = new LuaPushNative_uint();
-        private class LuaPushNative_ulong : LuaPushNativeBase<ulong>
+        private class LuaPushNative_ulong : LuaPushNativeValueType<ulong>
         {
             public override ulong GetLua(IntPtr l, int index)
             {
@@ -362,7 +416,7 @@ namespace Capstones.LuaLib
             }
         }
         private static LuaPushNative_ulong ___tpn_ulong = new LuaPushNative_ulong();
-        private class LuaPushNative_ushort : LuaPushNativeBase<ushort>
+        private class LuaPushNative_ushort : LuaPushNativeValueType<ushort>
         {
             public override ushort GetLua(IntPtr l, int index)
             {

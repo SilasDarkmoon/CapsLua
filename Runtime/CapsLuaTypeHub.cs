@@ -1666,7 +1666,7 @@ namespace Capstones.LuaLib
                 return default(T);
             }
 
-            public class TypeHubEnumNative : LuaHub.LuaPushNativeBase<T>
+            public class TypeHubEnumNative : LuaHub.LuaPushNativeValueType<T>
             {
                 protected TypeHubEnumPrecompiled<T> _Hub;
                 public TypeHubEnumNative(TypeHubEnumPrecompiled<T> hub)

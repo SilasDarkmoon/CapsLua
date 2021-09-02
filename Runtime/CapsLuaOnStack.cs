@@ -52,8 +52,30 @@ namespace Capstones.LuaLib
         {
             val = l.OnStack(pos);
         }
+        public static void PushLua(this IntPtr l, LuaStackPos? val)
+        {
+            if (val == null)
+            {
+                l.pushnil();
+            }
+            else
+            {
+                l.pushvalue(val.Value.Pos);
+            }
+        }
+        public static void GetLua(this IntPtr l, int pos, out LuaStackPos? val)
+        {
+            if (l.isnoneornil(pos))
+            {
+                val = null;
+            }
+            else
+            {
+                val = l.OnStack(pos);
+            }
+        }
 
-        private class LuaPushNative_LuaStackPos : LuaPushNativeBase<LuaStackPos>
+        private class LuaPushNative_LuaStackPos : LuaPushNativeValueType<LuaStackPos>
         {
             public override LuaStackPos GetLua(IntPtr l, int index)
             {
