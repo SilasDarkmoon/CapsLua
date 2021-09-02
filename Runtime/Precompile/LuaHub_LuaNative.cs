@@ -55,6 +55,11 @@ namespace Capstones.LuaLib
         }
         public abstract class LuaPushNativeValueType<T> : LuaPushNativeBase<T>, ILuaPush<T?>, ILuaTrans<T?> where T : struct
         {
+            public LuaPushNativeValueType()
+            {
+                _NativePushLuaFuncs[typeof(T?)] = this;
+            }
+
             IntPtr ILuaPush<T?>.PushLua(IntPtr l, T? val)
             {
                 if (val == null)

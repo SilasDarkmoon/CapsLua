@@ -318,8 +318,26 @@ namespace Capstones.LuaExt
                         return ClrFuncWrap(l);
                     }
                 }
+                else if (stype == null)
+                {
+                    var nndtype = Nullable.GetUnderlyingType(dtype);
+                    if (nndtype != null)
+                    {
+                        l.pushnil();
+                    }
+                    else
+                    {
+                        l.PushLuaObject(null, dtype);
+                    }
+                    return 1;
+                }
                 else
                 {
+                    var nnstype = Nullable.GetUnderlyingType(stype);
+                    var nndtype = Nullable.GetUnderlyingType(dtype);
+                    stype = nnstype ?? stype;
+                    dtype = nndtype ?? dtype;
+
                     ILuaTypeHub sub = LuaTypeHub.GetTypeHub(stype);
                     ILuaConvert nsub = sub as ILuaConvert;
                     if (nsub != null)

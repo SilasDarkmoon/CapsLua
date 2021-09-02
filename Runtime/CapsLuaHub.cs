@@ -437,7 +437,40 @@ namespace Capstones.LuaLib
             {
                 l.pushnumber(Convert.ToDouble(val));
             }
-            else if (isvalue || typeof(T).IsSealed)
+            else if (isvalue)
+            {
+                var uutype = Nullable.GetUnderlyingType(valtype);
+                if (uutype != null)
+                {
+                    ILuaTypeHub sub = LuaTypeHub.GetTypeHub(uutype);
+                    if (sub != null)
+                    {
+                        var sub2 = sub as ILuaPush<T>;
+                        if (sub2 != null)
+                        {
+                            sub2.PushLua(l, val);
+                        }
+                        else
+                        {
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
+                            using (var pcon = new Capstones.UnityFramework.ProfilerContext("box val of " + typeof(T).ToString()))
+#endif
+                            sub.PushLua(l, val);
+                        }
+                    }
+                    else
+                    {
+                        PushLuaRawObject(l, val);
+                        l.PushCommonMetaTable();
+                        l.setmetatable(-2);
+                    }
+                }
+                else
+                {
+                    PushLuaExplicit<T>(l, val);
+                }
+            }
+            else if (typeof(T).IsSealed)
             {
                 PushLuaExplicit<T>(l, val);
             }
@@ -1193,12 +1226,12 @@ namespace Capstones.LuaLib
                 {
                     if (luatype == lua.LUA_TNUMBER || luatype == lua.LUA_TSTRING)
                     {
-                        var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubClonedValuePrecompiled<T>;
-                        if (hub != null)
-                        {
-                            val = hub.GetLuaChecked(l, index);
-                            return;
-                        }
+                        //var hub = LuaTypeHub.GetTypeHub(typeof(T)) as LuaTypeHub.TypeHubClonedValuePrecompiled<T>;
+                        //if (hub != null)
+                        //{ // this should not happen...
+                        //    val = hub.GetLuaChecked(l, index);
+                        //    return;
+                        //}
                         if (luatype == lua.LUA_TNUMBER)
                         {
                             var num = l.tonumber(index);
@@ -1231,11 +1264,33 @@ namespace Capstones.LuaLib
                         PlatDependant.LogError(e);
                     }
                 }
+                else if (!istable)
+                {
+                    var uutype = Nullable.GetUnderlyingType(typeof(T));
+                    if (uutype != null && uutype.IsEnum())
+                    { // Nullable<Enum>
+                        if (luatype == lua.LUA_TNUMBER)
+                        {
+                            var num = l.tonumber(index);
+                            var eval = Enum.ToObject(uutype, (ulong)num);
+                            val = (T)eval;
+                            return;
+                        }
+                        else
+                        {
+                            var str = l.GetString(index);
+                            var eval = Enum.Parse(uutype, str);
+                            val = (T)eval;
+                            return;
+                        }
+                    }
+                }
             }
             // 3. for sealed CLR type and lua-table. we can get LuaTypeHub from CLR-type. this is commonly for Protocols.
             if (istable && typeof(T).IsSealed)
             {
-                var trans = LuaTypeHub.GetTypeHub(typeof(T));
+                var uutype = Nullable.GetUnderlyingType(typeof(T));
+                var trans = LuaTypeHub.GetTypeHub(uutype ?? typeof(T));
                 var ttrans = trans as ILuaTrans<T>;
                 if (ttrans != null)
                 {
