@@ -4085,6 +4085,8 @@ namespace Capstones.UnityEditorEx
                 luatype = null;
                 return false;
             }
+            var nntype = Nullable.GetUnderlyingType(type);
+            type = nntype ?? type;
             if (type.IsEnum)
             {
                 luatype = "LUA_TNUMBER";
@@ -5385,6 +5387,10 @@ namespace Capstones.UnityEditorEx
                 }
             }
         }
+        internal static bool IsValueTypeNonNullable(this Type t)
+        {
+            return t.IsValueType && Nullable.GetUnderlyingType(t) == null;
+        }
         internal static void WriteMethodBody_10_ByArgCnt_Single(this WriteMethodBodyContext context, ref bool shouldelse, int cnt, MethodBase method)
         {
             var sb = context.sb;
@@ -5418,7 +5424,7 @@ namespace Capstones.UnityEditorEx
             sb.AppendLine("}"); // }
             if (pexinfo.ArgTypes.Count >= cnt)
             {
-                if (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueType)
+                if (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueTypeNonNullable())
                 {
                     context.DoneMethods.Add(method);
                 }
@@ -5516,7 +5522,7 @@ namespace Capstones.UnityEditorEx
             foreach (var method in methods)
             {
                 var pexinfo = context.GetMethodEx(method);
-                if (pexinfo.ArgTypes.Count == cnt && (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueType))
+                if (pexinfo.ArgTypes.Count == cnt && (cnt <= 0 || pexinfo.ArgTypes[cnt - 1].IsValueTypeNonNullable()))
                 {
                     context.DoneMethods.Add(method);
                 }
@@ -5539,7 +5545,7 @@ namespace Capstones.UnityEditorEx
                             let types = exinfo.ArgTypes
                             let argcnt = types.Count
                             where !exinfo.LastArgIsParam
-                            where argcnt == 0 || types[argcnt - 1].IsValueType
+                            where argcnt == 0 || types[argcnt - 1].IsValueTypeNonNullable()
                             select method;
 
             if (vtmethods.Count() == 0)
@@ -5552,7 +5558,7 @@ namespace Capstones.UnityEditorEx
                 var exinfo = context.GetMethodEx(method);
                 var types = exinfo.ArgTypes;
                 var argcnt = types.Count;
-                if (!exinfo.LastArgIsParam && (argcnt == 0 || types[argcnt - 1].IsValueType || argcnt >= minparampos))
+                if (!exinfo.LastArgIsParam && (argcnt == 0 || types[argcnt - 1].IsValueTypeNonNullable() || argcnt >= minparampos))
                 {
                     IList<MethodBase> list;
                     if (!bycnt_valuetype.TryGetValue(argcnt, out list))
@@ -5570,13 +5576,13 @@ namespace Capstones.UnityEditorEx
                 var exinfo = context.GetMethodEx(method);
                 var types = exinfo.ArgTypes;
                 var argcnt = types.Count;
-                if (exinfo.LastArgIsParam || argcnt > 0 && !types[argcnt - 1].IsValueType && argcnt < minparampos)
+                if (exinfo.LastArgIsParam || argcnt > 0 && !types[argcnt - 1].IsValueTypeNonNullable() && argcnt < minparampos)
                 {
                     int max_non_null = -1;
                     for (int i = argcnt - 2; i >= 0; --i)
                     {
                         var argtype = types[i];
-                        if (argtype.IsValueType || i >= minparampos)
+                        if (argtype.IsValueTypeNonNullable() || i >= minparampos)
                         {
                             max_non_null = i;
                             break;
@@ -6178,15 +6184,27 @@ namespace Capstones.UnityEditorEx
                 }
                 if (type.ClrType.IsValueType || type.ClrType.IsSealed)
                 {
-                    //if (Nullable.GetUnderlyingType(type.ClrType) != null)
-                    //{ // this is nullable
-                    //    var rtype = Nullable.GetUnderlyingType(type.ClrType)
-                    //}
-                    sb.Append("___ot");
-                    sb.Append(index);
-                    sb.Append(" == typeof(");
-                    sb.WriteType(type);
-                    sb.Append(")");
+                    if (Nullable.GetUnderlyingType(type.ClrType) != null)
+                    { // this is nullable
+                        var rtype = Nullable.GetUnderlyingType(type.ClrType);
+                        sb.Append("___ot");
+                        sb.Append(index);
+                        sb.Append(" == typeof(");
+                        sb.WriteType(rtype);
+                        sb.Append(") || ");
+
+                        sb.Append("___ot");
+                        sb.Append(index);
+                        sb.Append(" == null");
+                    }
+                    else
+                    {
+                        sb.Append("___ot");
+                        sb.Append(index);
+                        sb.Append(" == typeof(");
+                        sb.WriteType(type);
+                        sb.Append(")");
+                    }
                 }
                 else
                 {

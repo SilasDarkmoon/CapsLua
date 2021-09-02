@@ -300,6 +300,38 @@ namespace Capstones.LuaLib
         {
             return typeof(Delegate).IsAssignableFrom(t) || typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(t) || typeof(LuaWrap.BaseLua).IsAssignableFrom(t);
         }
+        public enum TypeNullableCate
+        {
+            Object,
+            Nullable,
+            ValueType,
+        }
+        public static TypeNullableCate GetNullableCate(Type t)
+        {
+            Type nntype;
+            return GetNullableCate(t, out nntype);
+        }
+        public static TypeNullableCate GetNullableCate(Type t, out Type nntype)
+        {
+            if (t.IsValueType)
+            {
+                nntype = Nullable.GetUnderlyingType(t);
+                if (nntype == null)
+                {
+
+                    return TypeNullableCate.ValueType;
+                }
+                else
+                {
+                    return TypeNullableCate.Nullable;
+                }
+            }
+            else
+            {
+                nntype = null;
+                return TypeNullableCate.Object;
+            }
+        }
         // the greater weight means more detail and explicit
         public static int Compare(Types ta, Types tb)
         {
@@ -342,7 +374,7 @@ namespace Capstones.LuaLib
                     }
                     if (!a2b && !b2a)
                     {
-                        // TODO: 1、Delegates、ILuaWrapper、BaseLua
+                        // Delegates、ILuaWrapper、BaseLua
                         bool iswa = IsLuaWrapper(tya);
                         bool iswb = IsLuaWrapper(tyb);
                         if (iswa != iswb)
@@ -356,6 +388,14 @@ namespace Capstones.LuaLib
                                 return 1;
                             }
                         }
+                        // Nullable?
+                        var nca = GetNullableCate(tya);
+                        var ncb = GetNullableCate(tyb);
+                        if (nca != ncb)
+                        {
+                            return ((int)nca) - ((int)ncb);
+                        }
+
                         // (string) (params string[]) - this can do with comparing HasElementType.
                         // notice: but maybe we should move this to GroupMethodMeta? and we should check (string[]) and (params string[][])
                         var hasea = tya.HasElementType;
@@ -369,7 +409,16 @@ namespace Capstones.LuaLib
                     }
                     else // (a2b && b2a)
                     {
-                        var rv = LuaHub.GetTypeWeight(tya) - LuaHub.GetTypeWeight(tyb);
+                        // Nullable?
+                        Type nnta, nntb;
+                        var nca = GetNullableCate(tya, out nnta);
+                        var ncb = GetNullableCate(tyb, out nntb);
+                        if (nca != ncb)
+                        {
+                            return ((int)nca) - ((int)ncb);
+                        }
+
+                        var rv = LuaHub.GetTypeWeight(nnta ?? tya) - LuaHub.GetTypeWeight(nntb ?? tyb);
                         if (rv != 0)
                         {
                             return rv;
