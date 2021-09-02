@@ -296,6 +296,10 @@ namespace Capstones.LuaLib
             return !OpEquals(source, other);
         }
 
+        public static bool IsLuaWrapper(Type t)
+        {
+            return typeof(Delegate).IsAssignableFrom(t) || typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(t) || typeof(LuaWrap.BaseLua).IsAssignableFrom(t);
+        }
         // the greater weight means more detail and explicit
         public static int Compare(Types ta, Types tb)
         {
@@ -338,16 +342,30 @@ namespace Capstones.LuaLib
                     }
                     if (!a2b && !b2a)
                     {
-                        // TODO: 1、(string) (params string[]) - this can do with comparing HasElementType.
-                        // notice: this is for TODO1, but maybe we should move this to GroupMethodMeta? and we should check (string[]) and (params string[][])
+                        // TODO: 1、Delegates、ILuaWrapper、BaseLua
+                        bool iswa = IsLuaWrapper(tya);
+                        bool iswb = IsLuaWrapper(tyb);
+                        if (iswa != iswb)
+                        {
+                            if (iswa)
+                            {
+                                return -1;
+                            }
+                            else
+                            {
+                                return 1;
+                            }
+                        }
+                        // (string) (params string[]) - this can do with comparing HasElementType.
+                        // notice: but maybe we should move this to GroupMethodMeta? and we should check (string[]) and (params string[][])
                         var hasea = tya.HasElementType;
                         var haseb = tyb.HasElementType;
                         if (hasea != haseb)
                         {
                             return hasea ? 1 : -1;
                         }
-                        // TODO: 2、(short) (double) call with float - this is hard to judge, maybe we should check implicit operator?
-                        return tya.GetHashCode() - tyb.GetHashCode();
+                        // (short) (double) call with float - this is hard to judge, maybe we should check implicit operator?
+                        return tya.FullName.GetHashCode() - tyb.FullName.GetHashCode();
                     }
                     else // (a2b && b2a)
                     {
