@@ -1536,6 +1536,46 @@ namespace Capstones.UnityEditorEx
                 lines.Add(sbline.ToString());
                 lines.Add("}");
                 // write get set END
+                // write get set nullable
+                if (type.IsValueType)
+                {
+                    sbline.Remove(0, sbline.Length);
+                    sbline.Append("public static void PushLua(this IntPtr l, ");
+                    sbline.Append(sb_type);
+                    sbline.Append("? val)");
+                    lines.Add(sbline.ToString());
+                    lines.Add("{");
+                    lines.Add("if (val == null)");
+                    lines.Add("l.pushnil();");
+                    lines.Add("else");
+                    sbline.Remove(0, sbline.Length);
+                    sbline.Append(instance);
+                    if (type.IsEnum)
+                    {
+                        sbline.Append(".LuaHubNative");
+                    }
+                    sbline.Append(".PushLua");
+                    sbline.Append("(l, val.Value);");
+                    lines.Add(sbline.ToString());
+                    lines.Add("}");
+
+                    sbline.Remove(0, sbline.Length);
+                    sbline.Append("public static void GetLua(this IntPtr l, int index, out ");
+                    sbline.Append(sb_type);
+                    sbline.Append("? val)");
+                    lines.Add(sbline.ToString());
+                    lines.Add("{");
+                    lines.Add("if (l.isnoneornil(index))");
+                    lines.Add("val = null;");
+                    lines.Add("else");
+                    sbline.Remove(0, sbline.Length);
+                    sbline.Append("val = ");
+                    sbline.Append(instance);
+                    sbline.Append(".GetLuaChecked(l, index);");
+                    lines.Add(sbline.ToString());
+                    lines.Add("}");
+                }
+                // write get set nullable END
             }
             lines.Add("}");
             lines.Add("}");
