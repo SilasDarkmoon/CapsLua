@@ -6119,6 +6119,10 @@ namespace Capstones.UnityEditorEx
                         sb.Append(type.LuaType);
                         sb.Append(" || ");
                     }
+                    //if (Nullable.GetUnderlyingType(type.ClrType) != null)
+                    //{ // this is nullable
+                    //    var rtype = Nullable.GetUnderlyingType(type.ClrType)
+                    //}
                     sb.Append("___ot");
                     sb.Append(index);
                     sb.Append(" == typeof(");
@@ -6137,7 +6141,24 @@ namespace Capstones.UnityEditorEx
                     }
                     else
                     {
-                        sb.Append("if (typeof(");
+                        sb.Append("if (");
+                        if (typeof(Delegate).IsAssignableFrom(type) || typeof(LuaWrap.BaseLua).IsAssignableFrom(type) || typeof(LuaWrap.ILuaWrapper).IsAssignableFrom(type))
+                        {
+                            if (typeof(Delegate).IsAssignableFrom(type))
+                            { // delegates
+                                sb.Append("___lt");
+                                sb.Append(index);
+                                sb.Append(" == lua.LUA_TFUNCTION || ");
+                            }
+                            // LuaWrapper
+                            sb.Append("___lt");
+                            sb.Append(index);
+                            sb.Append(" == lua.LUA_TTABLE || ");
+                            sb.Append("___lt");
+                            sb.Append(index);
+                            sb.Append(" == lua.LUA_TUSERDATA || ");
+                        }
+                        sb.Append("typeof(");
                         sb.WriteType(type);
                         sb.Append(").IsAssignableFrom(___ot");
                         sb.Append(index);
