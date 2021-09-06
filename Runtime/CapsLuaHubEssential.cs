@@ -214,7 +214,7 @@ namespace Capstones.LuaLib
             }
             if (curtype == null)
             {
-                if (totype.IsValueType())
+                if (totype.IsValueType() && Nullable.GetUnderlyingType(totype) == null)
                 {
                     return false;
                 }
@@ -245,12 +245,12 @@ namespace Capstones.LuaLib
             else
             {
                 bool hasNullableType = false;
-                if (curtype.IsGenericType() && curtype.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+                if (Nullable.GetUnderlyingType(curtype) != null)
                 {
                     hasNullableType = true;
                     curtype = curtype.GetGenericArguments()[0];
                 }
-                if (totype.IsGenericType() && totype.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+                if (Nullable.GetUnderlyingType(totype) != null)
                 {
                     hasNullableType = true;
                     totype = totype.GetGenericArguments()[0];
@@ -380,7 +380,7 @@ namespace Capstones.LuaLib
                     return null;
                 }
             }
-            else if (type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(System.Nullable<>))
+            else if (Nullable.GetUnderlyingType(type) != null)
             {
                 var gtype = type.GetGenericArguments()[0];
                 return ConvertTypeRaw(obj, gtype);
@@ -447,6 +447,45 @@ namespace Capstones.LuaLib
             }
             return code;
         }
+        //public static int[] GetParamsCodesWithNullable(IList<Type> types)
+        //{ // this may cause mass amount of codes: think of Func(int? * 32), this will return 2^32 codes.
+        //    List<int> codes = new List<int>() { 0 };
+        //    if (types != null)
+        //    {
+        //        for (int i = 0; i < types.Count; ++i)
+        //        {
+        //            var type = types[i];
+        //            if (type != null && type.IsValueType())
+        //            {
+        //                if (Nullable.GetUnderlyingType(type) == null)
+        //                {
+        //                    for (int j = 0; j < codes.Count; ++j)
+        //                    {
+        //                        int codepart = 1 << i;
+        //                        codes[j] += codepart;
+        //                    }
+        //                }
+        //                else
+        //                { // Nullable?
+        //                    int curcnt = codes.Count;
+        //                    for (int j = 0; j < curcnt; ++j)
+        //                    {
+        //                        int codepart = 1 << i;
+        //                        codes.Add(codes[j] + codepart);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    if (codes.Count <= 1)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        return codes.ToArray();
+        //    }
+        //}
 
         public static int NormalizeIndex(this IntPtr l, int index)
         {

@@ -1578,16 +1578,21 @@ namespace Capstones.LuaLib
     public class PackedMethodMeta : BaseMethodMeta
     {
         internal Dictionary<int, BaseMethodMeta> _Groups = new Dictionary<int, BaseMethodMeta>();
+        internal int _MaxNullableCode = 0;
+        internal BaseMethodMeta _NullableMethodMeta = null;
 
-        public PackedMethodMeta(MethodBase[] minfos, Dictionary<Types, BaseUniqueMethodMeta> tcache, bool updateDataAfterCall)
+        public PackedMethodMeta(IList<MethodBase> minfos, Dictionary<Types, BaseUniqueMethodMeta> tcache, bool updateDataAfterCall)
         {
             if (minfos != null)
             {
                 Dictionary<int, List<MethodBase>> pmethods = new Dictionary<int, List<MethodBase>>();
-                for (int i = 0; i < minfos.Length; ++i)
+                int maxCode = 0;
+                List<MethodBase> nmethods = null;
+                for (int i = 0; i < minfos.Count; ++i)
                 {
                     var minfo = minfos[i];
                     var pars = minfo.GetParameters();
+                    bool hasNullable = false;
                     Types types = new Types();
                     if (minfo is ConstructorInfo)
                     {
@@ -1604,11 +1609,12 @@ namespace Capstones.LuaLib
                             var ptype = pars[j].ParameterType;
                             if (ptype.IsByRef)
                             {
-                                types.Add(ptype.GetElementType());
+                                ptype = ptype.GetElementType();
                             }
-                            else
+                            types.Add(ptype);
+                            if (!hasNullable && Nullable.GetUnderlyingType(ptype) != null)
                             {
-                                types.Add(ptype);
+                                hasNullable = true;
                             }
                         }
                     }
@@ -1620,6 +1626,18 @@ namespace Capstones.LuaLib
                         pmethods[code] = arr;
                     }
                     arr.Add(minfo);
+                    if (hasNullable)
+                    {
+                        if (code > maxCode)
+                        {
+                            maxCode = code;
+                        }
+                        if (nmethods == null)
+                        {
+                            nmethods = new List<MethodBase>();
+                        }
+                        nmethods.Add(minfo);
+                    }
                 }
                 foreach (var kvp in pmethods)
                 {
@@ -1632,9 +1650,21 @@ namespace Capstones.LuaLib
                         _Groups[kvp.Key] = BaseUniqueMethodMeta.CreateMethodMeta(kvp.Value[0], updateDataAfterCall);
                     }
                 }
+                if (nmethods != null)
+                {
+                    _MaxNullableCode = maxCode;
+                    if (nmethods.Count > 1)
+                    {
+                        _NullableMethodMeta = new GroupMethodMeta(nmethods, tcache, updateDataAfterCall);
+                    }
+                    else
+                    {
+                        _NullableMethodMeta = BaseUniqueMethodMeta.CreateMethodMeta(nmethods[0], updateDataAfterCall);
+                    }
+                }
             }
         }
-        public PackedMethodMeta(MethodBase[] minfos, bool updateDataAfterCall)
+        public PackedMethodMeta(IList<MethodBase> minfos, bool updateDataAfterCall)
             : this(minfos, null, updateDataAfterCall)
         {
         }
@@ -1653,20 +1683,27 @@ namespace Capstones.LuaLib
                 if (rcore is BaseUniqueMethodMeta)
                 {
                     rcore.call(l, tar);
+                    return;
                 }
                 else
                 {
                     var meta = ((GroupMethodMeta)rcore).FindAppropriate(types);
-                    if (meta == null)
-                    {
-                        l.LogError("Cann't find method with appropriate params.");
-                        throw new ArgumentException();
-                    }
-                    else
+                    if (meta != null)
                     {
                         meta.call(l, tar);
+                        return;
                     }
                 }
+            }
+            if (_NullableMethodMeta != null && code < _MaxNullableCode && _NullableMethodMeta.CanCallByArgsOfType(types) >= 0)
+            {
+                _NullableMethodMeta.call(l, tar);
+                return;
+            }
+            else
+            {
+                l.LogError("Cann't find method with appropriate params.");
+                throw new ArgumentException("Cann't find method with appropriate params.");
             }
         }
 
@@ -1688,10 +1725,13 @@ namespace Capstones.LuaLib
                     {
                         return 1;
                     }
-                    else
-                    {
-                        return -1;
-                    }
+                }
+            }
+            if (_NullableMethodMeta != null)
+            {
+                if (code < _MaxNullableCode)
+                {
+                    return _NullableMethodMeta.CanCallByArgsOfType(pt);
                 }
             }
             return -1;
@@ -1701,76 +1741,16 @@ namespace Capstones.LuaLib
         {
             if (minfos != null && minfos.Count > 0)
             {
-                Dictionary<int, List<MethodBase>> pmethods = new Dictionary<int, List<MethodBase>>();
-                for (int i = 0; i < minfos.Count; ++i)
+                var packed = new PackedMethodMeta(minfos, tcache, updateDataAfterCall);
+                if (packed._Groups.Count > 1 || packed._NullableMethodMeta != null)
                 {
-                    var minfo = minfos[i];
-                    var pars = minfo.GetParameters();
-                    Types types = new Types();
-                    if (minfo is ConstructorInfo)
-                    {
-                        types.Add(typeof(Type));
-                    }
-                    else if (!minfo.IsStatic)
-                    {
-                        types.Add(minfo.DeclaringType);
-                    }
-                    if (pars != null)
-                    {
-                        for (int j = 0; j < pars.Length; ++j)
-                        {
-                            var ptype = pars[j].ParameterType;
-                            if (ptype.IsByRef)
-                            {
-                                types.Add(ptype.GetElementType());
-                            }
-                            else
-                            {
-                                types.Add(ptype);
-                            }
-                        }
-                    }
-                    var code = LuaHub.GetParamsCode(types);
-                    List<MethodBase> arr = null;
-                    if (!pmethods.TryGetValue(code, out arr))
-                    {
-                        arr = new List<MethodBase>();
-                        pmethods[code] = arr;
-                    }
-                    arr.Add(minfo);
-                }
-                if (pmethods.Count > 1)
-                {
-                    var pack = new PackedMethodMeta();
-                    foreach (var kvp in pmethods)
-                    {
-                        if (kvp.Value.Count > 1)
-                        {
-                            if (tcache == null)
-                            {
-                                tcache = new Dictionary<Types, BaseUniqueMethodMeta>();
-                            }
-                            pack._Groups[kvp.Key] = new GroupMethodMeta(kvp.Value, tcache, updateDataAfterCall);
-                        }
-                        else
-                        {
-                            pack._Groups[kvp.Key] = BaseUniqueMethodMeta.CreateMethodMeta(kvp.Value[0], updateDataAfterCall);
-                        }
-                    }
-                    return pack;
+                    return packed;
                 }
                 else
                 {
-                    foreach (var kvp in pmethods)
+                    foreach (var kvp in packed._Groups)
                     {
-                        if (kvp.Value.Count > 1)
-                        {
-                            return new GroupMethodMeta(kvp.Value, tcache, updateDataAfterCall);
-                        }
-                        else
-                        {
-                            return BaseUniqueMethodMeta.CreateMethodMeta(kvp.Value[0], updateDataAfterCall);
-                        }
+                        return kvp.Value;
                     }
                 }
             }
