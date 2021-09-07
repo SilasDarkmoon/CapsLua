@@ -26,6 +26,7 @@ namespace Capstones.UnityEditorEx
     [InitializeOnLoad]
     public static class LuaHotFixWriter
     {
+        #region LuaPack Generator
         public static Type GetLuaPackType(int paramCnt)
         {
             if (paramCnt <= 0)
@@ -925,6 +926,7 @@ namespace Capstones.UnityEditorEx
 
             //new Microsoft.CSharp.CSharpCodeProvider().CompileAssemblyFromFile()
         }
+        #endregion
 
         public static List<string> ParseHotFixList()
         {
@@ -954,6 +956,65 @@ namespace Capstones.UnityEditorEx
             }
             return list;
         }
+
+        #region HotFix Token Hash
+        private static Dictionary<string, long> LoadDesignatedHash()
+        {
+            string luafile = "Assets/CapsSpt/data/hotfixhash.lua";
+            var hotfix_list_paths = CapsModEditor.FindAssetsInMods("LuaHotFix/MemberList.txt");
+            if (hotfix_list_paths != null && hotfix_list_paths.Length > 0)
+            {
+                var hotfix_list_path = hotfix_list_paths[0];
+                var prefix = hotfix_list_path.Substring(0, hotfix_list_path.Length - "LuaHotFix/MemberList.txt".Length);
+                luafile = prefix + "CapsSpt/data/hotfixhash.lua";
+            }
+            if (PlatDependant.IsFileExist(luafile))
+            {
+                var l = GlobalLua.L.L;
+                using (var lr = l.CreateStackRecover())
+                {
+                    LuaStackPos tab;
+                    l.DoFile(out tab, luafile);
+                    if (l.istable(tab))
+                    {
+                        var result = new Dictionary<string, long>();
+                        l.ForEach<string, long>(tab, (token, hash) => result.Add(token, hash));
+                        return result;
+                    }
+                }
+            }
+            return null;
+        }
+        public static void SaveDesignatedHash(Dictionary<string, long> map)
+        {
+            if (map != null && map.Count > 0)
+            {
+                string luafile = "Assets/CapsSpt/data/hotfixhash.lua";
+                var hotfix_list_paths = CapsModEditor.FindAssetsInMods("LuaHotFix/MemberList.txt");
+                if (hotfix_list_paths != null && hotfix_list_paths.Length > 0)
+                {
+                    var hotfix_list_path = hotfix_list_paths[0];
+                    var prefix = hotfix_list_path.Substring(0, hotfix_list_path.Length - "LuaHotFix/MemberList.txt".Length);
+                    luafile = prefix + "CapsSpt/data/hotfixhash.lua";
+                }
+                using (var sw = PlatDependant.OpenWriteText(luafile))
+                {
+                    sw.WriteLine("local hashmap = {}");
+                    foreach (var kvp in map)
+                    {
+                        sw.Write("hashmap[\"");
+                        sw.Write(LuaString.FormatLuaString(kvp.Key));
+                        sw.Write("\"] = ");
+                        sw.Write(kvp.Value);
+                        sw.WriteLine();
+                    }
+                    sw.WriteLine("return hashmap");
+
+                }
+                PlatDependant.CopyFile(luafile, "Assets/StreamingAssets/CapsSpt/data/hotfixhash.lua");
+            }
+        }
+        #endregion
 
         private class LuaHotFixBuildProcessor : UnityEditor.Build.IPreprocessBuildWithReport
         {
@@ -990,7 +1051,9 @@ namespace Capstones.UnityEditorEx
                 IsBuildingPlayer = false;
                 //LuaHotFixCodeInjector.LoadAssemblies();
                 LuaHotFixCodeInjector.LoadInternalAssemblies();
+                LuaHotFixCodeInjector.LoadDesignatedHash(LoadDesignatedHash());
                 LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
+                SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
                 LuaHotFixCodeInjector.UnloadAssemblies();
             };
 #endif

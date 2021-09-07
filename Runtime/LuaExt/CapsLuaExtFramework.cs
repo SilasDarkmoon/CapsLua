@@ -79,6 +79,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "transstr");
                         L.pushcfunction(ClrDelUpdateLanguageConverter);
                         L.SetField(-2, "updatetrans");
+                        L.pushcfunction(ClrDelGetExtendedHash);
+                        L.SetField(-2, "exhash");
                     }
                     L.pop(1); // (empty)
 
@@ -224,6 +226,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
         public static readonly lua.CFunction ClrDelUpdateLanguageConverter = new lua.CFunction(UpdateLanguageConverter);
+        public static readonly lua.CFunction ClrDelGetExtendedHash = new lua.CFunction(ClrFuncGetExtendedHash);
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
@@ -1068,6 +1071,52 @@ namespace Capstones.LuaExt
                     l.pop(1);
                 }
                 LanguageConverter.UpdateDict(updatedMap);
+            }
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetExtendedHash(IntPtr l)
+        {
+            if (l.IsString(1))
+            {
+                var extab = l.TryRequire("data.exhash");
+                if (extab.IsValid)
+                { // extab
+                    l.pushvalue(1); // extab str
+                    l.gettable(-2); // extab hash
+                    if (l.IsNumber(-1))
+                    {
+                        l.remove(-2); // hash
+                        return 1;
+                    }
+                    l.pop(2); // X
+                }
+                var argcnt = l.gettop();
+                var str = l.GetString(1);
+                ushort headOffset = 0;
+                ushort tailOffset = 0;
+                int criticalPos = 0;
+                byte exflag = 0;
+                if (argcnt >= 2)
+                {
+                    l.GetLua(2, out headOffset);
+                    if (argcnt >= 3)
+                    {
+                        l.GetLua(3, out tailOffset);
+                        if (argcnt >= 4)
+                        {
+                            l.GetLua(4, out criticalPos);
+                            if (argcnt >= 5)
+                            {
+                                l.GetLua(5, out exflag);
+                            }
+                        }
+                    }
+                }
+                var hash = ExtendedStringHash.GetHashCodeEx(str, headOffset, tailOffset, criticalPos, exflag);
+                l.PushLua(hash);
+                return 1;
             }
             return 0;
         }
