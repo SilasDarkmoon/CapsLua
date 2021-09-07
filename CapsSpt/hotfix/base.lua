@@ -5,7 +5,7 @@ local meta = {
         if type(key) == "string" then
             local suffix = string.sub(key, -5, -1)
             if suffix == " head" or suffix == " tail" then
-                local raw = rawget(cls, "\022")
+                local raw = rawget(tab, "\022")
                 if raw then
                     return raw[key]
                 end
@@ -16,10 +16,10 @@ local meta = {
         if type(key) == "string" then
             local suffix = string.sub(key, -5, -1)
             if suffix == " head" or suffix == " tail" then
-                local raw = rawget(cls, "\022")
+                local raw = rawget(tab, "\022")
                 if not raw then
                     raw = {}
-                    rawset(cls, "\022", raw)
+                    rawset(tab, "\022", raw)
                 end
                 raw[key] = val
                 local hash = clr.Capstones.LuaWrap.HotFixCaller.GetTokenHash(key)
@@ -27,7 +27,7 @@ local meta = {
                 return
             end
         end
-        rawset(tab, hash, val)
+        rawset(tab, key, val)
     end,
 }
 
