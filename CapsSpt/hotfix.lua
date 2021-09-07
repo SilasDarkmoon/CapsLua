@@ -1,3 +1,5 @@
+clr.Capstones.LuaWrap.HotFixCaller.LoadDesignatedHash("data.hotfixhash")
+
 local hotfix = {}
 local hotfixmap = require("hotfix.map")
 if not hotfixmap[0] then
