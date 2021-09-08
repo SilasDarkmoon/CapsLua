@@ -302,7 +302,14 @@ local function class_instancecallbasefunc(self, name, ...)
 
     local results
     if caller_class then
+        local thisfunc = caller_class[name]
         local super = caller_class.super
+        while super do
+            if super[name] ~= thisfunc then
+                break
+            end
+            super = super.super
+        end
         if super then
             class_instancecallbasefunc_name = name
             local __base_func = super[name]
@@ -354,6 +361,10 @@ local function class_instancecallbase(self, ...)
     if results then
         return table.unpack(results)
     end
+end
+
+function notailcall(...)
+    return ...
 end
 
 local function class_isSubClassOf(cls, parent)
