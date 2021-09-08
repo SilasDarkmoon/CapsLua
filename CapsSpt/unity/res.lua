@@ -41,6 +41,10 @@ function res.Instantiate(name)
     end
 end
 
+function res.Destroy(obj)
+    Object.Destroy(obj)
+end
+
 function res.AddChild(parent, name)
     local child = res.Instantiate(name)
     if child then
