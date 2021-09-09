@@ -32,11 +32,25 @@ function res.GetLuaScript(obj)
 end
 
 function res.Instantiate(name)
-    local prefab = ResManager.LoadRes(name)
-    if prefab then
-        local obj = Object.Instantiate(prefab)
-        if obj then
-            return obj, res.GetLuaScript(obj)
+    if type(name) == "string" then
+        local prefab = ResManager.LoadRes(name)
+        if prefab then
+            local obj = Object.Instantiate(prefab)
+            if obj then
+                return obj, res.GetLuaScript(obj)
+            end
+        end
+    else
+        local tempobj = name
+        if tempobj and tempobj ~= clr.null and clr.is(tempobj, Object) then
+            local obj = Object.Instantiate(tempobj)
+            if obj then
+                if obj.GetComponent then
+                    return obj, res.GetLuaScript(obj)
+                else
+                    return obj
+                end
+            end
         end
     end
 end
@@ -265,5 +279,7 @@ function res.FindCanvasLayerNameAndOrder(tf)
     end
     return lLayerName, order
 end
+
+res.defaultRenderPipelineAsset = clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset
 
 return res

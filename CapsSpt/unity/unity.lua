@@ -189,7 +189,10 @@ function unity.component(go, comp)
 end
 
 function unity.restart()
-    res.Cleanup() -- TODO: 该调用会重新维护资源、脚本的版本，因此不能去掉。但是据说目前会导致重启后ab缺失，需要深入检查。
+    -- The global referenced asset that may be loaded from ab should be restored to default.
+    clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = res.defaultRenderPipelineAsset
+
+    res.Cleanup()
     for k,v in pairs(package.loaded) do
         package.loaded[k] = nil
     end
