@@ -1178,7 +1178,7 @@ function math.concatCompareFunc(...)
 end
 
 -- 按指定的顺序遍历table
-function pairsByKeys(t, f)
+function spairs(t, f)
     local a = {}
     for n in pairs(t) do a[#a + 1] = n end
     table.sort(a, f)
