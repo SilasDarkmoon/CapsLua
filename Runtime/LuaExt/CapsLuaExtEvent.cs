@@ -220,14 +220,16 @@ namespace Capstones.LuaExt
             {
                 var cate = l.GetString(1);
                 l.pushnumber(CrossEvent.GetHandlerCount(cate));
-                return 1;
             }
             else if (l.isnoneornil(1))
             {
                 l.pushnumber(CrossEvent.GetHandlerCount(null));
-                return 1;
             }
-            return 0;
+            else
+            {
+                l.pushnumber(0);
+            }
+            return 1;
         }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
