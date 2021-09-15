@@ -39,6 +39,10 @@ namespace Capstones.LuaExt
             l.SetField(-2, "reset"); // luaevt
             l.pushcfunction(Func_LuaDelayedEvents); // luaevt func
             l.SetField(-2, "delayed"); // luaevt
+            l.pushcfunction(Func_HandlerCount); // luaevt func
+            l.SetField(-2, "count"); // luaevt
+            l.pushcfunction(Func_MarkRaw); // luaevt func
+            l.SetField(-2, "raw"); // luaevt
             l.pop(1);
         }
 
@@ -49,6 +53,8 @@ namespace Capstones.LuaExt
         internal static readonly lua.CFunction Func_SetHandlerOrder = new lua.CFunction(SetHandlerOrder);
         internal static readonly lua.CFunction Func_ResetLuaEventReg = new lua.CFunction(ResetLuaEventReg);
         internal static readonly lua.CFunction Func_LuaDelayedEvents = new lua.CFunction(LuaDelayedEvents);
+        internal static readonly lua.CFunction Func_HandlerCount = new lua.CFunction(LuaFuncHandlerCount);
+        internal static readonly lua.CFunction Func_MarkRaw = new lua.CFunction(LuaFuncMarkTableAsRaw);
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int TrigLuaEvent(IntPtr l)
@@ -65,7 +71,7 @@ namespace Capstones.LuaExt
                 CrossEvent.SetParamCount(token, Math.Max(0, top - 1));
                 for (int i = 2; i <= top; ++i)
                 {
-                    if (l.istable(i))
+                    if (l.IsCrossEventDataTable(i))
                     {
                         CrossEvent.ContextExchangeObj = GetParams(l, i);
                     }
@@ -207,9 +213,87 @@ namespace Capstones.LuaExt
             return 0;
         }
 
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int LuaFuncHandlerCount(IntPtr l)
+        {
+            if (l.IsString(1))
+            {
+                var cate = l.GetString(1);
+                l.pushnumber(CrossEvent.GetHandlerCount(cate));
+                return 1;
+            }
+            else if (l.isnoneornil(1))
+            {
+                l.pushnumber(CrossEvent.GetHandlerCount(null));
+                return 1;
+            }
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int LuaFuncMarkTableAsRaw(IntPtr l)
+        {
+            MarkTableAsRaw(l, 1);
+            l.pushvalue(1);
+            return 1;
+        }
+
+        internal static void MarkTableAsRaw(this IntPtr l, int index)
+        {
+            if (l.IsTable(index))
+            {
+                if (l.getmetatable(index))
+                {
+                    MarkTableAsRaw(l, -1);
+                    l.pop(1);
+                }
+                else
+                {
+                    var absindex = l.NormalizeIndex(index); // (tab ...)
+                    l.newtable(); // (tab ...) meta
+                    l.pushboolean(true); // (tab ...) meta true
+                    l.SetField(-2, "__luaevt_luaonly"); // (tab ...) meta
+                    l.setmetatable(absindex); // (tab ...)
+                }
+            }
+        }
+
+        internal static bool IsCrossEventDataTable(this IntPtr l, int index)
+        {
+            if (!l.IsTable(index))
+            {
+                return false;
+            }
+            if (l.getmetatable(index))
+            { // meta
+                l.GetField(-1, "__isobject"); // meta __isobject
+                if (!l.isnoneornil(-1) && (!l.isboolean(-1) || l.toboolean(-1)))
+                {
+                    l.pop(2);
+                    return false;
+                }
+                l.pop(1); // meta
+                l.GetField(-1, "__luaevt_luaonly");
+                if (!l.isnoneornil(-1) && (!l.isboolean(-1) || l.toboolean(-1)))
+                {
+                    l.pop(2);
+                    return false;
+                }
+                l.pop(1);
+                var isMetaCrossEventDataTable = IsCrossEventDataTable(l, -1);
+                l.pop(1);
+                if (!isMetaCrossEventDataTable)
+                {
+                    return isMetaCrossEventDataTable;
+                }
+            }
+            // TODO: get a field on the table itself?
+            return true;
+        }
+
         public static List<CrossEvent.EventParam> GetParams(IntPtr l, int index)
         {
-            if (l.istable(index))
+            if (l.IsTable(index))
             {
                 List<CrossEvent.EventParam> rvs = new List<CrossEvent.EventParam>();
                 l.pushvalue(index); // tab
@@ -219,10 +303,10 @@ namespace Capstones.LuaExt
                     // this is an array
                     for (int i = 1; i <= cnt; ++i)
                     {
-                        l.pushnumber(1); // tab key
+                        l.pushnumber(i); // tab key
                         l.gettable(-2); // tab val
                         object val;
-                        if (l.istable(-1))
+                        if (l.IsCrossEventDataTable(-1))
                         {
                             val = GetParams(l, -1);
                         }
@@ -242,7 +326,7 @@ namespace Capstones.LuaExt
                     {
                         string key = l.GetLua<string>(-2);
                         object val;
-                        if (l.istable(-1))
+                        if (l.IsCrossEventDataTable(-1))
                         {
                             val = GetParams(l, -1);
                         }
@@ -305,7 +389,7 @@ namespace Capstones.LuaExt
                     if (l.GetHierarchicalRaw(lua.LUA_GLOBALSINDEX, name))
                     {
                         object rv = null;
-                        if (l.istable(-1))
+                        if (l.IsCrossEventDataTable(-1))
                         {
                             rv = GetParams(l, -1);
                         }
@@ -329,13 +413,6 @@ namespace Capstones.LuaExt
                     var l = GlobalLua.L.L;
                     using (var lr = new LuaStateRecover(l))
                     {
-                        object[] args = new object[pars.Count + 1];
-                        for (int i = 0; i < pars.Count; ++i)
-                        {
-                            args[i + 1] = pars[i].Value;
-                        }
-                        args[0] = cate;
-
                         l.GetField(lua.LUA_REGISTRYINDEX, "___levt");
                         if (l.istable(-1))
                         {
@@ -347,16 +424,37 @@ namespace Capstones.LuaExt
                                 l.gettable(-2);
                                 if (l.isfunction(-1))
                                 {
-                                    var luarvs = ((BaseDynamic)(new LuaOnStackFunc(l, -1))).Call(args);
-                                    for (int j = rvs.Count; j < luarvs.Length; ++j)
+                                    var oldtop = l.gettop();
+                                    l.PushString(cate);
+                                    for (int i = 0; i < pars.Count; ++i)
                                     {
-                                        rvs.Add(new CrossEvent.EventParam());
+                                        var val = pars[i].Value;
+                                        if (val is List<CrossEvent.EventParam>)
+                                        {
+                                            PushParams(l, val as List<CrossEvent.EventParam>);
+                                        }
+                                        else
+                                        {
+                                            l.PushLua(val);
+                                        }
                                     }
-                                    for (int j = 0; j < luarvs.Length; ++j)
+                                    var code = LuaFuncHelper.CallInternal(l, oldtop);
+                                    if (code == 0)
                                     {
-                                        var param = rvs[j];
-                                        param.Value = luarvs[j];
-                                        rvs[j] = param;
+                                        var newtop = l.gettop();
+                                        for (int i = oldtop; i <= newtop; ++i)
+                                        {
+                                            var param = new CrossEvent.EventParam();
+                                            if (l.IsCrossEventDataTable(i))
+                                            {
+                                                param.Value = GetParams(l, i);
+                                            }
+                                            else
+                                            {
+                                                param.Value = l.GetLua(i);
+                                            }
+                                            rvs.Add(param);
+                                        }
                                     }
                                 }
                             }
@@ -371,13 +469,6 @@ namespace Capstones.LuaExt
                         var l = GlobalLua.L.L;
                         using (var lr = new LuaStateRecover(l))
                         {
-                            object[] args = new object[pars.Count + 1];
-                            for (int i = 0; i < pars.Count; ++i)
-                            {
-                                args[i + 1] = pars[i].Value;
-                            }
-                            args[0] = cate;
-
                             l.GetField(lua.LUA_REGISTRYINDEX, "___levt");
                             if (l.istable(-1))
                             {
@@ -389,7 +480,21 @@ namespace Capstones.LuaExt
                                     l.gettable(-2);
                                     if (l.isfunction(-1))
                                     {
-                                        ((BaseDynamic)(new LuaOnStackFunc(l, -1))).Call(args);
+                                        var oldtop = l.gettop();
+                                        l.PushString(cate);
+                                        for (int i = 0; i < pars.Count; ++i)
+                                        {
+                                            var val = pars[i].Value;
+                                            if (val is List<CrossEvent.EventParam>)
+                                            {
+                                                PushParams(l, val as List<CrossEvent.EventParam>);
+                                            }
+                                            else
+                                            {
+                                                l.PushLua(val);
+                                            }
+                                        }
+                                        LuaFuncHelper.CallInternal(l, oldtop);
                                     }
                                 }
                             }
