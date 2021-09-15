@@ -1177,11 +1177,26 @@ function math.concatCompareFunc(...)
     return concatedCompare
 end
 
+function tcompare(a, b)
+    local ta = type(a)
+    local tb = type(b)
+    if ta ~= tb then
+        return ta < tb
+    end
+
+    if ta == "number" or ta == "string" then
+        return a < b
+    end
+    -- TODO: if they are full-userdata, we can return a < b
+    -- Now, we return false. means a == b
+    return false
+end
+
 -- 按指定的顺序遍历table
 function spairs(t, f)
     local a = {}
     for n in pairs(t) do a[#a + 1] = n end
-    table.sort(a, f)
+    table.sort(a, f or tcompare)
     local i = 0
     return function ()
         i = i + 1
