@@ -1204,6 +1204,21 @@ function spairs(t, f)
     end
 end
 
+function sspairs(t, f)
+    local a = {}
+    for k in pairs(t) do
+        if type(k) == "string" then
+            a[#a + 1] = k
+        end
+    end
+    table.sort(a, f)
+    local i = 0
+    return function ()
+        i = i + 1
+        return a[i], t[a[i]]
+    end
+end
+
 -- 将一个number转换为二进制表示的table
 -- 如10转换为二进制是1010
 -- 传入参数mask=10
