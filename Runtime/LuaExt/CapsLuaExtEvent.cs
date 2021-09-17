@@ -444,6 +444,7 @@ namespace Capstones.LuaExt
                                     if (code == 0)
                                     {
                                         var newtop = l.gettop();
+                                        int rvsi = 0;
                                         for (int i = oldtop; i <= newtop; ++i)
                                         {
                                             var param = new CrossEvent.EventParam();
@@ -455,7 +456,15 @@ namespace Capstones.LuaExt
                                             {
                                                 param.Value = l.GetLua(i);
                                             }
-                                            rvs.Add(param);
+                                            if (rvsi == rvs.Count)
+                                            {
+                                                rvs.Add(param);
+                                            }
+                                            else
+                                            {
+                                                rvs[rvsi] = param;
+                                            }
+                                            ++rvsi;
                                         }
                                     }
                                 }
