@@ -19,6 +19,9 @@ namespace Capstones.LuaLib
         public static readonly LuaString LS_META_KEY_SUB =      new LuaString("__sub");
         public static readonly LuaString LS_META_KEY_MUL =      new LuaString("__mul");
         public static readonly LuaString LS_META_KEY_DIV =      new LuaString("__div");
+        public static readonly LuaString LS_META_KEY_MOD =      new LuaString("__mod");
+        public static readonly LuaString LS_META_KEY_LT =       new LuaString("__lt");
+        public static readonly LuaString LS_META_KEY_LE =       new LuaString("__le");
         public static readonly LuaString LS_META_KEY_UNM =      new LuaString("__unm");
         public static readonly LuaString LS_META_KEY_TOSTRING = new LuaString("__tostring");
 
@@ -38,6 +41,9 @@ namespace Capstones.LuaLib
         public static readonly LuaString LS_SP_KEY_SUB =        new LuaString("@-");
         public static readonly LuaString LS_SP_KEY_MUL =        new LuaString("@*");
         public static readonly LuaString LS_SP_KEY_DIV =        new LuaString("@/");
+        public static readonly LuaString LS_SP_KEY_MOD =        new LuaString("@%");
+        public static readonly LuaString LS_SP_KEY_LT =         new LuaString("@<");
+        public static readonly LuaString LS_SP_KEY_LE =         new LuaString("@<=");
         public static readonly LuaString LS_SP_KEY_EQ =         new LuaString("@==");
         public static readonly LuaString LS_SP_KEY_EXT =        new LuaString("@ext");
         public static readonly LuaString LS_SP_KEY_NONPUBLIC =  new LuaString("@npub");

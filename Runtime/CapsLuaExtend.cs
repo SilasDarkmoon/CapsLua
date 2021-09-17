@@ -374,6 +374,18 @@ namespace Capstones.LuaLib
             l.PushString(LuaConst.LS_SP_KEY_DIV);
             l.pushcclosure(LuaFuncExtBin, 1);
             l.rawset(-3);
+            l.PushString(LuaConst.LS_META_KEY_MOD);
+            l.PushString(LuaConst.LS_SP_KEY_MOD);
+            l.pushcclosure(LuaFuncExtBin, 1);
+            l.rawset(-3);
+            l.PushString(LuaConst.LS_META_KEY_LT);
+            l.PushString(LuaConst.LS_SP_KEY_LT);
+            l.pushcclosure(LuaFuncExtBin, 1);
+            l.rawset(-3);
+            l.PushString(LuaConst.LS_META_KEY_LE);
+            l.PushString(LuaConst.LS_SP_KEY_LE);
+            l.pushcclosure(LuaFuncExtBin, 1);
+            l.rawset(-3);
 
             // unary-op
             l.PushString(LuaConst.LS_META_KEY_UNM);

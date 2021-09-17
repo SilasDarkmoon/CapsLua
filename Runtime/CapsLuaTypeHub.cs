@@ -396,6 +396,24 @@ namespace Capstones.LuaLib
                         binOp = new LuaMetaCallWithPrecompiled() { _Method = new BinaryOpMeta(rawmeta) };
                         _Ops["__div"] = binOp;
                     }
+                    if (_StaticMethods.TryGetValue("op_Modulus", out binOp) && binOp._Method is BaseMethodMeta)
+                    {
+                        var rawmeta = binOp._Method as BaseMethodMeta;
+                        binOp = new LuaMetaCallWithPrecompiled() { _Method = new BinaryOpMeta(rawmeta) };
+                        _Ops["__mod"] = binOp;
+                    }
+                    if (_StaticMethods.TryGetValue("op_LessThan", out binOp) && binOp._Method is BaseMethodMeta)
+                    {
+                        var rawmeta = binOp._Method as BaseMethodMeta;
+                        binOp = new LuaMetaCallWithPrecompiled() { _Method = new BinaryOpMeta(rawmeta) };
+                        _Ops["__lt"] = binOp;
+                    }
+                    if (_StaticMethods.TryGetValue("op_LessThanOrEqual", out binOp) && binOp._Method is BaseMethodMeta)
+                    {
+                        var rawmeta = binOp._Method as BaseMethodMeta;
+                        binOp = new LuaMetaCallWithPrecompiled() { _Method = new BinaryOpMeta(rawmeta) };
+                        _Ops["__le"] = binOp;
+                    }
                     // nested types
                     Dictionary<string, List<Type>> ntypes = new Dictionary<string, List<Type>>();
                     foreach (var ntype in type.GetAllNestedTypes())
@@ -802,6 +820,24 @@ namespace Capstones.LuaLib
                     PushCallableRaw(l, _Ops["__div"]);
                     l.rawset(-3);
                 }
+                if (_Ops.ContainsKey("__mod"))
+                {
+                    l.PushString(LuaConst.LS_SP_KEY_MOD);
+                    PushCallableRaw(l, _Ops["__mod"]);
+                    l.rawset(-3);
+                }
+                if (_Ops.ContainsKey("__lt"))
+                {
+                    l.PushString(LuaConst.LS_SP_KEY_LT);
+                    PushCallableRaw(l, _Ops["__lt"]);
+                    l.rawset(-3);
+                }
+                if (_Ops.ContainsKey("__le"))
+                {
+                    l.PushString(LuaConst.LS_SP_KEY_LE);
+                    PushCallableRaw(l, _Ops["__le"]);
+                    l.rawset(-3);
+                }
                 // #trans
                 l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ttab consts ometa omethods #trans
                 l.pushlightuserdata(r); // ttab consts ometa omethods #trans trans
@@ -922,6 +958,24 @@ namespace Capstones.LuaLib
                 {
                     l.PushString(LuaConst.LS_META_KEY_DIV);
                     l.PushBinaryOp(LuaConst.LS_SP_KEY_DIV);
+                    l.rawset(-3);
+                }
+                if (_Ops.ContainsKey("__mod"))
+                {
+                    l.PushString(LuaConst.LS_META_KEY_MOD);
+                    l.PushBinaryOp(LuaConst.LS_SP_KEY_MOD);
+                    l.rawset(-3);
+                }
+                if (_Ops.ContainsKey("__lt"))
+                {
+                    l.PushString(LuaConst.LS_META_KEY_LT);
+                    l.PushBinaryOp(LuaConst.LS_SP_KEY_LT);
+                    l.rawset(-3);
+                }
+                if (_Ops.ContainsKey("__le"))
+                {
+                    l.PushString(LuaConst.LS_META_KEY_LE);
+                    l.PushBinaryOp(LuaConst.LS_SP_KEY_LE);
                     l.rawset(-3);
                 }
                 // unary-op

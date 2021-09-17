@@ -756,6 +756,9 @@ namespace Capstones.UnityEditorEx
             { "op_Multiply", "__mul" },
             { "op_Subtraction", "__sub" },
             { "op_Division", "__div" },
+            { "op_Modulus", "__mod" },
+            { "op_LessThan", "__lt" },
+            { "op_LessThanOrEqual", "__le" },
         };
         public class SpecialTypeInfo
         {
