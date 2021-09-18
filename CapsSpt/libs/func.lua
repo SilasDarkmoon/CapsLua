@@ -1441,14 +1441,125 @@ function isolate(tab, env)
 end
 
 -- protected table. can read but can not write directly. can set value through rv.forceset[XX] = XX.
-function ptable(tab)
-    tab = tab or {}
-    local wrapper = { forceset = tab }
-    local meta = { __index = tab }
-    meta.__newindex = function()
-        error("Can not modify protected table directly. Use .forceset instead.")
+local ptable_criticalkeys = { forceset = true, protect = true }
+local function ptable_movefields(from, to, fields, pkeys)
+    if not fields then
+        for k, v in pairs(from) do
+            if not ptable_criticalkeys[k] then
+                rawset(to, k, v)
+                rawset(from, k, nil)
+            end
+        end
+    else
+        for i, k in ipairs(fields) do
+            rawset(to, k, rawget(from, k))
+            rawset(from, k, nil)
+            if pkeys then
+                pkeys[k] = true
+            end
+        end
+        for k, v in pairs(fields) do
+            if v == true then
+                rawset(to, k, rawget(from, k))
+                rawset(from, k, nil)
+                if pkeys then
+                    pkeys[k] = true
+                end
+            elseif v == false then
+                if not ptable_criticalkeys[k] then
+                    rawset(from, k, rawget(to, k))
+                    rawset(to, k, nil)
+                    if pkeys then
+                        pkeys[k] = nil
+                    end
+                end
+            end
+        end
     end
-    return setmetatable(wrapper, meta)
+end
+
+function ptable(tab, fields)
+    if tab.forceset then
+        if fields == false then
+            local ptab = tab.forceset
+            ptab.forceset = nil
+            ptab.protect = nil
+            for k, v in pairs(ptab) do
+                rawset(tab, k, v)
+            end
+            local meta = getmetatable(tab)
+            local oldmeta = meta.__oldmeta
+            return setmetatable(tab, oldmeta)
+        else
+            local ptab = tab.forceset
+            local meta = getmetatable(tab)
+            if not fields or fields == true then
+                meta.__pallkeys = true
+                ptable_movefields(tab, ptab)
+            else
+                if not meta.__pallkeys then
+                    if type(fields) == "table" then
+                        local pkeys = meta.__pkeys
+                        ptable_movefields(tab, ptab, fields, pkeys)
+                    elseif not ptable_criticalkeys[fields] then
+                        local k = fields
+                        local pkeys = meta.__pkeys
+                        rawset(ptab, k, rawget(tab, k))
+                        rawset(tab, k, nil)
+                        pkeys[k] = true
+                    end
+                end
+            end
+            return tab
+        end
+    else
+        if fields == false then
+            return tab
+        end
+        local ptab = {}
+        local oldmeta = getmetatable(tab)
+        local pkeys = { forceset = true, protect = true }
+        local meta = { __oldmeta = oldmeta, __pkeys = pkeys }
+        if oldmeta then
+            for k, v in pairs(oldmeta) do
+                if not meta[k] then
+                    meta[k] = v
+                end
+            end
+        end
+        if not fields or fields == true then
+            meta.__pallkeys = true
+            ptable_movefields(tab, ptab)
+        else
+            if type(fields) == "table" then
+                ptable_movefields(tab, ptab, fields, pkeys)
+            else
+                local k = fields
+                rawset(ptab, k, rawget(tab, k))
+                rawset(tab, k, nil)
+                pkeys[k] = true
+            end
+        end
+        ptab.forceset = ptab
+        ptab.protect = function(k)
+            return ptable(tab, k)
+        end
+
+        meta.__index = ptab
+        meta.__newindex = function(t, k, v)
+            if meta.__pallkeys or pkeys[k] then
+                error("Can not modify protected table directly. Use .forceset instead.")
+            else
+                ptab[k] = v
+                if rawget(ptab, k) == v then
+                    rawset(ptab, k, nil)
+                    rawset(tab, k, v)
+                end
+            end
+        end
+        setmetatable(ptab, oldmeta)
+        return setmetatable(tab, meta)
+    end
 end
 
 local pclock_extra
