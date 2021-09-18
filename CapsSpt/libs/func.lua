@@ -1440,6 +1440,17 @@ function isolate(tab, env)
     -- TODO: for pairs/ipairs, next, #, __call, ..., make it a udtable?
 end
 
+-- protected table. can read but can not write directly. can set value through rv.forceset[XX] = XX.
+function ptable(tab)
+    tab = tab or {}
+    local wrapper = { forceset = tab }
+    local meta = { __index = tab }
+    meta.__newindex = function()
+        error("Can not modify protected table directly. Use .forceset instead.")
+    end
+    return setmetatable(wrapper, meta)
+end
+
 local pclock_extra
 local pclock_last
 local pclock_lasttime
