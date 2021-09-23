@@ -1322,10 +1322,10 @@ namespace Capstones.LuaLib
 
                 StartLoadRuntimeManifest();
             });
-            //CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
-            //{
-            //    ResetRuntimeManifest();
-            //});
+            CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
+            {
+                ResetRuntimeManifest();
+            });
         }
 
         public static void PushVersionToLua(IntPtr l)
