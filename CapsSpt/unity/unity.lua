@@ -211,10 +211,17 @@ function unity.dirtyRestart()
 end
 
 function unity.changeServerTo(url, onModifyConfig)
+    -- The global referenced asset that may be loaded from ab should be restored to default.
+    clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = res.defaultRenderPipelineAsset
+
     res.Cleanup()
     for k,v in pairs(package.loaded) do
         package.loaded[k] = nil
     end
+
+    res.DestroyAllHard()
+    res.CollectGarbage(2)
+    res.ClearSceneCache()
 
     pcall(require, "config")
     ___CONFIG__ACCOUNT_URL = url
