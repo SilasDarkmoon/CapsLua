@@ -460,6 +460,7 @@ namespace Capstones.LuaLib
             }
             finally
             {
+                ResManager.UnloadAllObbs(); // Unload Thread Static Stream
                 _RuntimeManifestReady.Set();
             }
         }
