@@ -200,7 +200,7 @@ function unity.restart()
     res.DestroyAllHard()
     res.CollectGarbage(2)
     res.ClearSceneCache()
-
+    clr.MusicManager.Reset()
     Application.LoadLevel(0)
     Time.timeScale = 1
 end
