@@ -13,6 +13,7 @@ namespace Capstones.UnityEditorEx
     {
         static CapsLuaEntry()
         {
+            SafeInitializerUtils.DoDelayedInitialize();
             CapsEditorInitializer.ShouldAlreadyInit();
 
             CapsPackageEditor.OnPackagesChanged += ReinitGlobalLua;

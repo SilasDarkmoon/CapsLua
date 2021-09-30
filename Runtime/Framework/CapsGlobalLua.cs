@@ -56,6 +56,9 @@ namespace Capstones.UnityEngineEx
 
         static GlobalLua()
         {
+#if UNITY_EDITOR
+            if (SafeInitializerUtils.CheckShouldDelay()) return;
+#endif
             LuaExLibs.InitFuncs.Sort((a, b) => a.Order - b.Order);
             LuaExLibs.InitFuncs.TrimExcess();
 #if UNITY_EDITOR || !UNITY_ENGINE && !UNITY_5_3_OR_NEWER

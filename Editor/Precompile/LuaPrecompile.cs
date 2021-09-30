@@ -447,6 +447,7 @@ namespace Capstones.UnityEditorEx
 
         public static void WritePrecompileFuncForMemberAsync(string memberstr)
         {
+            if (SafeInitializerUtils.IsInitializingInUnityCtor) return;
             if (_IsAsyncCompileWorking != 0 || ThreadSafeValues.IsMainThread && Application.isPlaying)
             {
                 if (System.Threading.Interlocked.CompareExchange(ref _IsAsyncCompileWorking, 1, 0) == 0)

@@ -68,6 +68,13 @@ namespace Capstones.LuaWrap
             result = default(TOut);
             return false;
 #else
+#if UNITY_EDITOR
+            if (SafeInitializerUtils.IsInitializingInUnityCtor)
+            {
+                result = default(TOut);
+                return false;
+            }
+#endif
             result = default(TOut);
             var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())
@@ -109,6 +116,13 @@ namespace Capstones.LuaWrap
             result = default(TOut);
             return false;
 #else
+#if UNITY_EDITOR
+            if (SafeInitializerUtils.IsInitializingInUnityCtor)
+            {
+                result = default(TOut);
+                return false;
+            }
+#endif
             result = default(TOut);
             var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())

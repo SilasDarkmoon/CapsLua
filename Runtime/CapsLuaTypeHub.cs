@@ -1815,6 +1815,9 @@ namespace Capstones.LuaLib
     {
         static LuaHub()
         {
+#if UNITY_EDITOR
+            if (SafeInitializerUtils.CheckShouldDelay()) return;
+#endif
 #if (UNITY_ENGINE || UNITY_5_3_OR_NEWER)
             var asset = UnityEngine.Resources.Load<LuaPrecompileLoader>("LuaPrecompileLoaderEx");
             if (asset)
