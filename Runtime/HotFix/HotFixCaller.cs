@@ -14,6 +14,8 @@ namespace Capstones.LuaWrap
     public static class HotFixCaller
     {
         [ThreadStatic] private static HashSet<IntPtr> _ReadyStates;
+        [ThreadStatic] private static IntPtr _ThreadedLuaState;
+        [ThreadStatic] private static IntPtr _CallerLuaState;
         private static volatile int _PackageVer = -1;
 
         public static IntPtr GetLuaStateForHotFix()
@@ -24,24 +26,6 @@ namespace Capstones.LuaWrap
                 return IntPtr.Zero;
             }
 #endif
-            var running = LuaHub.RunningLuaState;
-            if (running == IntPtr.Zero)
-            {
-                if (ThreadSafeValues.IsMainThread)
-                {
-                    running = GlobalLua.L;
-                }
-                else
-                {
-                    IntPtr l = running = new LuaState();
-                    Assembly2Lua.Init(l);
-                    Json2Lua.Init(l);
-                    LuaFramework.Init(l);
-                    // should we init other libs (maybe in other package)? for example: lua-protobuf?
-                    // currently these are enough.
-                    // and calling a func with hotfix in non-main thread rarely happens.
-                }
-            }
             if (_ReadyStates == null)
             {
                 _ReadyStates = new HashSet<IntPtr>();
@@ -59,9 +43,43 @@ namespace Capstones.LuaWrap
 #endif
                 }
             }
-            if (_ReadyStates.Add(running.Indicator()))
+            var running = LuaHub.RunningLuaState;
+            if (running == IntPtr.Zero)
             {
-                running.SetGlobal("hotfixver", _PackageVer);
+                if (_ThreadedLuaState == IntPtr.Zero)
+                {
+                    if (ThreadSafeValues.IsMainThread)
+                    {
+                        _ThreadedLuaState = running = GlobalLua.L;
+                    }
+                    else
+                    {
+                        _ThreadedLuaState = running = new LuaState();
+                        IntPtr l = running;
+                        Assembly2Lua.Init(l);
+                        Json2Lua.Init(l);
+                        LuaFramework.Init(l);
+                        // should we init other libs (maybe in other package)? for example: lua-protobuf?
+                        // currently these are enough.
+                        // and calling a func with hotfix in non-main thread rarely happens.
+                    }
+                    running.SetGlobal("hotfixver", _PackageVer);
+                }
+                else
+                {
+                    running = _ThreadedLuaState;
+                }
+            }
+            else
+            {
+                if (_CallerLuaState != running)
+                {
+                    _CallerLuaState = running;
+                    if (_ReadyStates.Add(running.Indicator()))
+                    {
+                        running.SetGlobal("hotfixver", _PackageVer);
+                    }
+                }
             }
             return running;
         }
