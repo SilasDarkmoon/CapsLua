@@ -18,6 +18,12 @@ namespace Capstones.LuaWrap
 
         public static IntPtr GetLuaStateForHotFix()
         {
+#if UNITY_EDITOR
+            if (_ReadyStates == null && SafeInitializerUtils.IsInitializingInUnityCtor)
+            {
+                return IntPtr.Zero;
+            }
+#endif
             var running = LuaHub.RunningLuaState;
             if (running == IntPtr.Zero)
             {
@@ -68,15 +74,15 @@ namespace Capstones.LuaWrap
             result = default(TOut);
             return false;
 #else
+            result = default(TOut);
+            var l = GetLuaStateForHotFix();
 #if UNITY_EDITOR
-            if (SafeInitializerUtils.IsInitializingInUnityCtor)
+            if (l == IntPtr.Zero)
             {
                 result = default(TOut);
                 return false;
             }
 #endif
-            result = default(TOut);
-            var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())
             {
                 if (l.TryRequire("hotfix").IsValid)
@@ -116,15 +122,15 @@ namespace Capstones.LuaWrap
             result = default(TOut);
             return false;
 #else
+            result = default(TOut);
+            var l = GetLuaStateForHotFix();
 #if UNITY_EDITOR
-            if (SafeInitializerUtils.IsInitializingInUnityCtor)
+            if (l == IntPtr.Zero)
             {
                 result = default(TOut);
                 return false;
             }
 #endif
-            result = default(TOut);
-            var l = GetLuaStateForHotFix();
             using (var lr = l.CreateStackRecover())
             {
                 if (l.TryRequire("hotfix").IsValid)
