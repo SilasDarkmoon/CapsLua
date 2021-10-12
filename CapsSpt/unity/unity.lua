@@ -385,6 +385,20 @@ function newuscene:ctor()
     cache.setGlobalTempData(self, "MainManager")
 end
 
+if clr.UnityEngine.Application.isEditor then
+    if clr.type(clr.Unity.EditorCoroutines.Editor.EditorCoroutineUtility) == clr.System.Type then
+        function unity.ecoroutine(func, ...)
+            local args = {...}
+            local argc = select('#', ...)
+            local act = function()
+                func(unpack(args, 1, argc))
+            end
+
+            clr.Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(clr.Capstones.UnityEngineEx.GlobalLua.EnumLuaCoroutine(act))
+        end
+    end
+end
+
 function unity.async(func, ...)
     if clr.runningco() then
         func(...)
