@@ -312,6 +312,18 @@ namespace Capstones.LuaLib
                 else if (IsNumeric(val))
                 {
                     l.pushnumber(Convert.ToDouble(val));
+                    if (val is decimal)
+                    {
+                        LuaPushNativeLongNumberCache.DecimalCache = (decimal)val;
+                    }
+                    else if (val is long)
+                    {
+                        LuaPushNativeLongNumberCache.Int64Cache = (ulong)(long)val;
+                    }
+                    else if (val is ulong)
+                    {
+                        LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
+                    }
                 }
                 else if (val is Enum)
                 {
@@ -625,6 +637,7 @@ namespace Capstones.LuaLib
         }
         public static void PushLua(this IntPtr l, decimal val)
         {
+            LuaPushNativeLongNumberCache.DecimalCache = val;
             l.pushnumber((double)val);
         }
         public static void PushLua(this IntPtr l, decimal? val)
@@ -685,6 +698,7 @@ namespace Capstones.LuaLib
         }
         public static void PushLua(this IntPtr l, long val)
         {
+            LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
             l.pushnumber(val);
         }
         public static void PushLua(this IntPtr l, long? val)
@@ -760,6 +774,7 @@ namespace Capstones.LuaLib
         }
         public static void PushLua(this IntPtr l, ulong val)
         {
+            LuaPushNativeLongNumberCache.Int64Cache = val;
             l.pushnumber(val);
         }
         public static void PushLua(this IntPtr l, ulong? val)
@@ -1541,6 +1556,10 @@ namespace Capstones.LuaLib
             {
                 val = (decimal)l.tonumber(index);
             }
+            else if (l.IsUserData(index))
+            {
+                val = l.GetLuaRawObject(index).As<decimal>();
+            }
             else
             {
                 val = l.GetLua<decimal>(index);
@@ -1640,6 +1659,10 @@ namespace Capstones.LuaLib
             if (l.IsNumber(index))
             {
                 val = (long)l.tonumber(index);
+            }
+            else if (l.IsUserData(index))
+            {
+                val = l.GetLuaRawObject(index).As<long>();
             }
             else
             {
@@ -1765,6 +1788,10 @@ namespace Capstones.LuaLib
             if (l.IsNumber(index))
             {
                 val = (ulong)l.tonumber(index);
+            }
+            else if (l.IsUserData(index))
+            {
+                val = l.GetLuaRawObject(index).As<ulong>();
             }
             else
             {

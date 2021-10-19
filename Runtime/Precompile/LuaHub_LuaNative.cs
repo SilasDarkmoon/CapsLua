@@ -17,6 +17,11 @@ namespace Capstones.LuaLib
 
     public static partial class LuaHub
     {
+        public static class LuaPushNativeLongNumberCache
+        {
+            [ThreadStatic] internal static decimal DecimalCache;
+            [ThreadStatic] internal static ulong Int64Cache;
+        }
         public abstract class LuaPushNative
         {
             protected internal static Dictionary<Type, object> _NativePushLuaFuncs = new Dictionary<Type, object>();
@@ -192,6 +197,7 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, decimal val)
             {
+                LuaPushNativeLongNumberCache.DecimalCache = val;
                 l.pushnumber((double)val);
                 return IntPtr.Zero;
             }
@@ -320,6 +326,7 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, long val)
             {
+                LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
                 l.pushnumber(val);
                 return IntPtr.Zero;
             }
@@ -416,6 +423,7 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, ulong val)
             {
+                LuaPushNativeLongNumberCache.Int64Cache = val;
                 l.pushnumber(val);
                 return IntPtr.Zero;
             }

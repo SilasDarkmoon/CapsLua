@@ -14,7 +14,7 @@ namespace Capstones.LuaWrap
     public static class HotFixCaller
     {
         [ThreadStatic] private static HashSet<IntPtr> _ReadyStates;
-        [ThreadStatic] private static IntPtr _ThreadedLuaState;
+        [ThreadStatic] private static LuaState _ThreadedLuaState;
         [ThreadStatic] private static IntPtr _CallerLuaState;
         private static volatile int _PackageVer = -1;
 
@@ -46,15 +46,15 @@ namespace Capstones.LuaWrap
             var running = LuaHub.RunningLuaState;
             if (running == IntPtr.Zero)
             {
-                if (_ThreadedLuaState == IntPtr.Zero)
+                if (ReferenceEquals(_ThreadedLuaState, null))
                 {
                     if (ThreadSafeValues.IsMainThread)
                     {
-                        _ThreadedLuaState = running = GlobalLua.L;
+                        running = _ThreadedLuaState = GlobalLua.L;
                     }
                     else
                     {
-                        _ThreadedLuaState = running = new LuaState();
+                        running = _ThreadedLuaState = new LuaState();
                         IntPtr l = running;
                         Assembly2Lua.Init(l);
                         Json2Lua.Init(l);

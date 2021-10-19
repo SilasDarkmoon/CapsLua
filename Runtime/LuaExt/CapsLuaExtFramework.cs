@@ -81,6 +81,12 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "updatetrans");
                         L.pushcfunction(ClrDelGetExtendedHash);
                         L.SetField(-2, "exhash");
+                        L.pushcfunction(ClrDelGetLastDecimal);
+                        L.SetField(-2, "lastdecimal");
+                        L.pushcfunction(ClrDelGetLastUInt64);
+                        L.SetField(-2, "lastulong");
+                        L.pushcfunction(ClrDelGetLastInt64);
+                        L.SetField(-2, "lastlong");
                     }
                     L.pop(1); // (empty)
 
@@ -227,6 +233,9 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
         public static readonly lua.CFunction ClrDelUpdateLanguageConverter = new lua.CFunction(UpdateLanguageConverter);
         public static readonly lua.CFunction ClrDelGetExtendedHash = new lua.CFunction(ClrFuncGetExtendedHash);
+        public static readonly lua.CFunction ClrDelGetLastDecimal = new lua.CFunction(ClrFuncGetLastDecimal);
+        public static readonly lua.CFunction ClrDelGetLastUInt64 = new lua.CFunction(ClrFuncGetLastUInt64);
+        public static readonly lua.CFunction ClrDelGetLastInt64 = new lua.CFunction(ClrFuncGetLastInt64);
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
@@ -1119,6 +1128,28 @@ namespace Capstones.LuaExt
                 return 1;
             }
             return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetLastDecimal(IntPtr l)
+        {
+            var hub = LuaTypeHub.GetTypeHub(typeof(decimal));
+            hub.PushLuaCommon(l, LuaHub.LuaPushNativeLongNumberCache.DecimalCache);
+            return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetLastUInt64(IntPtr l)
+        {
+            var hub = LuaTypeHub.GetTypeHub(typeof(ulong));
+            hub.PushLuaCommon(l, LuaHub.LuaPushNativeLongNumberCache.Int64Cache);
+            return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetLastInt64(IntPtr l)
+        {
+            var hub = LuaTypeHub.GetTypeHub(typeof(long));
+            hub.PushLuaCommon(l, (long)LuaHub.LuaPushNativeLongNumberCache.Int64Cache);
+            return 1;
         }
     }
 
