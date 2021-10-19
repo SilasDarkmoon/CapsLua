@@ -11664,16 +11664,43 @@ namespace Capstones.LuaWrap
                 var otype = o.GetType();
                 if (IsValueTuple(otype) || IsTuple(otype))
                 {
-                    ILuaPack lpack = TupleTrans.ConvertToLuaPack(o);
-                    if (lpack != null)
+                    try
                     {
-                        lpack.PushToLua(l);
-                        return lpack.Length;
+                        ILuaPack lpack = TupleTrans.ConvertToLuaPack(o);
+                        if (lpack != null)
+                        {
+                            lpack.PushToLua(l);
+                            return lpack.Length;
+                        }
+                        else
+                        {
+                            l.PushLua(o);
+                            return 1;
+                        }
                     }
-                    else
+                    catch (System.ExecutionEngineException)
                     {
-                        l.PushLua(o);
-                        return 1;
+                        var gargs = otype.GetGenericArguments();
+                        int parcnt = 0;
+                        if (gargs != null)
+                        {
+                            parcnt = gargs.Length;
+                        }
+                        var maxnormal = Math.Min(parcnt, 7);
+                        for (int i = 1; i <= maxnormal; ++i)
+                        {
+                            var eleval = otype.GetField("Item" + i).GetValue(o);
+                            l.PushLua(eleval);
+                        }
+                        if (parcnt > maxnormal)
+                        {
+                            var rest = otype.GetField("Rest").GetValue(o);
+                            return PushValueOrTuple(l, rest) + maxnormal;
+                        }
+                        else
+                        {
+                            return maxnormal;
+                        }
                     }
                 }
                 else
