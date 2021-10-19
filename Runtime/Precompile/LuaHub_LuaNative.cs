@@ -21,6 +21,7 @@ namespace Capstones.LuaLib
         {
             [ThreadStatic] internal static decimal DecimalCache;
             [ThreadStatic] internal static ulong Int64Cache;
+            [ThreadStatic] internal static bool SafeMode;
         }
         public abstract class LuaPushNative
         {
@@ -198,7 +199,15 @@ namespace Capstones.LuaLib
             public override IntPtr PushLua(IntPtr l, decimal val)
             {
                 LuaPushNativeLongNumberCache.DecimalCache = val;
-                l.pushnumber((double)val);
+                if (LuaPushNativeLongNumberCache.SafeMode)
+                {
+                    var hub = LuaTypeHub.GetTypeHub(typeof(decimal));
+                    hub.PushLuaCommon(l, val);
+                }
+                else
+                {
+                    l.pushnumber((double)val);
+                }
                 return IntPtr.Zero;
             }
         }
@@ -327,7 +336,15 @@ namespace Capstones.LuaLib
             public override IntPtr PushLua(IntPtr l, long val)
             {
                 LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
-                l.pushnumber(val);
+                if (LuaPushNativeLongNumberCache.SafeMode)
+                {
+                    var hub = LuaTypeHub.GetTypeHub(typeof(long));
+                    hub.PushLuaCommon(l, val);
+                }
+                else
+                {
+                    l.pushnumber((double)val);
+                }
                 return IntPtr.Zero;
             }
         }
@@ -424,7 +441,15 @@ namespace Capstones.LuaLib
             public override IntPtr PushLua(IntPtr l, ulong val)
             {
                 LuaPushNativeLongNumberCache.Int64Cache = val;
-                l.pushnumber(val);
+                if (LuaPushNativeLongNumberCache.SafeMode)
+                {
+                    var hub = LuaTypeHub.GetTypeHub(typeof(ulong));
+                    hub.PushLuaCommon(l, val);
+                }
+                else
+                {
+                    l.pushnumber((double)val);
+                }
                 return IntPtr.Zero;
             }
         }

@@ -311,18 +311,48 @@ namespace Capstones.LuaLib
                 }
                 else if (IsNumeric(val))
                 {
-                    l.pushnumber(Convert.ToDouble(val));
                     if (val is decimal)
                     {
                         LuaPushNativeLongNumberCache.DecimalCache = (decimal)val;
+                        if (LuaPushNativeLongNumberCache.SafeMode)
+                        {
+                            var hub = LuaTypeHub.GetTypeHub(typeof(decimal));
+                            hub.PushLuaCommon(l, (decimal)val);
+                        }
+                        else
+                        {
+                            l.pushnumber(Convert.ToDouble(val));
+                        }
                     }
                     else if (val is long)
                     {
                         LuaPushNativeLongNumberCache.Int64Cache = (ulong)(long)val;
+                        if (LuaPushNativeLongNumberCache.SafeMode)
+                        {
+                            var hub = LuaTypeHub.GetTypeHub(typeof(long));
+                            hub.PushLuaCommon(l, (long)val);
+                        }
+                        else
+                        {
+                            l.pushnumber(Convert.ToDouble(val));
+                        }
                     }
                     else if (val is ulong)
                     {
                         LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
+                        if (LuaPushNativeLongNumberCache.SafeMode)
+                        {
+                            var hub = LuaTypeHub.GetTypeHub(typeof(ulong));
+                            hub.PushLuaCommon(l, (ulong)val);
+                        }
+                        else
+                        {
+                            l.pushnumber(Convert.ToDouble(val));
+                        }
+                    }
+                    else
+                    {
+                        l.pushnumber(Convert.ToDouble(val));
                     }
                 }
                 else if (val is Enum)
@@ -638,7 +668,15 @@ namespace Capstones.LuaLib
         public static void PushLua(this IntPtr l, decimal val)
         {
             LuaPushNativeLongNumberCache.DecimalCache = val;
-            l.pushnumber((double)val);
+            if (LuaPushNativeLongNumberCache.SafeMode)
+            {
+                var hub = LuaTypeHub.GetTypeHub(typeof(decimal));
+                hub.PushLuaCommon(l, val);
+            }
+            else
+            {
+                l.pushnumber((double)val);
+            }
         }
         public static void PushLua(this IntPtr l, decimal? val)
         {
@@ -699,7 +737,15 @@ namespace Capstones.LuaLib
         public static void PushLua(this IntPtr l, long val)
         {
             LuaPushNativeLongNumberCache.Int64Cache = (ulong)val;
-            l.pushnumber(val);
+            if (LuaPushNativeLongNumberCache.SafeMode)
+            {
+                var hub = LuaTypeHub.GetTypeHub(typeof(long));
+                hub.PushLuaCommon(l, val);
+            }
+            else
+            {
+                l.pushnumber((double)val);
+            }
         }
         public static void PushLua(this IntPtr l, long? val)
         {
@@ -775,7 +821,15 @@ namespace Capstones.LuaLib
         public static void PushLua(this IntPtr l, ulong val)
         {
             LuaPushNativeLongNumberCache.Int64Cache = val;
-            l.pushnumber(val);
+            if (LuaPushNativeLongNumberCache.SafeMode)
+            {
+                var hub = LuaTypeHub.GetTypeHub(typeof(ulong));
+                hub.PushLuaCommon(l, val);
+            }
+            else
+            {
+                l.pushnumber((double)val);
+            }
         }
         public static void PushLua(this IntPtr l, ulong? val)
         {
