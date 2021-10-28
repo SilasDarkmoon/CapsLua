@@ -483,6 +483,7 @@ namespace Capstones.LuaExt
                         var otype = l.GetLua<Type>(2);
                         if (otype == null)
                         {
+                            // TODO: guess type
                             otype = typeof(object);
                         }
                         arr = Array.CreateInstance(otype, len);
