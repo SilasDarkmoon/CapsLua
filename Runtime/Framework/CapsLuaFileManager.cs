@@ -1098,7 +1098,7 @@ namespace Capstones.LuaLib
                     {
                         var file = "CapsSpt/" + name.Replace('.', '/') + ".lua";
                         string found;
-                        if (ThreadLocalObj.GetThreadId() == ThreadSafeValues.UnityThreadID)
+                        if (ThreadSafeValues.IsMainThread)
                         {
                             found = ResManager.EditorResLoader.CheckDistributePath(file, true);
                         }
