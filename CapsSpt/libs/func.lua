@@ -775,6 +775,24 @@ function table.removeRange(tab, from, to)
     end
 end
 
+function table.unwrap(tab)
+    if clr then
+        if clr.isobj(tab) then
+            return clr.unwrap(tab)
+        elseif type(tab) == "table" then
+            local newtab = {}
+            for k, v in pairs(tab) do
+                newtab[k] = table.unwrap(v)
+            end
+            return newtab
+        else
+            return tab
+        end
+    else
+        return tab
+    end
+end
+
 --[[--
 
 Return formatted string with a comma (",") between every group of thousands.

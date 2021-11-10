@@ -363,10 +363,30 @@ private:
                 writer->Int64(integer);
             else
             {
-                if (!writer->Double(lua_tonumber(L, idx)))
+                double d = lua_tonumber(L, idx);
+                if (d != d)
+                { // nan
+                    writer->String("NaN");
+                    error = "can not encode NaN.";
+                }
+                else if (d == 1e+300 * 1e+300)
+                { // +Inf
+                    writer->String("Inf");
+                    error = "can not encode Inf.";
+                }
+                else if (d == -(1e+300 * 1e+300))
+                { // +Inf
+                    writer->String("-Inf");
+                    error = "can not encode -Inf.";
+                }
+                //else if (!writer->Double(d))
+                //{
+                //    writer->String("null");
+                //    error = "error while encode double value.";
+                //}
+                else
                 {
-                    writer->String("null");
-                    error = "error while encode double value.";
+                    writer->Double(d);
                 }
             }
             return;
