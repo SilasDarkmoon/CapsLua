@@ -2514,19 +2514,42 @@ namespace Capstones.LuaWrap
             l.PushArgsAndCallRawSingleReturn(lib);
             return l.OnStackTop();
         }
-        public static LuaStackPos TryRequire(this IntPtr l, string lib)
+        public static LuaStackPos TryRequire(this IntPtr l, string lib, bool quiet)
         {
-            l.GetGlobal("require"); // require
-            l.PushString(lib); // require "lib"
-            if (l.pcall(1, 1, 0) == 0)
+            if (quiet)
             {
-                return l.OnStackTop();
+                l.GetGlobal("require"); // require
+                l.PushString(lib); // require "lib"
+                if (l.pcall(1, 1, 0) == 0) // rv
+                {
+                    return l.OnStackTop();
+                }
+                else
+                {
+                    l.pop(1);
+                    return default(LuaStackPos);
+                }
             }
             else
             {
-                l.pop(1);
-                return default(LuaStackPos);
+                l.pushcfunction(LuaHub.LuaFuncOnError); // err
+                l.GetGlobal("require"); // err require
+                l.PushString(lib); // err require "lib"
+                if (l.pcall(1, 1, -3) == 0) // err rv
+                {
+                    l.remove(-2);
+                    return l.OnStackTop();
+                }
+                else
+                {
+                    l.pop(2);
+                    return default(LuaStackPos);
+                }
             }
+        }
+        public static LuaStackPos TryRequire(this IntPtr l, string lib)
+        {
+            return TryRequire(l, lib, false);
         }
         public static TOut Require<TOut>(this IntPtr l, string name, params string[] fields)
             where TOut : struct, ILuaPack
