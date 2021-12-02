@@ -300,6 +300,15 @@ namespace Capstones.LuaLib
                                         }
 
                                         var zip = allobbs[z];
+                                        var prefix = sptfolder;
+                                        if (ResManager.AllNonRawExObbs[z] != null)
+                                        {
+                                            var obbpre = ResManager.AllNonRawExObbs[z].GetEntryPrefix();
+                                            if (obbpre != null)
+                                            {
+                                                prefix = obbpre + prefix;
+                                            }
+                                        }
                                         int retryTimes = 10;
                                         int entryindex = 0;
                                         for (int i = 0; i < retryTimes; ++i)
@@ -320,9 +329,9 @@ namespace Capstones.LuaLib
                                                     {
                                                         var entry = entries[entryindex];
                                                         var fullname = entry.FullName;
-                                                        if (fullname.StartsWith(sptfolder))
+                                                        if (fullname.StartsWith(prefix))
                                                         {
-                                                            var part = fullname.Substring(sptfolder.Length);
+                                                            var part = fullname.Substring(prefix.Length);
                                                             var node = mani.AddOrGetItem(part);
                                                             if (node.Item == null)
                                                             {
@@ -816,6 +825,16 @@ namespace Capstones.LuaLib
                                     }
                                     
                                     var zip = allobbs[z];
+                                    var entryname = sptpath;
+                                    if (ResManager.AllNonRawExObbs[z] != null)
+                                    {
+                                        var obbpre = ResManager.AllNonRawExObbs[z].GetEntryPrefix();
+                                        if (obbpre != null)
+                                        {
+                                            entryname = obbpre + entryname;
+                                        }
+                                    }
+
                                     int retryTimes = 10;
                                     for (int i = 0; i < retryTimes; ++i)
                                     {
@@ -830,7 +849,7 @@ namespace Capstones.LuaLib
                                             }
                                             try
                                             {
-                                                var entry = za.GetEntry(sptpath);
+                                                var entry = za.GetEntry(entryname);
                                                 if (entry != null)
                                                 {
                                                     location = sptpath;
