@@ -739,15 +739,26 @@ public class CapsUnityLuaBehav : MonoBehaviour
             //}
         }
 #endif
-        BindLua();
-        LanguageConverter.IterateText(transform);
         _Awaken = true;
         if (_DestroyRegIndex > 0)
         {
             RemoveDestroyRegIndex(_DestroyRegIndex);
             _DestroyRegIndex = 0;
         }
-        CallLuaFunc("awake"); // Notice! The awake will NOT be called for the runtime binded behaviours!
+        TryAwake();
+    }
+    public bool TryAwake()
+    {
+        if (ShouldBindLua && !string.IsNullOrEmpty(InitLuaPath))
+        {
+            BindLua();
+            CallLuaFunc("awake"); // Notice! The awake will NOT be called for the runtime binded behaviours!
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     protected internal void OnDestroy()
     {
