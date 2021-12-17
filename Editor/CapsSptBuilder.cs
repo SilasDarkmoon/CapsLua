@@ -94,6 +94,9 @@ namespace Capstones.UnityEditorEx
             }
         }
 
+#if UNITY_EDITOR_OSX
+        [ThreadStatic] public static System.Diagnostics.Process BuildSptProc;
+#endif
         private static bool BuildScriptSub_64(string src, string dest)
         {
             var filefull = System.IO.Path.GetFullPath(src);
@@ -112,6 +115,11 @@ namespace Capstones.UnityEditorEx
             {
                 System.Diagnostics.ProcessStartInfo si = new System.Diagnostics.ProcessStartInfo(luajitPath, "-b -s \"" + filefull + "\" \"" + destfull + "\"");
                 si.WorkingDirectory = workingDirectory;
+#if UNITY_EDITOR_OSX
+                if (BuildSptProc != null)
+                    return CapsEditorUtils.ExecuteProcessInShell(BuildSptProc, si) == 0;
+                else
+#endif
                 return CapsEditorUtils.ExecuteProcess(si);
             }
             return false;
@@ -134,6 +142,11 @@ namespace Capstones.UnityEditorEx
             {
                 System.Diagnostics.ProcessStartInfo si = new System.Diagnostics.ProcessStartInfo(luajitPath, "-b -s \"" + filefull + "\" \"" + destfull + "\"");
                 si.WorkingDirectory = workingDirectory;
+#if UNITY_EDITOR_OSX
+                if (BuildSptProc != null)
+                    return CapsEditorUtils.ExecuteProcessInShell(BuildSptProc, si) == 0;
+                else
+#endif
                 return CapsEditorUtils.ExecuteProcess(si);
             }
             return false;
@@ -312,6 +325,7 @@ namespace Capstones.UnityEditorEx
                         BuildDone.WaitOne(1000);
                         while (doneindex < Results.Length && Results[doneindex] != BuildScriptResult.Unknown)
                         {
+                            Debug.LogFormat("Build Spt Monitor Checking {0}", doneindex);
                             var result = Results[doneindex];
                             var file = Files[doneindex];
                             var mess = file.GetDest() + " : " + result.ToString();
@@ -326,6 +340,7 @@ namespace Capstones.UnityEditorEx
                             ++doneindex;
                         }
                         donecnt = doneindex;
+                        Debug.LogFormat("Build Spt Monotor Done Count {0}", donecnt);
                     }
                 }
                 else
@@ -360,6 +375,11 @@ namespace Capstones.UnityEditorEx
 
             private void BuildWork(TaskProgress prog)
             {
+#if UNITY_EDITOR_OSX
+                BuildSptProc = CapsEditorUtils.StartShell();
+                try
+                { 
+#endif
                 while (true)
                 {
                     var index = System.Threading.Interlocked.Increment(ref NextFileIndex) - 1;
@@ -368,6 +388,7 @@ namespace Capstones.UnityEditorEx
                         return;
                     }
                     var item = Files[index];
+                    Debug.LogFormat("Start Building {0}/{1}", index, Files.Count);
                     BuildScriptResult result = BuildScriptResult.Fail;
                     try
                     {
@@ -444,9 +465,18 @@ namespace Capstones.UnityEditorEx
                     {
                         Results[index] = result;
                         System.Threading.Interlocked.Increment(ref DoneCount);
+                        Debug.Log("Work done count " + DoneCount);
                         BuildDone.Set();
                     }
                 }
+#if UNITY_EDITOR_OSX
+                }
+                finally
+                { 
+                    BuildSptProc.Kill();
+                    BuildSptProc = null;
+                }
+#endif
             }
 
             public void DeleteNonBuildOldFiles()
