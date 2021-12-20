@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if NET_UNITY_4_8 || (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER) || UNITY_2021_1_OR_NEWER
+#define RUNTIME_HAS_REF_STRUCT
+#endif
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -849,6 +852,10 @@ namespace Capstones.UnityEditorEx
                 return;
             if (type.IsGenericType())
                 return; // TODO: generic support.
+#if RUNTIME_HAS_REF_STRUCT
+            if (type.IsByRefLike)
+                return;
+#endif
 
             var filename = GetFileNameForType(typestr);
             var path = GetPrecompileFilePath(type);
@@ -1598,6 +1605,10 @@ namespace Capstones.UnityEditorEx
             var type = typelist[typeName];
             if (type.IsGenericType())
                 return; // TODO: generic support.
+#if RUNTIME_HAS_REF_STRUCT
+            if (type.IsByRefLike)
+                return;
+#endif
             List<MemberInfo> members = null;
             var memberlist = GetMemberList();
             if (memberlist.ContainsKey(type))
@@ -1631,6 +1642,27 @@ namespace Capstones.UnityEditorEx
                 //{
                 //    return;
                 //}
+
+#if RUNTIME_HAS_REF_STRUCT
+                if (member is MethodBase)
+                {
+                    var mbase = member as MethodBase;
+                    bool hasInvalidParam = false;
+                    foreach (var ptype in mbase.GetParameters())
+                    {
+                        if (ptype.ParameterType.IsByRefLike)
+                        {
+                            hasInvalidParam = true;
+                            break;
+                        }
+                    }
+                    if (hasInvalidParam)
+                    {
+                        continue;
+                    }
+                }
+#endif
+
                 var precompileAttribute = member.GetCustomAttribute<LuaLib.LuaPrecompileAttribute>();
                 if (precompileAttribute != null && precompileAttribute.Ignore)
                 {
