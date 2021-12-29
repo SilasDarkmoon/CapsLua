@@ -448,6 +448,28 @@ namespace Capstones.UnityEditorEx
             WritePrecompileFuncForMemberAsync(command);
         }
 
+        public static void SortPrecompileMemberList()
+        {
+            var cachedPath = "Assets/Mods/" + CapsEditorUtils.__MOD__ + "/LuaPrecompile/MemberList.txt";
+            var lines = PlatDependant.ReadAllLines(cachedPath);
+            Array.Sort(lines);
+            HashSet<string> filter = new HashSet<string>();
+            using (var sw = PlatDependant.OpenWriteText(cachedPath))
+            {
+                for (int i = 0; i < lines.Length; ++i)
+                {
+                    var line = lines[i];
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        if (filter.Add(line))
+                        {
+                            sw.WriteLine(line);
+                        }
+                    }
+                }
+            }
+        }
+
         public static void WritePrecompileFuncForMemberAsync(string memberstr)
         {
             if (SafeInitializerUtils.IsInitializingInUnityCtor) return;
@@ -524,6 +546,7 @@ namespace Capstones.UnityEditorEx
                                 }
                             }
                         }
+                        SortPrecompileMemberList();
 
                         var cached = _CachedFiles;
                         _CachedFiles = null;
@@ -600,6 +623,7 @@ namespace Capstones.UnityEditorEx
                         {
                             sw.WriteLine(memberstr);
                         }
+                        SortPrecompileMemberList();
                     }
                     catch (Exception e)
                     {
