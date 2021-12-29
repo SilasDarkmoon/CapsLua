@@ -1151,6 +1151,81 @@ namespace Capstones.LuaLib
             return null;
         }
 
+        public static object GetLuaOrOnStack(this IntPtr l, int index)
+        {
+            if (l != IntPtr.Zero)
+            {
+                int typecode = l.type(index);
+                switch (typecode)
+                {
+                    case lua.LUA_TUSERDATA:
+                        if (IsUserDataTableRaw(l, index))
+                        {
+                            l.pushvalue(index);
+                            l.GetField(-1, "__luastackonly");
+                            bool isluastackonly = l.toboolean(-1);
+                            l.pop(2);
+                            if (isluastackonly)
+                            {
+                                return new Capstones.LuaWrap.LuaOnStackTable(l, index);
+                            }
+                            else
+                            {
+                                return new Capstones.LuaWrap.LuaTable(l, index);
+                            }
+                        }
+                        else
+                        {
+                            return GetLuaRawObject(l, index);
+                        }
+                    case lua.LUA_TSTRING:
+                        return l.GetString(index);
+                    case lua.LUA_TTABLE:
+                        {
+                            bool isUserData;
+                            var obj = GetLuaTableObject(l, index, out isUserData);
+                            if (isUserData)
+                            {
+                                return obj;
+                            }
+                            else
+                            {
+                                l.pushvalue(index);
+                                l.GetField(-1, "__luastackonly");
+                                bool isluastackonly = l.toboolean(-1);
+                                l.pop(2);
+                                if (isluastackonly)
+                                {
+                                    return new Capstones.LuaWrap.LuaOnStackTable(l, index);
+                                }
+                                else
+                                {
+                                    return new Capstones.LuaWrap.LuaTable(l, index);
+                                }
+                            }
+                        }
+                    case lua.LUA_TNUMBER:
+                        return l.tonumber(index);
+                    case lua.LUA_TBOOLEAN:
+                        return l.toboolean(index);
+                    case lua.LUA_TNIL:
+                        return null;
+                    case lua.LUA_TNONE:
+                        return null;
+                    case lua.LUA_TLIGHTUSERDATA:
+                        return l.touserdata(index);
+                    case lua.LUA_TFUNCTION:
+                        return new Capstones.LuaWrap.LuaFunc(l, index);
+                    case lua.LUA_TTHREAD:
+                        IntPtr lthd = l.tothread(index);
+                        l.pushvalue(index);
+                        int refid = l.refer();
+                        return new Capstones.LuaWrap.LuaOnStackThread(refid, lthd);
+                }
+            }
+            return null;
+        }
+
         public static void GetLuaExplicit<T>(this IntPtr l, int index, out T val)
         {
             if (l != IntPtr.Zero)
@@ -1385,7 +1460,14 @@ namespace Capstones.LuaLib
                 //return;
             }
             // 4. use non-generic GetLua
-            { 
+            if (typeof(T) == typeof(object))
+            {
+                var raw = GetLuaOrOnStack(l, index);
+                val = (T)raw;
+                return;
+            }
+            else
+            {
                 var raw = GetLua(l, index);
                 if (raw == null)
                 {
