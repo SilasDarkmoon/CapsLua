@@ -100,6 +100,18 @@ local function setNewIndexHierarchical(table, indexmeta)
     return table
 end
 
+local function checkDevelopmentBuild()
+    local devflag = clr.UnityEngine.Debug.isDebugBuild
+    if type(devflag) == "boolean" then
+        if devflag then
+            __DEVELOPMENT_BUILD_FLAG = true
+            __DEBUG_FLAG = true
+        end
+    end
+end
+
+xpcall(checkDevelopmentBuild, printe)
+
 unity = {}
 
 function unity.waitForEndOfFrame()
