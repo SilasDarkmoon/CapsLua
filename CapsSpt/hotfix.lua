@@ -31,6 +31,11 @@ else
             end
         end
     end
+    print("FOUND-HOTFIX-VER")
+    print(selver)
+    print(sellib)
+    print("HOTFIX-PACKAGE-VER")
+    print(hotfixver)
     if not sellib then
         sellib = hotfixmap[0]
     end
