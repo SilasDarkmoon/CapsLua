@@ -1,3 +1,7 @@
+if not clr.Capstones.UnityEngineEx.ThreadSafeValues.IsMainThread then
+    require('libs.init')
+end
+
 clr.Capstones.LuaWrap.HotFixCaller.LoadDesignatedHash("data.hotfixhash")
 
 local hotfix = {}
