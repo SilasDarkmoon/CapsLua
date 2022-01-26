@@ -816,10 +816,56 @@ namespace Capstones.UnityEditorEx
             CapsResBuilder.BuildingParams = CapsResBuilder.BuildingParams ?? CapsResBuilder.ResBuilderParams.Create();
             var timetoken = CapsResBuilder.BuildingParams.timetoken;
             var makezip = CapsResBuilder.BuildingParams.makezip;
+            int version = 0;
+            if (isDefaultBuild)
+            { // parse version
+                var outverdir = "EditorOutput/Build/Latest/spt/version.txt";
+                if (CapsResBuilder.BuildingParams != null && CapsResBuilder.BuildingParams.version > 0)
+                {
+                    version = CapsResBuilder.BuildingParams.version;
+                }
+                else
+                {
+                    version = CapsResBuilder.GetResVersion();
+
+                    int lastBuildVersion = 0;
+                    int streamingVersion = 0;
+
+                    if (System.IO.File.Exists("Assets/StreamingAssets/spt/version.txt"))
+                    {
+                        var lines = System.IO.File.ReadAllLines("Assets/StreamingAssets/spt/version.txt");
+                        if (lines != null && lines.Length > 0)
+                        {
+                            int.TryParse(lines[0], out streamingVersion);
+                        }
+                    }
+                    if (System.IO.File.Exists(outverdir))
+                    {
+                        var lines = System.IO.File.ReadAllLines(outverdir);
+                        if (lines != null && lines.Length > 0)
+                        {
+                            int.TryParse(lines[0], out lastBuildVersion);
+                        }
+                    }
+                    if (streamingVersion > 0 || lastBuildVersion <= 0)
+                    {
+                        int maxver = Math.Max(lastBuildVersion, streamingVersion);
+                        if (maxver >= version)
+                        {
+                            version = maxver + 10;
+                        }
+                    }
+                    else
+                    {
+                        version = lastBuildVersion;
+                    }
+                    CapsResBuilder.BuildingParams.version = version;
+                }
+            }
             string outputDir = "Latest";
             if (!isDefaultBuild)
             {
-                outputDir = timetoken + "/build";
+                outputDir = timetoken + (version > 0 ? ("_" + version) : "") + "/build";
             }
             outputDir = "EditorOutput/Build/" + outputDir;
 
@@ -891,7 +937,7 @@ namespace Capstones.UnityEditorEx
 
                         if (isDefaultBuild)
                         {
-                            var logdir = "EditorOutput/Build/" + timetoken + "/log/";
+                            var logdir = "EditorOutput/Build/" + timetoken + (version > 0 ? ("_" + version) : "") + "/log/";
                             System.IO.Directory.CreateDirectory(logdir);
                             System.IO.File.Copy(outputDir + "/log/SptBuildLog.txt", logdir + "SptBuildLog.txt", true);
                         }
@@ -1086,48 +1132,7 @@ namespace Capstones.UnityEditorEx
                 if (isDefaultBuild)
                 {
                     logger.Log("(Phase) Write Version.");
-                    int version;
                     var outverdir = "EditorOutput/Build/Latest/spt/version.txt";
-                    if (CapsResBuilder.BuildingParams != null && CapsResBuilder.BuildingParams.version > 0)
-                    {
-                        version = CapsResBuilder.BuildingParams.version;
-                    }
-                    else
-                    {
-                        version = CapsResBuilder.GetResVersion();
-
-                        int lastBuildVersion = 0;
-                        int streamingVersion = 0;
-
-                        if (System.IO.File.Exists("Assets/StreamingAssets/spt/version.txt"))
-                        {
-                            var lines = System.IO.File.ReadAllLines("Assets/StreamingAssets/spt/version.txt");
-                            if (lines != null && lines.Length > 0)
-                            {
-                                int.TryParse(lines[0], out streamingVersion);
-                            }
-                        }
-                        if (System.IO.File.Exists(outverdir))
-                        {
-                            var lines = System.IO.File.ReadAllLines(outverdir);
-                            if (lines != null && lines.Length > 0)
-                            {
-                                int.TryParse(lines[0], out lastBuildVersion);
-                            }
-                        }
-                        if (streamingVersion > 0 || lastBuildVersion <= 0)
-                        {
-                            int maxver = Math.Max(lastBuildVersion, streamingVersion);
-                            if (maxver >= version)
-                            {
-                                version = maxver + 10;
-                            }
-                        }
-                        else
-                        {
-                            version = lastBuildVersion;
-                        }
-                    }
                     if (System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(outverdir)))
                     {
                         System.IO.File.WriteAllText(outverdir, version.ToString());
@@ -1194,179 +1199,14 @@ namespace Capstones.UnityEditorEx
 
                 if (isDefaultBuild && makezip)
                 {
-                    logger.Log("(Phase) Zip.");
-                    Dictionary<string, Pack<string, string, IList<string>>> zips = new Dictionary<string, Pack<string, string, IList<string>>>();
-                    var outzipdir = "EditorOutput/Build/" + timetoken + "/whole/spt/";
-                    System.IO.Directory.CreateDirectory(outzipdir);
-                    Dictionary<string, HashSet<string>> builtModsAndDists = new Dictionary<string, HashSet<string>>();
-                    for (int i = 0; i < buildwork.Files.Count; ++i)
+                    work = ZipBuiltSptAsync(winprog, timetoken);
+                    while (work.MoveNext())
                     {
-                        var mod = buildwork.Files[i].Mod ?? "";
-                        var dist = buildwork.Files[i].Dist ?? "";
-
-                        HashSet<string> dists;
-                        if (!builtModsAndDists.TryGetValue(mod, out dists))
+                        if (winprog != null)
                         {
-                            dists = new HashSet<string>();
-                            builtModsAndDists[mod] = dists;
-                        }
-                        dists.Add(dist);
-                    }
-                    HashSet<string> InMainNonOptMods = new HashSet<string>();
-                    foreach (var kvpModsAndDists in builtModsAndDists)
-                    {
-                        var mod = kvpModsAndDists.Key;
-                        if (mod != "")
-                        {
-                            var moddesc = ResManager.GetDistributeDesc(mod);
-                            if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
-                            {
-                                InMainNonOptMods.Add(mod);
-                            }
+                            yield return work.Current;
                         }
                     }
-                    if (InMainNonOptMods.Count > 0)
-                    {
-                        if (!builtModsAndDists.ContainsKey(""))
-                        {
-                            builtModsAndDists[""] = new HashSet<string>();
-                        }
-                    }
-
-                    foreach (var kvpModsAndDists in builtModsAndDists)
-                    {
-                        var mod = kvpModsAndDists.Key;
-                        var dists = kvpModsAndDists.Value;
-                        if (InMainNonOptMods.Contains(mod))
-                        {
-                            continue;
-                        }
-                        List<Pack<string, string>> lstModAndDist = new List<Pack<string, string>>();
-                        foreach (var dist in dists)
-                        {
-                            lstModAndDist.Add(new Pack<string, string>(mod, dist));
-                        }
-                        if (mod == "")
-                        {
-                            foreach (var exmod in InMainNonOptMods)
-                            {
-                                foreach (var exdist in builtModsAndDists[exmod])
-                                {
-                                    lstModAndDist.Add(new Pack<string, string>(exmod, exdist));
-                                }
-                            }
-                        }
-                        for (int i = 0; i < lstModAndDist.Count; ++i)
-                        {
-                            var exmod = lstModAndDist[i].t1;
-                            var dist = lstModAndDist[i].t2;
-
-                            for (int j = 0; j < dstsptRoots.Count; ++j)
-                            {
-                                var sptFolder = outputDir + dstsptRoots[j];
-                                if (exmod != "")
-                                {
-                                    sptFolder += "mod/";
-                                    sptFolder += exmod;
-                                    sptFolder += "/";
-                                }
-                                if (dist != "")
-                                {
-                                    sptFolder += "dist/";
-                                    sptFolder += dist;
-                                    sptFolder += "/";
-                                }
-
-                                List<string> entries = new List<string>();
-                                if (System.IO.Directory.Exists(sptFolder))
-                                {
-                                    try
-                                    {
-                                        var files = PlatDependant.GetAllFiles(sptFolder);
-                                        for (int k = 0; k < files.Length; ++k)
-                                        {
-                                            var file = files[k];
-                                            if (file.EndsWith(".lua"))
-                                            {
-                                                var raw = file.Substring(sptFolder.Length).Replace('\\', '/');
-                                                if (!(exmod == "" && raw.StartsWith("mod/") || dist == "" && raw.StartsWith("dist/")))
-                                                {
-                                                    var entry = file.Substring(outputDir.Length + 1);
-                                                    entries.Add(entry);
-                                                    entries.Add(entry + ".srcinfo");
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        logger.Log("(Error)(Not Critical)");
-                                        logger.Log(e.ToString());
-                                    }
-                                }
-                                if (entries.Count > 0)
-                                {
-                                    var sptkey = "m-" + mod.ToLower() + "-d-" + dist.ToLower();
-                                    string filename;
-                                    if (dstsptRoots[j] == "/spt/")
-                                    {
-                                        filename = sptkey;
-                                    }
-                                    else
-                                    {
-                                        var sub = dstsptRoots[j].Substring("/spt/".Length, dstsptRoots[j].Length - "/spt/".Length - 1);
-                                        filename = sptkey + "." + sub;
-                                    }
-                                    string zipfile = outzipdir + filename + ".zip";
-
-                                    if (zips.ContainsKey(filename))
-                                    {
-                                        entries.AddRange(zips[filename].t3);
-                                        zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
-                                    }
-                                    else
-                                    {
-                                        //// mani
-                                        //var mani = "m-" + mod.ToLower() + "-d-" + dist.ToLower() + ".m.ab";
-                                        //mani = "res/mani/" + mani;
-                                        //entries.Add(mani);
-                                        //entries.Add(mani + ".manifest");
-                                        //entries.Add("res/mani/mani");
-                                        //entries.Add("res/mani/mani.manifest");
-                                        // version
-                                        entries.Add("spt/version.txt");
-                                        var dversion = "spt/version/" + sptkey + ".txt";
-                                        PlatDependant.CopyFile(outputDir + "/spt/version.txt", outputDir + "/" + dversion);
-                                        entries.Add(dversion);
-
-                                        zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
-                                    }
-                                    //var workz = CapsResBuilder.MakeZipAsync(zipfile, outputDir, entries, winprog);
-                                    //while (workz.MoveNext())
-                                    //{
-                                    //    if (winprog != null)
-                                    //    {
-                                    //        yield return workz.Current;
-                                    //    }
-                                    //}
-                                }
-                            }
-                        }
-                    }
-                    if (zips.Count > 0)
-                    {
-                        var workz = CapsResBuilder.MakeZipsBackground(zips.Values.ToArray(), winprog);
-                        while (workz.MoveNext())
-                        {
-                            if (winprog != null)
-                            {
-                                yield return workz.Current;
-                            }
-                        }
-                    }
-
-                    // Make icon
-                    IconMaker.SetFolderIconToFileContent("EditorOutput/Build/" + timetoken, outputDir + "/spt/version.txt");
                 }
             }
             finally
@@ -1374,6 +1214,270 @@ namespace Capstones.UnityEditorEx
                 BuilderCleanup();
                 logger.Log("(Done) Build Spt.");
             }
+        }
+
+        public static IEnumerator ZipBuiltSptAsync(IEditorWorkProgressShower winprog, string timetoken)
+        {
+            if (string.IsNullOrEmpty(timetoken))
+            {
+                timetoken = CapsResBuilder.ResBuilderParams.Create().timetoken;
+            }
+            var outputDir = "EditorOutput/Build/Latest";
+            var logger = new EditorWorkProgressLogger() { Shower = winprog };
+            logger.Log("(Phase) Zip.");
+            int version = 0;
+            if (System.IO.File.Exists(outputDir + "/spt/version.txt"))
+            {
+                foreach (var line in System.IO.File.ReadLines(outputDir + "/spt/version.txt"))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        if (int.TryParse(line, out version))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            List<string> dstsptRoots = new List<string>();
+            bool multiArch = false;
+            if (System.IO.Directory.Exists(outputDir + "/spt/"))
+            {
+                var rootsubs = System.IO.Directory.GetDirectories(outputDir + "/spt/");
+                if (rootsubs != null)
+                {
+                    for (int i = 0; i < rootsubs.Length; ++i)
+                    {
+                        var rootsub = rootsubs[i];
+                        var dirname = rootsub.Substring(outputDir.Length + "/spt/".Length);
+                        if (dirname.StartsWith("@"))
+                        {
+                            var archname = dirname.Substring("@".Length);
+                            int arch;
+                            if (int.TryParse(archname, out arch))
+                            {
+                                multiArch = true;
+                                dstsptRoots.Add("/spt/" + dirname + "/");
+                            }
+                        }
+                    }
+                }
+            }
+            if (!multiArch)
+            {
+                dstsptRoots.Add("/spt/");
+            }
+
+            Dictionary<string, Pack<string, string, IList<string>>> zips = new Dictionary<string, Pack<string, string, IList<string>>>();
+            var outzipdir = "EditorOutput/Build/" + timetoken + (version > 0 ? ("_" + version) : "") + "/whole/spt/";
+            System.IO.Directory.CreateDirectory(outzipdir);
+            Dictionary<string, HashSet<string>> builtModsAndDists = new Dictionary<string, HashSet<string>>();
+            builtModsAndDists[""] = new HashSet<string>();
+            for (int j = 0; j < dstsptRoots.Count; ++j)
+            {
+                var sptFolder = outputDir + dstsptRoots[j];
+                var modRoot = sptFolder + "mod/";
+                if (System.IO.Directory.Exists(modRoot))
+                {
+                    var moddirs = System.IO.Directory.GetDirectories(modRoot);
+                    if (moddirs != null)
+                    {
+                        for (int i = 0; i < moddirs.Length; ++i)
+                        {
+                            var mod = moddirs[i].Substring(modRoot.Length);
+                            if (!builtModsAndDists.ContainsKey(mod))
+                            {
+                                builtModsAndDists[mod] = new HashSet<string>();
+                            }
+                        }
+                    }
+                }
+
+                foreach (var kvp in builtModsAndDists)
+                {
+                    var mod = kvp.Key;
+                    var hashset = kvp.Value;
+                    hashset.Add("");
+
+                    var distroot = sptFolder;
+                    if (string.IsNullOrEmpty(mod))
+                    {
+                        distroot = sptFolder + "dist/";
+                    }
+                    else
+                    {
+                        distroot = sptFolder + "mod/" + mod + "/dist/";
+                    }
+                    if (System.IO.Directory.Exists(distroot))
+                    {
+                        var distdirs = System.IO.Directory.GetDirectories(distroot);
+                        if (distdirs != null)
+                        {
+                            for (int i = 0; i < distdirs.Length; ++i)
+                            {
+                                var dist = distdirs[i].Substring(distroot.Length);
+                                hashset.Add(dist);
+                            }
+                        }
+                    }
+                }
+            }
+
+            HashSet<string> InMainNonOptMods = new HashSet<string>();
+            foreach (var kvpModsAndDists in builtModsAndDists)
+            {
+                var mod = kvpModsAndDists.Key;
+                if (mod != "")
+                {
+                    var moddesc = ResManager.GetDistributeDesc(mod);
+                    if (moddesc == null || (moddesc.InMain && !moddesc.IsOptional))
+                    {
+                        InMainNonOptMods.Add(mod);
+                    }
+                }
+            }
+            if (InMainNonOptMods.Count > 0)
+            {
+                if (!builtModsAndDists.ContainsKey(""))
+                {
+                    builtModsAndDists[""] = new HashSet<string>();
+                }
+            }
+
+            foreach (var kvpModsAndDists in builtModsAndDists)
+            {
+                var mod = kvpModsAndDists.Key;
+                var dists = kvpModsAndDists.Value;
+                if (InMainNonOptMods.Contains(mod))
+                {
+                    continue;
+                }
+                List<Pack<string, string>> lstModAndDist = new List<Pack<string, string>>();
+                foreach (var dist in dists)
+                {
+                    lstModAndDist.Add(new Pack<string, string>(mod, dist));
+                }
+                if (mod == "")
+                {
+                    foreach (var exmod in InMainNonOptMods)
+                    {
+                        foreach (var exdist in builtModsAndDists[exmod])
+                        {
+                            lstModAndDist.Add(new Pack<string, string>(exmod, exdist));
+                        }
+                    }
+                }
+                for (int i = 0; i < lstModAndDist.Count; ++i)
+                {
+                    var exmod = lstModAndDist[i].t1;
+                    var dist = lstModAndDist[i].t2;
+
+                    for (int j = 0; j < dstsptRoots.Count; ++j)
+                    {
+                        var sptFolder = outputDir + dstsptRoots[j];
+                        if (exmod != "")
+                        {
+                            sptFolder += "mod/";
+                            sptFolder += exmod;
+                            sptFolder += "/";
+                        }
+                        if (dist != "")
+                        {
+                            sptFolder += "dist/";
+                            sptFolder += dist;
+                            sptFolder += "/";
+                        }
+
+                        List<string> entries = new List<string>();
+                        if (System.IO.Directory.Exists(sptFolder))
+                        {
+                            try
+                            {
+                                var files = PlatDependant.GetAllFiles(sptFolder);
+                                for (int k = 0; k < files.Length; ++k)
+                                {
+                                    var file = files[k];
+                                    if (file.EndsWith(".lua"))
+                                    {
+                                        var raw = file.Substring(sptFolder.Length).Replace('\\', '/');
+                                        if (!(exmod == "" && raw.StartsWith("mod/") || dist == "" && raw.StartsWith("dist/")))
+                                        {
+                                            var entry = file.Substring(outputDir.Length + 1);
+                                            entries.Add(entry);
+                                            entries.Add(entry + ".srcinfo");
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                logger.Log("(Error)(Not Critical)");
+                                logger.Log(e.ToString());
+                            }
+                        }
+                        if (entries.Count > 0)
+                        {
+                            var sptkey = "m-" + mod.ToLower() + "-d-" + dist.ToLower();
+                            string filename;
+                            if (dstsptRoots[j] == "/spt/")
+                            {
+                                filename = sptkey;
+                            }
+                            else
+                            {
+                                var sub = dstsptRoots[j].Substring("/spt/".Length, dstsptRoots[j].Length - "/spt/".Length - 1);
+                                filename = sptkey + "." + sub;
+                            }
+                            string zipfile = outzipdir + filename + ".zip";
+
+                            if (zips.ContainsKey(filename))
+                            {
+                                entries.AddRange(zips[filename].t3);
+                                zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                            }
+                            else
+                            {
+                                //// mani
+                                //var mani = "m-" + mod.ToLower() + "-d-" + dist.ToLower() + ".m.ab";
+                                //mani = "res/mani/" + mani;
+                                //entries.Add(mani);
+                                //entries.Add(mani + ".manifest");
+                                //entries.Add("res/mani/mani");
+                                //entries.Add("res/mani/mani.manifest");
+                                // version
+                                entries.Add("spt/version.txt");
+                                var dversion = "spt/version/" + sptkey + ".txt";
+                                PlatDependant.CopyFile(outputDir + "/spt/version.txt", outputDir + "/" + dversion);
+                                entries.Add(dversion);
+
+                                zips[filename] = new Pack<string, string, IList<string>>(zipfile, outputDir, entries);
+                            }
+                            //var workz = CapsResBuilder.MakeZipAsync(zipfile, outputDir, entries, winprog);
+                            //while (workz.MoveNext())
+                            //{
+                            //    if (winprog != null)
+                            //    {
+                            //        yield return workz.Current;
+                            //    }
+                            //}
+                        }
+                    }
+                }
+            }
+            if (zips.Count > 0)
+            {
+                var workz = CapsResBuilder.MakeZipsBackground(zips.Values.ToArray(), winprog);
+                while (workz.MoveNext())
+                {
+                    if (winprog != null)
+                    {
+                        yield return workz.Current;
+                    }
+                }
+            }
+
+            // Make icon
+            IconMaker.SetFolderIconToFileContent("EditorOutput/Build/" + timetoken + (version > 0 ? ("_" + version) : ""), outputDir + "/spt/version.txt");
         }
 
         private class CapsSptBuilderPreExport : UnityEditor.Build.IPreprocessBuild

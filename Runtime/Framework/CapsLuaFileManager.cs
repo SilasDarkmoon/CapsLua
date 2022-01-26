@@ -1327,20 +1327,47 @@ namespace Capstones.LuaLib
 #endif
 
 #if MOD_CAPSUPDATE
-        public static Dictionary<string, int> RecordedResVersions;
+        private static Dictionary<string, int> _RecordedResVersions_Res;
+        private static Dictionary<string, int> _RecordedResVersions_Spt;
+        private static Dictionary<string, int> _RecordedResVersionsCache;
+        public static Dictionary<string, int> RecordedResVersions
+        {
+            get
+            {
+                if (_RecordedResVersionsCache == null)
+                {
+                    _RecordedResVersionsCache = new Dictionary<string, int>();
+                    _RecordedResVersionsCache.Merge(_RecordedResVersions_Res);
+                    _RecordedResVersionsCache.Merge(_RecordedResVersions_Spt);
+                }
+                return _RecordedResVersionsCache;
+            }
+        }
         private static void RegCrossEvents()
         {
             CrossEvent.RegHandler("SptManifestReady", cate =>
             {
                 CrossEvent.GetParam(CrossEvent.TOKEN_ARGS, 0);
                 var vers = CrossEvent.ContextExchangeObj as CrossEvent.RawEventData<Dictionary<string, int>>;
-                RecordedResVersions = null;
+                _RecordedResVersionsCache = null;
+                _RecordedResVersions_Spt = null;
                 if (vers != null)
                 {
-                    RecordedResVersions = vers.Data;
+                    _RecordedResVersions_Spt = vers.Data;
                 }
 
                 StartLoadRuntimeManifest();
+            });
+            CrossEvent.RegHandler("ReportResVersion", cate =>
+            {
+                CrossEvent.GetParam(CrossEvent.TOKEN_ARGS, 0);
+                var vers = CrossEvent.ContextExchangeObj as CrossEvent.RawEventData<Dictionary<string, int>>;
+                _RecordedResVersionsCache = null;
+                _RecordedResVersions_Res = null;
+                if (vers != null)
+                {
+                    _RecordedResVersions_Res = vers.Data;
+                }
             });
             CrossEvent.RegHandler("ResetSptRuntimeManifest", cate =>
             {
