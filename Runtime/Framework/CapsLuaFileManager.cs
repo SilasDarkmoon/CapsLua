@@ -1119,7 +1119,7 @@ namespace Capstones.LuaLib
                         string found;
                         if (ThreadSafeValues.IsMainThread)
                         {
-                            found = ResManager.EditorResLoader.CheckDistributePath(file, true);
+                            found = ResManager.EditorResLoader.CheckDistributePath(file, true, true);
                         }
                         else
                         {
