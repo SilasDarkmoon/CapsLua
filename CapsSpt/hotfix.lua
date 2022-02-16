@@ -11,6 +11,9 @@ if not hotfixmap[0] then
 end
 
 local meta = {}
+if ___CONFIG__IGNORE_UPDATE then
+    hotfixver = 0
+end
 if not hotfixver then
     hotfixver = 0
 elseif type(hotfixver) ~= "number" then
