@@ -82,5 +82,6 @@ namespace Capstones.LuaLib
         public static readonly IntPtr LRKEY_EXT_CALLEE =        new IntPtr(2402);
         public static readonly IntPtr LRKEY_GENERIC_CACHE =     new IntPtr(2501);
         public static readonly IntPtr LRKEY_DEL_WRAP =          new IntPtr(2601);
+        public static readonly IntPtr LRKEY_HOTFIX_ROOT =       new IntPtr(3001);
     }
 }

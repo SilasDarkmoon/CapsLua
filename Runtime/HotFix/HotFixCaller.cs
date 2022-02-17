@@ -64,6 +64,7 @@ namespace Capstones.LuaWrap
                         // and calling a func with hotfix in non-main thread rarely happens.
                     }
                     running.SetGlobal("hotfixver", _PackageVer);
+                    InitHotFixRoot(running);
                 }
                 else
                 {
@@ -78,10 +79,25 @@ namespace Capstones.LuaWrap
                     if (_ReadyStates.Add(running.Indicator()))
                     {
                         running.SetGlobal("hotfixver", _PackageVer);
+                        InitHotFixRoot(running);
                     }
                 }
             }
             return running;
+        }
+        public static void InitHotFixRoot(IntPtr l)
+        {
+            if (l.TryRequire("hotfix").IsValid)
+            { // hotfix
+                l.pushlightuserdata(LuaConst.LRKEY_HOTFIX_ROOT); // hotfix #hotfix
+                l.insert(-2); // #hotfix hotfix
+                l.settable(lua.LUA_REGISTRYINDEX); // X
+            }
+        }
+        public static void GetHotFixRoot(IntPtr l)
+        {
+            l.pushlightuserdata(LuaConst.LRKEY_HOTFIX_ROOT); // #hotfix
+            l.gettable(lua.LUA_REGISTRYINDEX); // hotfix
         }
 
         public static bool CallHotFix<TIn, TOut>(string token, TIn args, out TOut result)
@@ -103,7 +119,8 @@ namespace Capstones.LuaWrap
 #endif
             using (var lr = l.CreateStackRecover())
             {
-                if (l.TryRequire("hotfix").IsValid)
+                //if (l.TryRequire("hotfix").IsValid)
+                GetHotFixRoot(l);
                 {
                     if (l.istable(-1))
                     {
@@ -151,7 +168,8 @@ namespace Capstones.LuaWrap
 #endif
             using (var lr = l.CreateStackRecover())
             {
-                if (l.TryRequire("hotfix").IsValid)
+                //if (l.TryRequire("hotfix").IsValid)
+                GetHotFixRoot(l);
                 {
                     if (l.istable(-1))
                     {
