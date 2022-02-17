@@ -243,7 +243,7 @@ namespace Capstones.LuaWrap
             }
             _DesignatedHash.Clear();
             var l = GlobalLua.L.L;
-            if (l.TryRequire(lib).IsValid)
+            if (l.TryRequire(lib, true).IsValid)
             {
                 l.ForEach<string, long>(-1, (str, hash) => _DesignatedHash.Add(str, hash));
                 l.pop(1);
