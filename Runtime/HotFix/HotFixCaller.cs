@@ -149,6 +149,7 @@ namespace Capstones.LuaWrap
 #endif
         }
 
+        [ThreadStatic] private static HashSet<long> _NonExistTokens;
         public static bool CallHotFixN<TIn, TOut>(long token, TIn args, out TOut result)
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack
@@ -158,6 +159,10 @@ namespace Capstones.LuaWrap
             return false;
 #else
             result = default(TOut);
+            if (_NonExistTokens != null && _NonExistTokens.Contains(token))
+            {
+                return false;
+            }
             var l = GetLuaStateForHotFix();
 #if UNITY_EDITOR
             if (l == IntPtr.Zero)
@@ -190,6 +195,17 @@ namespace Capstones.LuaWrap
                                     result.GetFromLua(l);
                                     return true;
                                 }
+                            }
+                        }
+                        else
+                        {
+                            if (_NonExistTokens == null)
+                            {
+                                _NonExistTokens = new HashSet<long> { token };
+                            }
+                            else
+                            {
+                                _NonExistTokens.Add(token);
                             }
                         }
                     }
