@@ -943,10 +943,10 @@ namespace Capstones.UnityEditorEx
                             break;
                         if (!string.IsNullOrEmpty(line))
                         {
-                            if (line.StartsWith("--"))
-                            {
-                            }
-                            else
+                            //if (line.StartsWith("--"))
+                            //{
+                            //}
+                            //else
                             {
                                 list.Add(line);
                             }

@@ -14,5 +14,6 @@ namespace Capstones.LuaWrap
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property  | AttributeTargets.Event | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class LuaHotFixAttribute : Attribute
     {
+        public bool Forbidden;
     }
 }
