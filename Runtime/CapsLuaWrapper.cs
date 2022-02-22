@@ -1086,7 +1086,7 @@ namespace Capstones.LuaLib
 {
     public static partial class LuaHub
     {
-        public class BaseLuaWrapperHub<T> : LuaTypeHub.TypeHubValueType, ILuaTrans<T>, ILuaPush<T>, IInstanceCreator<T>, ILuaConvert
+        public class BaseLuaWrapperHub<T> : LuaTypeHub.TypeHubValueType, ILuaTrans<T>, ILuaPush<T>, IInstanceCreator<T>, ILuaNative, ILuaConvert
             where T : ILuaWrapper, new()
         {
             public T NewInstance() { return new T(); }
@@ -1316,6 +1316,8 @@ namespace Capstones.LuaLib
                     new KeyValuePair<Type, LuaConvertFunc>(typeof(BaseLua), ConvertFromBaseLua),
                     new KeyValuePair<Type, LuaConvertFunc>(typeof(ILuaWrapper), ConvertFromLuaWrapper),
                 };
+                _ConvertFuncs[typeof(LuaTable)] = ConvertToLuaTable;
+                _ConvertFuncs[typeof(LuaRawTable)] = ConvertToLuaRawTable;
             }
             public BaseLuaWrapperHub() : this(false) { }
             protected override bool UpdateDataAfterCall
@@ -1380,6 +1382,7 @@ namespace Capstones.LuaLib
                 l.GetLua(index, out val);
                 LuaHubNative.PushLua(l, val);
             }
+            public int LuaType { get { return LuaCoreLib.LUA_TTABLE; } }
 
             public int ConvertFromBaseLua(IntPtr l, int index)
             {
@@ -1415,6 +1418,20 @@ namespace Capstones.LuaLib
                     }
                 }
                 return 0;
+            }
+            public int ConvertToLuaTable(IntPtr l, int index)
+            {
+                Unwrap(l, index);
+                var inst = new LuaTable(l, -1);
+                l.PushLuaObject(inst);
+                return 1;
+            }
+            public int ConvertToLuaRawTable(IntPtr l, int index)
+            {
+                Unwrap(l, index);
+                var inst = new LuaRawTable(l, -1);
+                l.PushLuaObject(inst);
+                return 1;
             }
         }
 
