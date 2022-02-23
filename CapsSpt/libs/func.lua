@@ -13,6 +13,18 @@ function tonumber(v, base)
     return tonumber_(v, base) or 0
 end
 
+if clr then
+    function tolong(str)
+        clr.System.Int64.TryParse(str, 0)
+        return clr.lastlong()
+    end
+
+    function toulong(str)
+        clr.System.UInt64.TryParse(str, 0)
+        return clr.lastulong()
+    end
+end
+
 --[[--
 
 Convert to integer.
