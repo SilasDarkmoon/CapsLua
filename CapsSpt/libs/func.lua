@@ -15,13 +15,23 @@ end
 
 if clr then
     function tolong(str)
-        clr.System.Int64.TryParse(str, 0)
-        return clr.lastlong()
+        if type(str) == "string" then
+            clr.System.Int64.TryParse(str, 0)
+            return clr.lastlong()
+        else
+            local num = tonumber(str)
+            return clr.as(num, clr.System.Int64)
+        end
     end
 
     function toulong(str)
-        clr.System.UInt64.TryParse(str, 0)
-        return clr.lastulong()
+        if type(str) == "string" then
+            clr.System.UInt64.TryParse(str, 0)
+            return clr.lastulong()
+        else
+            local num = tonumber(str)
+            return clr.as(num, clr.System.UInt64)
+        end
     end
 end
 
