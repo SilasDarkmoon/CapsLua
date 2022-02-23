@@ -18,6 +18,8 @@ if clr then
         if type(str) == "string" then
             clr.System.Int64.TryParse(str, 0)
             return clr.lastlong()
+        elseif clr.isobj(str) then
+            return clr.as(str, clr.System.Int64)
         else
             local num = tonumber(str)
             return clr.as(num, clr.System.Int64)
@@ -28,6 +30,8 @@ if clr then
         if type(str) == "string" then
             clr.System.UInt64.TryParse(str, 0)
             return clr.lastulong()
+        elseif clr.isobj(str) then
+            return clr.as(str, clr.System.UInt64)
         else
             local num = tonumber(str)
             return clr.as(num, clr.System.UInt64)

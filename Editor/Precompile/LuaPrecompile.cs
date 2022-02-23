@@ -750,6 +750,16 @@ namespace Capstones.UnityEditorEx
         {
             return LuaHub.IsConvertible(type) && !type.IsEnum() || typeof(Type).IsAssignableFrom(type) || typeof(Capstones.LuaLib.ILuaTypeHub).IsAssignableFrom(type);
         }
+        private static HashSet<Type> _LongerThanDoubleNumberTypes = new HashSet<Type>()
+        {
+            typeof(long),
+            typeof(ulong),
+            typeof(decimal),
+        };
+        public static bool IsLongerThanDoubleNumberType(Type type)
+        {
+            return _LongerThanDoubleNumberTypes.Contains(type);
+        }
         public static bool IsOverride(System.Reflection.MethodBase method)
         {
             var dtype = method.DeclaringType;
@@ -1150,7 +1160,14 @@ namespace Capstones.UnityEditorEx
                     lines.Add("public void Unwrap(IntPtr l, int index)");
                     lines.Add("{");
                     lines.Add("var val = GetLuaRaw(l, index);");
-                    lines.Add("l.PushLua(val);");
+                    if (IsLongerThanDoubleNumberType(type))
+                    {
+                        lines.Add("l.pushnumber((double)val);");
+                    }
+                    else
+                    {
+                        lines.Add("l.PushLua(val);");
+                    }
                     lines.Add("}");
                     string luatype;
                     if (!LuaPrecompileWriter.nativeTypeMap.TryGetValue(type, out luatype))
