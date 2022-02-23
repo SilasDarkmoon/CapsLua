@@ -35,6 +35,20 @@ if clr then
     end
 end
 
+function combinefunc(...)
+    local funcs = table.pack(...)
+    return function(...)
+        for i = 1, funcs.n do
+            local func = funcs[i]
+            if 1 == funcs.n then
+                return func(...)
+            else
+                func(...) -- TODO: combine each result.
+            end
+        end
+    end
+end
+
 --[[--
 
 Convert to integer.
