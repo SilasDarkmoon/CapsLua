@@ -13,6 +13,46 @@ function tonumber(v, base)
     return tonumber_(v, base) or 0
 end
 
+if clr then
+    function tolong(str)
+        if type(str) == "string" then
+            clr.System.Int64.TryParse(str, 0)
+            return clr.lastlong()
+        elseif clr.isobj(str) then
+            return clr.as(str, clr.System.Int64)
+        else
+            local num = tonumber(str)
+            return clr.as(num, clr.System.Int64)
+        end
+    end
+
+    function toulong(str)
+        if type(str) == "string" then
+            clr.System.UInt64.TryParse(str, 0)
+            return clr.lastulong()
+        elseif clr.isobj(str) then
+            return clr.as(str, clr.System.UInt64)
+        else
+            local num = tonumber(str)
+            return clr.as(num, clr.System.UInt64)
+        end
+    end
+end
+
+function combinefunc(...)
+    local funcs = table.pack(...)
+    return function(...)
+        for i = 1, funcs.n do
+            local func = funcs[i]
+            if 1 == funcs.n then
+                return func(...)
+            else
+                func(...) -- TODO: combine each result.
+            end
+        end
+    end
+end
+
 --[[--
 
 Convert to integer.
