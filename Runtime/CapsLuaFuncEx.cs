@@ -2244,7 +2244,7 @@ namespace Capstones.LuaWrap
             }
         }
 
-#if !UNITY_ENGINE && !UNITY_5_3_OR_NEWER && (NET || NETCOREAPP) || NET_4_6 || NET_STANDARD_2_0
+#if UNITY_2020_2_OR_NEWER || NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1 || NETSTANDARD2_1_OR_GREATER
         public static void GetList<T>(this IntPtr l, int index, System.Span<T> list)
         {
             list.Clear();
