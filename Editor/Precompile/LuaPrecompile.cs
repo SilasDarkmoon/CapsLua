@@ -1,6 +1,9 @@
 ﻿#if NET_UNITY_4_8 || (!UNITY_ENGINE && !UNITY_5_3_OR_NEWER) || UNITY_2021_1_OR_NEWER
 #define RUNTIME_HAS_REF_STRUCT
 #endif
+#if UNITY_2020_2_OR_NEWER || NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1 || NETSTANDARD2_1_OR_GREATER
+#define RUNTIME_HAS_READONLY_REF
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4362,7 +4365,7 @@ namespace Capstones.UnityEditorEx
                 public Types ArgTypes;
                 public Dictionary<int, string> RefOrOutArgs;
 
-                public string GetArgRefOrOut(int index)
+                public string GetArgByRefModifier(int index)
                 {
                     if (RefOrOutArgs == null)
                     {
@@ -4378,7 +4381,12 @@ namespace Capstones.UnityEditorEx
                 }
                 public bool IsArgRefOrOut(int index)
                 {
-                    return !string.IsNullOrEmpty(GetArgRefOrOut(index));
+                    var modifier = GetArgByRefModifier(index);
+                    return !string.IsNullOrEmpty(modifier) && modifier != "in";
+                }
+                public bool IsArgByRef(int index)
+                {
+                    return !string.IsNullOrEmpty(GetArgByRefModifier(index));
                 }
             }
 
@@ -4468,6 +4476,12 @@ namespace Capstones.UnityEditorEx
                                     {
                                         exinfo.RefOrOutArgs[types.Count] = "out";
                                     }
+#if RUNTIME_HAS_READONLY_REF
+                                    else if (pars[j].IsIn)
+                                    {
+                                        exinfo.RefOrOutArgs[types.Count] = "in";
+                                    }
+#endif
                                     else
                                     {
                                         exinfo.RefOrOutArgs[types.Count] = "ref";
@@ -5007,7 +5021,7 @@ namespace Capstones.UnityEditorEx
                             {
                                 sb.Append(", ");
                             }
-                            var reforout = exinfo.GetArgRefOrOut(i);
+                            var reforout = exinfo.GetArgByRefModifier(i);
                             if (!string.IsNullOrEmpty(reforout))
                             {
                                 sb.Append(reforout);
@@ -5119,7 +5133,7 @@ namespace Capstones.UnityEditorEx
                             {
                                 sb.Append(", ");
                             }
-                            var reforout = exinfo.GetArgRefOrOut(i);
+                            var reforout = exinfo.GetArgByRefModifier(i);
                             if (!string.IsNullOrEmpty(reforout))
                             {
                                 sb.Append(reforout);
@@ -5197,7 +5211,7 @@ namespace Capstones.UnityEditorEx
                             {
                                 sb.Append(", ");
                             }
-                            var reforout = exinfo.GetArgRefOrOut(i);
+                            var reforout = exinfo.GetArgByRefModifier(i);
                             if (!string.IsNullOrEmpty(reforout))
                             {
                                 sb.Append(reforout);
@@ -5388,7 +5402,7 @@ namespace Capstones.UnityEditorEx
                         {
                             sb.Append(", ");
                         }
-                        var reforout = exinfo.GetArgRefOrOut(i);
+                        var reforout = exinfo.GetArgByRefModifier(i);
                         if (!string.IsNullOrEmpty(reforout))
                         {
                             sb.Append(reforout);
@@ -5433,7 +5447,7 @@ namespace Capstones.UnityEditorEx
                         {
                             sb.Append(", ");
                         }
-                        var reforout = exinfo.GetArgRefOrOut(i);
+                        var reforout = exinfo.GetArgByRefModifier(i);
                         if (!string.IsNullOrEmpty(reforout))
                         {
                             sb.Append(reforout);
