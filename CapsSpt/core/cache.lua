@@ -176,6 +176,47 @@ function cache.setValueWithHistory(setfunc, getfunc)
     return pushValue, popValue, getValue
 end
 
+function cache.setValueWithHistoryAndPriority(setfunc)
+    local valuestack = cache.stacknew()
+
+    local function getValueOfMaxPriority()
+        local maxv, maxp
+        for i, vinfo in ipairs(valuestack.v) do
+            local v, p = vinfo.v, vinfo.p
+            if not maxp or maxp <= p then
+                maxv = v
+                maxp = p
+            end
+        end
+        return maxv
+    end
+    local function setValueToMaxPriority()
+        setfunc(getValueOfMaxPriority())
+    end
+
+    local function pushValue(value, owner, priority)
+        priority = tonumber(priority)
+        local vinfo = { v = value, p = priority }
+        cache.stackpush(valuestack, vinfo, owner)
+        setValueToMaxPriority()
+    end
+    local function popValue(owner)
+        cache.stackpop(valuestack, owner)
+        setValueToMaxPriority()
+    end
+    local function getValue(owner)
+        if owner then
+            local index = valuestack.i[owner]
+            if not index then return end
+            return valuestack.v[index]
+        else
+            return getValueOfMaxPriority()
+        end
+    end
+
+    return pushValue, popValue, getValue
+end
+
 function cache.setValueWithHistoryAndCategory()
     local valuestacks = { }
     function valuestacks.getValue(cate, owner)
