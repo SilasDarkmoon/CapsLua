@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if UNITY_2020_2_OR_NEWER || NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1 || NETSTANDARD2_1_OR_GREATER
+#define RUNTIME_HAS_READONLY_REF
+#endif
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Capstones.UnityEngineEx;
@@ -693,7 +696,12 @@ namespace Capstones.LuaLib
                     if (type.IsByRef)
                     {
                         _ParamTypes.Add(type.GetElementType());
-                        oindices.Add(i);
+#if RUNTIME_HAS_READONLY_REF
+                        if (!pars[i].IsIn)
+#endif
+                        {
+                            oindices.Add(i);
+                        }
                     }
                     else
                     {
@@ -876,7 +884,12 @@ namespace Capstones.LuaLib
                     if (type.IsByRef)
                     {
                         _ParamTypes.Add(type.GetElementType());
-                        oindices.Add(i);
+#if RUNTIME_HAS_READONLY_REF
+                        if (!pars[i].IsIn)
+#endif
+                        {
+                            oindices.Add(i);
+                        }
                     }
                     else
                     {
@@ -1079,7 +1092,12 @@ namespace Capstones.LuaLib
                     if (type.IsByRef)
                     {
                         _ParamTypes.Add(type.GetElementType());
-                        oindices.Add(i);
+#if RUNTIME_HAS_READONLY_REF
+                        if (!pars[i].IsIn)
+#endif
+                        {
+                            oindices.Add(i);
+                        }
                     }
                     else
                     {
@@ -1285,7 +1303,12 @@ namespace Capstones.LuaLib
                     if (type.IsByRef)
                     {
                         _ParamTypes.Add(type.GetElementType());
-                        oindices.Add(i);
+#if RUNTIME_HAS_READONLY_REF
+                        if (!pars[i].IsIn)
+#endif
+                        {
+                            oindices.Add(i);
+                        }
                     }
                     else
                     {

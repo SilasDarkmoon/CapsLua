@@ -358,6 +358,17 @@ namespace Capstones.LuaExt
             }
             l.pop(1); // X
 
+            // reset updatepath
+            l.GetGlobal("clr"); // clr
+            if (l.istable(-1))
+            {
+                l.PushString(ThreadSafeValues.UpdatePath);
+                l.SetField(-2, "updatepath");
+                l.PushString(ThreadSafeValues.LogPath);
+                l.SetField(-2, "logpath");
+            }
+            l.pop(1); // (empty)
+
             // res version
             l.pushnil();
             l.SetGlobal("___resver");
