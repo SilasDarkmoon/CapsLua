@@ -5728,249 +5728,96 @@ namespace Capstones.UnityEditorEx
                 }
             }
 
-            List<int> selectedcounts = new List<int>();
-            foreach (var kvp in bycnt_valuetype)
-            {
-                int argcnt = kvp.Key;
-                //IList<MethodBase> nullables = null;
-                //bycnt_nullable.TryGetValue(argcnt, out nullables);
-                //if (nullables == null || kvp.Value.Count >= nullables.Count)
-                {
-                    selectedcounts.Add(argcnt);
-                }
+            if (bycnt_valuetype.Count <= 1)
+            { // all overloads have same arg_count
+                WriteMethodBody_30_ByObjType(context);
             }
-            selectedcounts.Sort((k1, k2) =>
+            //else if (bycnt_valuetype.All(kvp => kvp.Value.Count == methods.Count))
+            //{ // all overloads have same arg_count
+            //    WriteMethodBody_30_ByObjType(context);
+            //}
+            else
             {
-                var vcnt1 = bycnt_valuetype[k1].Count;
-                var vcnt2 = bycnt_valuetype[k2].Count;
-                if (vcnt1 == vcnt2)
+                List<int> selectedcounts = new List<int>();
+                foreach (var kvp in bycnt_valuetype)
                 {
-                    int ncnt1 = 0;
-                    int ncnt2 = 0;
-                    IList<MethodBase> nms1;
-                    IList<MethodBase> nms2;
-                    if (bycnt_nullable.TryGetValue(k1, out nms1))
+                    int argcnt = kvp.Key;
+                    //IList<MethodBase> nullables = null;
+                    //bycnt_nullable.TryGetValue(argcnt, out nullables);
+                    //if (nullables == null || kvp.Value.Count >= nullables.Count)
                     {
-                        ncnt1 = nms1.Count;
+                        selectedcounts.Add(argcnt);
                     }
-                    if (bycnt_nullable.TryGetValue(k2, out nms2))
+                }
+                selectedcounts.Sort((k1, k2) =>
+                {
+                    var vcnt1 = bycnt_valuetype[k1].Count;
+                    var vcnt2 = bycnt_valuetype[k2].Count;
+                    if (vcnt1 == vcnt2)
                     {
-                        ncnt2 = nms2.Count;
+                        int ncnt1 = 0;
+                        int ncnt2 = 0;
+                        IList<MethodBase> nms1;
+                        IList<MethodBase> nms2;
+                        if (bycnt_nullable.TryGetValue(k1, out nms1))
+                        {
+                            ncnt1 = nms1.Count;
+                        }
+                        if (bycnt_nullable.TryGetValue(k2, out nms2))
+                        {
+                            ncnt2 = nms2.Count;
+                        }
+                        return ncnt1 - ncnt2;
                     }
-                    return ncnt1 - ncnt2;
-                }
-                return vcnt1 - vcnt2;
-            });
+                    return vcnt1 - vcnt2;
+                });
 
-            bool shouldelse = false;
-            foreach (var argcnt in selectedcounts)
-            {
-                List<MethodBase> branchMethods = new List<MethodBase>(bycnt_valuetype[argcnt]);
-                IList<MethodBase> nullables = null;
-                if (bycnt_nullable.TryGetValue(argcnt, out nullables))
+                bool shouldelse = false;
+                foreach (var argcnt in selectedcounts)
                 {
-                    branchMethods.AddRange(nullables);
-                }
-
-                if (branchMethods.Count == 1)
-                {
-                    WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, argcnt, branchMethods[0]);
-                }
-                else
-                {
-                    WriteMethodBody_10_ByArgCnt_Branch(context, ref shouldelse, argcnt, branchMethods);
-                }
-                foreach (var method in bycnt_valuetype[argcnt])
-                {
-                    context.DoneMethods.Add(method);
-                }
-            }
-            // TODO: params: (oldtop > XXX) or (oldtop > n && oldtop < m) when there is only params funcs fit.
-
-            //SortedDictionary<int, IList<MethodBase>> byfixed = new SortedDictionary<int, IList<MethodBase>>();
-            //SortedDictionary<int, IList<MethodBase>> unfixed = new SortedDictionary<int, IList<MethodBase>>();
-            //Dictionary<MethodBase, int> paramspos = new Dictionary<MethodBase, int>();
-
-            //foreach (var method in methods)
-            //{
-            //    var exinfo = context.GetMethodEx(method);
-            //    var types = exinfo.ArgTypes;
-            //    var argcnt = types.Count;
-            //    if (exinfo.LastArgIsParam)
-            //    {
-            //        IList<MethodBase> list;
-            //        if (!unfixed.TryGetValue(argcnt, out list))
-            //        {
-            //            list = new List<MethodBase>();
-            //            unfixed[argcnt] = list;
-            //        }
-            //        list.Add(method);
-            //        paramspos[method] = argcnt;
-            //        --argcnt;
-            //    }
-            //    {
-            //        IList<MethodBase> list;
-            //        if (!byfixed.TryGetValue(argcnt, out list))
-            //        {
-            //            list = new List<MethodBase>();
-            //            byfixed[argcnt] = list;
-            //        }
-            //        list.Add(method);
-            //    }
-            //}
-
-            //bool shouldelse = false;
-            //int paramsStartedPos = -1;
-            //MethodBase pending = null;
-            //var fixedmax = byfixed.Keys.Max();
-            //for (int i = 0; i <= fixedmax; ++i)
-            //{
-            //    if (byfixed.ContainsKey(i))
-            //    {
-            //        if (paramsStartedPos >= 0)
-            //        {
-            //            WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
-            //        }
-            //        paramsStartedPos = -1;
-            //        pending = null;
-
-            //        var list = byfixed[i];
-            //        var fixedlist = from method in list
-            //                        where !context.GetMethodEx(method).LastArgIsParam
-            //                        select method;
-            //        if (fixedlist.Count() == 1)
-            //        {
-            //            pending = fixedlist.First();
-            //            if (list.All(checking =>
-            //            {
-            //                if (checking != pending)
-            //                {
-            //                    var checkingInfo = context.GetMethodEx(checking);
-            //                    var pendingInfo = context.GetMethodEx(pending);
-            //                    for (int j = 0; j <= i; ++j)
-            //                    {
-            //                        if (checkingInfo.ArgTypes[j] != pendingInfo.ArgTypes[j])
-            //                        {
-            //                            return false;
-            //                        }
-            //                    }
-            //                }
-            //                return true;
-            //            }))
-            //            {
-            //                var unfixedcheching = (from kvp in unfixed
-            //                                       where kvp.Key <= i
-            //                                       from method in kvp.Value
-            //                                       select method).ToArray();
-            //                if (unfixedcheching.Length == 0 || unfixedcheching.All(checking =>
-            //                {
-            //                    if (checking != pending)
-            //                    {
-            //                        var checkingInfo = context.GetMethodEx(checking);
-            //                        var pendingInfo = context.GetMethodEx(pending);
-            //                        for (int j = 0; j <= i; ++j)
-            //                        {
-            //                            Type checkingType;
-            //                            if (j >= checkingInfo.ArgTypes.Count - 1)
-            //                            {
-            //                                checkingType = checkingInfo.ArgTypes[checkingInfo.ArgTypes.Count - 1].GetElementType();
-            //                            }
-            //                            else
-            //                            {
-            //                                checkingType = checkingInfo.ArgTypes[j];
-            //                            }
-            //                            if (checkingType != pendingInfo.ArgTypes[j])
-            //                            {
-            //                                return false;
-            //                            }
-            //                        }
-            //                    }
-            //                    return true;
-            //                }))
-            //                {
-            //                    WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, i, pending);
-            //                }
-            //            }
-            //            pending = null;
-            //        }
-            //        else
-            //        {
-            //            if (list.Count == 1)
-            //            {
-            //                paramsStartedPos = i;
-            //                pending = list[0];
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        var pcnt = (from kvp in unfixed
-            //                    where kvp.Key <= i
-            //                    select kvp.Value.Count).Sum();
-            //        if (pcnt == 1)
-            //        {
-            //            if (paramsStartedPos < 0)
-            //            {
-            //                paramsStartedPos = i;
-            //                pending = (from kvp in unfixed
-            //                           where kvp.Key <= i
-            //                           select kvp.Value).First().First();
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (paramsStartedPos >= 0)
-            //            {
-            //                WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, i - 1, pending);
-            //            }
-            //            paramsStartedPos = -1;
-            //            pending = null;
-            //        }
-            //    }
-            //}
-
-            //if (paramsStartedPos >= 0)
-            //{
-            //    WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, paramsStartedPos, int.MaxValue, pending);
-            //    paramsStartedPos = -1;
-            //    pending = null;
-            //}
-            //else
-            //{
-            //    var pcnt = (from kvp in unfixed
-            //                where kvp.Key <= fixedmax + 1
-            //                select kvp.Value.Count).Sum();
-            //    if (pcnt == 1)
-            //    {
-            //        pending = (from kvp in unfixed
-            //                   where kvp.Key <= fixedmax + 1
-            //                   select kvp.Value).First().First();
-            //        WriteMethodBody_10_ByArgCnt_Range(context, ref shouldelse, fixedmax + 1, int.MaxValue, pending);
-            //        pending = null;
-            //    }
-            //}
-
-            if (context.Methods.Count > context.DoneMethods.Count)
-            {
-                if (shouldelse)
-                {
-                    sb.AppendLine("else");
-                }
-                {
-                    sb.AppendLine("{");
-                    if (context.Methods.Count - context.DoneMethods.Count == 1)
+                    List<MethodBase> branchMethods = new List<MethodBase>(bycnt_valuetype[argcnt]);
+                    IList<MethodBase> nullables = null;
+                    if (bycnt_nullable.TryGetValue(argcnt, out nullables))
                     {
-                        var rest = context.GetUndoneMethods().First();
-                        sb.Append("goto Label_");
-                        sb.Append(context.GetMethodEx(rest).Label);
-                        sb.AppendLine(";");
+                        branchMethods.AddRange(nullables);
+                    }
+
+                    if (branchMethods.Count == 1)
+                    {
+                        WriteMethodBody_10_ByArgCnt_Single(context, ref shouldelse, argcnt, branchMethods[0]);
                     }
                     else
                     {
-                        //WriteMethodBody_15_ByArgCntAndParamType(context);
-                        WriteMethodBody_30_ByObjType(context, -1, new HashSet<int>(selectedcounts)); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
+                        WriteMethodBody_10_ByArgCnt_Branch(context, ref shouldelse, argcnt, branchMethods);
                     }
-                    sb.AppendLine("}");
+                    foreach (var method in bycnt_valuetype[argcnt])
+                    {
+                        context.DoneMethods.Add(method);
+                    }
+                }
+
+                if (context.Methods.Count > context.DoneMethods.Count)
+                {
+                    if (shouldelse)
+                    {
+                        sb.AppendLine("else");
+                    }
+                    {
+                        sb.AppendLine("{");
+                        if (context.Methods.Count - context.DoneMethods.Count == 1)
+                        {
+                            var rest = context.GetUndoneMethods().First();
+                            sb.Append("goto Label_");
+                            sb.Append(context.GetMethodEx(rest).Label);
+                            sb.AppendLine(";");
+                        }
+                        else
+                        {
+                            //WriteMethodBody_15_ByArgCntAndParamType(context);
+                            WriteMethodBody_30_ByObjType(context, -1, new HashSet<int>(selectedcounts)); // TODO: test and fix WriteMethodBody_15_ByArgCntAndParamType && WriteMethodBody_20_ByLuaType
+                        }
+                        sb.AppendLine("}");
+                    }
                 }
             }
         }
