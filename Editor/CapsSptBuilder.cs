@@ -1480,6 +1480,46 @@ namespace Capstones.UnityEditorEx
             IconMaker.SetFolderIconToFileContent("EditorOutput/Build/" + timetoken + (version > 0 ? ("_" + version) : ""), outputDir + "/spt/version.txt");
         }
 
+        public static void RestoreStreamingAssetsFromLatestBuild()
+        {
+            var srcroot = "EditorOutput/Build/Latest/spt/";
+            var dstroot = "Assets/StreamingAssets/spt/";
+
+            if (System.IO.Directory.Exists(srcroot))
+            {
+                if (System.IO.Directory.Exists(dstroot))
+                {
+                    System.IO.Directory.Delete(dstroot, true);
+                }
+                System.IO.Directory.CreateDirectory(dstroot);
+
+                HashSet<string> nocopyfiles = new HashSet<string>()
+                {
+                    "icon.png",
+                    "icon.ico",
+                    "desktop.ini",
+                    "Icon\r",
+                };
+                var allbuildfiles = PlatDependant.GetAllFiles(srcroot);
+                for (int i = 0; i < allbuildfiles.Length; ++i)
+                {
+                    var srcfile = allbuildfiles[i];
+                    if (srcfile.EndsWith(".srcinfo"))
+                    {
+                        continue;
+                    }
+                    var part = srcfile.Substring(srcroot.Length);
+                    if (nocopyfiles.Contains(part))
+                    {
+                        continue;
+                    }
+                    var destfile = dstroot + part;
+                    PlatDependant.CreateFolder(System.IO.Path.GetDirectoryName(destfile));
+                    System.IO.File.Copy(srcfile, destfile);
+                }
+            }
+        }
+
         private class CapsSptBuilderPreExport : UnityEditor.Build.IPreprocessBuild
         {
             public int callbackOrder { get { return 0; } }
