@@ -611,6 +611,7 @@ namespace Capstones.LuaLib
     {
         private Type _t;
         private BaseMethodMeta _NormalCtor;
+        public BaseMethodMeta NormalCtor { get { return _NormalCtor; } }
 
         public CtorMethodMeta(Type t)
         {
@@ -650,6 +651,7 @@ namespace Capstones.LuaLib
         protected internal Types _ParamTypes;
         protected internal IList<int> _OutParamIndices;
         protected internal int _LastIsParams = -1;
+        public abstract MethodBase Method { get; }
 
         public static BaseUniqueMethodMeta CreateMethodMeta(MethodBase minfo, bool updateDataAfterCall)
         {
@@ -682,6 +684,7 @@ namespace Capstones.LuaLib
     internal class CtorInfoMethodMeta : BaseUniqueMethodMeta
     {
         private ConstructorInfo _Method;
+        public override MethodBase Method { get { return _Method; } }
 
         public CtorInfoMethodMeta(ConstructorInfo minfo)
         {
@@ -866,10 +869,7 @@ namespace Capstones.LuaLib
     public class StaticMethodMeta : BaseUniqueMethodMeta
     {
         private MethodBase _Method;
-        public MethodBase Method
-        {
-            get { return _Method; }
-        }
+        public override MethodBase Method { get { return _Method; } }
 
         public StaticMethodMeta(MethodBase minfo)
         {
@@ -1078,6 +1078,7 @@ namespace Capstones.LuaLib
     internal class InstanceMethodMeta : BaseUniqueMethodMeta
     {
         private MethodBase _Method;
+        public override MethodBase Method { get { return _Method; } }
 
         public InstanceMethodMeta(MethodBase minfo)
         {
@@ -1289,6 +1290,7 @@ namespace Capstones.LuaLib
     internal class ValueTypeMethodMeta : BaseUniqueMethodMeta
     {
         private MethodBase _Method;
+        public override MethodBase Method { get { return _Method; } }
 
         public ValueTypeMethodMeta(MethodBase minfo)
         {
@@ -1496,7 +1498,11 @@ namespace Capstones.LuaLib
         }
     }
 
-    public class GroupMethodMeta : BaseMethodMeta
+    public abstract class BaseOverloadedMethodMeta : BaseMethodMeta
+    {
+        public abstract BaseUniqueMethodMeta FindAppropriate(Types pt);
+    }
+    public class GroupMethodMeta : BaseOverloadedMethodMeta
     {
         private BaseUniqueMethodMeta[] _SeqCache;
         private Dictionary<Types, BaseUniqueMethodMeta> _TypedCache;
@@ -1527,7 +1533,7 @@ namespace Capstones.LuaLib
             _TypedCache = tcache;
         }
 
-        protected internal BaseUniqueMethodMeta FindAppropriate(Types pt)
+        public override BaseUniqueMethodMeta FindAppropriate(Types pt)
         {
             BaseUniqueMethodMeta ucore = null;
             if (_TypedCache.TryGetValue(pt, out ucore))
@@ -1598,7 +1604,7 @@ namespace Capstones.LuaLib
             }
         }
     }
-    public class PackedMethodMeta : BaseMethodMeta
+    public class PackedMethodMeta : BaseOverloadedMethodMeta
     {
         internal Dictionary<int, BaseMethodMeta> _Groups = new Dictionary<int, BaseMethodMeta>();
         internal int _MaxNullableCode = 0;
@@ -1693,6 +1699,40 @@ namespace Capstones.LuaLib
         }
         protected PackedMethodMeta()
         {
+        }
+
+        public override BaseUniqueMethodMeta FindAppropriate(Types pt)
+        {
+            var code = LuaHub.GetParamsCode(pt);
+            BaseMethodMeta rcore = null;
+            _Groups.TryGetValue(code, out rcore);
+            if (rcore != null)
+            {
+                if (rcore is BaseUniqueMethodMeta)
+                {
+                    return (BaseUniqueMethodMeta)rcore;
+                }
+                else
+                {
+                    var meta = ((GroupMethodMeta)rcore).FindAppropriate(pt);
+                    if (meta != null)
+                    {
+                        return meta;
+                    }
+                }
+            }
+            if (_NullableMethodMeta != null && code < _MaxNullableCode && _NullableMethodMeta.CanCallByArgsOfType(pt) >= 0)
+            {
+                if (_NullableMethodMeta is BaseUniqueMethodMeta)
+                {
+                    return (BaseUniqueMethodMeta)_NullableMethodMeta;
+                }
+                else if (_NullableMethodMeta is BaseOverloadedMethodMeta)
+                {
+                    return ((BaseOverloadedMethodMeta)_NullableMethodMeta).FindAppropriate(pt);
+                }
+            }
+            return null;
         }
 
         public override void call(IntPtr l, object tar)
@@ -1955,43 +1995,45 @@ namespace Capstones.LuaLib
                             {
                                 l.pop(1); // gcache
 
-                                lua.CFunction precompiled = null;
-                                if (meta._GenericMethodsCache.TryGetValue(gtypes, out precompiled) && precompiled != null)
+                                var methods = meta._GenericMethods[gtypes.Count];
+                                var tarray = ObjectPool.GetParamTypesFromPool(gtypes.Count);
+                                for (int i = 0; i < tarray.Length; ++i)
                                 {
-                                    l.pushcfunction(precompiled); // gcache func
+                                    tarray[i] = gtypes[i];
+                                }
+                                List<MethodBase> gmethods = new List<MethodBase>(methods.Count);
+                                for (int i = 0; i < methods.Count; ++i)
+                                {
+                                    var method = methods[i];
+                                    try
+                                    {
+                                        var gmethod = method.MakeGenericMethod(tarray);
+                                        gmethods.Add(gmethod);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        l.LogError(e);
+                                    }
+                                }
+
+                                if (gmethods.Count <= 0)
+                                {
+                                    l.pushcfunction(LuaHub.LuaFuncOnError); // gcache func
                                 }
                                 else
                                 {
-                                    var methods = meta._GenericMethods[gtypes.Count];
-                                    var tarray = ObjectPool.GetParamTypesFromPool(gtypes.Count);
-                                    for (int i = 0; i < tarray.Length; ++i)
+                                    var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, meta._UpdateDataAfterCall);
+                                    lua.CFunction precompiled = null;
+                                    if (meta._GenericMethodsCache.TryGetValue(gtypes, out precompiled) && precompiled != null)
                                     {
-                                        tarray[i] = gtypes[i];
-                                    }
-                                    List<MethodBase> gmethods = new List<MethodBase>(methods.Count);
-                                    for (int i = 0; i < methods.Count; ++i)
-                                    {
-                                        var method = methods[i];
-                                        try
-                                        {
-                                            var gmethod = method.MakeGenericMethod(tarray);
-                                            gmethods.Add(gmethod);
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            l.LogError(e);
-                                        }
-                                    }
-                                    if (gmethods.Count <= 0)
-                                    {
-                                        l.pushcfunction(LuaHub.LuaFuncOnError); // gcache func
+                                        l.pushcfunction(precompiled); // gcache func
                                     }
                                     else
                                     {
-                                        var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, meta._UpdateDataAfterCall);
                                         l.PushFunction(gmeta); // gcache func
-                                        // should we cache it back to _GenericMethodsCache? need lock... we can cache it in c# code, instead of in runtime.
+                                                                // should we cache it back to _GenericMethodsCache? need lock... we can cache it in c# code, instead of in runtime.
                                     }
+                                    gmeta.WrapFunctionByTable(l);
                                 }
                                 l.pushlightuserdata(LuaConst.LRKEY_GENERIC_CACHE); // gcache type #gcache
                                 l.pushvalue(-2); // gcache func #gcache func
