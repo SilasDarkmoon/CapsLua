@@ -435,6 +435,12 @@ function unity.basync(self, func, ...)
     end
 end
 
+function unity.asyncf(func)
+    return function(...)
+        unity.async(func, ...)
+    end
+end
+
 local asyncmeta = {} -- TODO: for pairs/ipairs, next, #, __call, ..., make it a udtable?
 asyncmeta.__index = function(cls, key)
     if type(key) == "string" and string.sub(key, -5) == "Async" then
