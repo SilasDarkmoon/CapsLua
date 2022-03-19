@@ -313,7 +313,15 @@ namespace Capstones.LuaExt.Test
 
         public class GenericClass<T>
         {
-            public static void UniquePublic() { }
+            public static void UniquePublic()
+            {
+                UnityEngine.Debug.LogError("GenericClass<T>.UniquePublic");
+            }
+
+            public void UniquInstanceePublic()
+            {
+                UnityEngine.Debug.LogError("GenericClass<T>.UniquInstanceePublic");
+            }
         }
     }
 }

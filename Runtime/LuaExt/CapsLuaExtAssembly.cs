@@ -107,6 +107,8 @@ namespace Capstones.LuaExt
             L.SetField(-2, "closedel"); // clr
             L.pushcfunction(ClrDelGetMethodInfo); // clr func
             L.SetField(-2, "methodinfo"); // clr
+            L.pushcfunction(ClrDelCreateDelForMethodInfo); // clr func
+            L.SetField(-2, "methodfunc"); // clr
             L.PushLuaObject(null);
             L.SetField(-2, "null");
             L.pop(1);
@@ -133,6 +135,7 @@ namespace Capstones.LuaExt
         internal static readonly lua.CFunction ClrDelEx = new lua.CFunction(ClrFuncEx);
         internal static readonly lua.CFunction ClrDelDisposeDelegate = new lua.CFunction(ClrFuncDisposeDelegate);
         internal static readonly lua.CFunction ClrDelGetMethodInfo = new lua.CFunction(ClrFuncGetMethodInfo);
+        internal static readonly lua.CFunction ClrDelCreateDelForMethodInfo = new lua.CFunction(ClrFuncCreateDelForMethodInfo);
 
         public static void PushClrHierarchyMetatable(this IntPtr l)
         {
@@ -985,6 +988,24 @@ namespace Capstones.LuaExt
                         }
                     }
                 }
+            }
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncCreateDelForMethodInfo(IntPtr l)
+        {
+            MethodInfo mi;
+            Type deltype;
+            object target;
+            l.GetLua(1, out mi);
+            l.GetLua(2, out deltype);
+            l.GetLua(3, out target);
+            if (mi != null && deltype != null)
+            {
+                var del = mi.CreateDelegate(deltype, target);
+                l.PushLua(del);
+                return 1;
             }
             return 0;
         }
