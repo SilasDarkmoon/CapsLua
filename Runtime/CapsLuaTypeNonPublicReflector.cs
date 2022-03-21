@@ -427,6 +427,12 @@ namespace Capstones.LuaLib
                         meta.WrapFunctionByTable(l);
                     }
                     return 1;
+                case MemberTypes.NestedType:
+                    {
+                        var nt = members[0] as Type;
+                        l.PushLua(nt);
+                    }
+                    return 1;
                 default:
                     return 0;
             }
