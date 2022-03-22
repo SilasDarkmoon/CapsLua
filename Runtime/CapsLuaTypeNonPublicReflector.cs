@@ -113,13 +113,6 @@ namespace Capstones.LuaLib
                 l.pushlightuserdata(LuaConst.LRKEY_GETTER); // #getter
                 l.newtable(); // #getter getter
                 l.rawset(1); // X
-                Type tartype = l.GetType(1);
-                if (tartype != null && tartype.IsValueType())
-                {
-                    l.pushlightuserdata(LuaConst.LRKEY_SETTER); // #setter
-                    l.pushboolean(true); // #setter true
-                    l.rawset(1); // X
-                }
             }
 
             l.pushlightuserdata(LuaConst.LRKEY_TARGET); // #tar
@@ -154,6 +147,10 @@ namespace Capstones.LuaLib
                             l.pushvalue(2); // getter name
                             l.PushLuaObject(fi); // getter name fi
                             l.settable(-3); // getter
+                            bool updateDataAfterCall = type.IsValueType;
+                            l.pushlightuserdata(LuaConst.LRKEY_SETTER); // getter #setter
+                            l.pushboolean(updateDataAfterCall); // getter #setter updateDataAfterCall
+                            l.rawset(-3); // getter
                             l.pop(1); // X
 
                             if (tar == null)
@@ -183,6 +180,10 @@ namespace Capstones.LuaLib
                             l.pushvalue(2); // getter name
                             l.PushLuaObject(pi); // getter name pi
                             l.settable(-3); // getter
+                            bool updateDataAfterCall = type.IsValueType;
+                            l.pushlightuserdata(LuaConst.LRKEY_SETTER); // getter #setter
+                            l.pushboolean(updateDataAfterCall); // getter #setter updateDataAfterCall
+                            l.rawset(-3); // getter
                             l.pop(1); // X
 
                             if (tar == null)
@@ -245,17 +246,11 @@ namespace Capstones.LuaLib
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         private static int LuaMetaInstanceNewIndex(IntPtr l)
         {
-            bool updateDataAfterCall = false;
             // Try get from cache.
             l.pushlightuserdata(LuaConst.LRKEY_GETTER); // #getter
             l.rawget(1); // getter
             if (l.istable(-1))
             {
-                l.pushlightuserdata(LuaConst.LRKEY_SETTER);
-                l.rawget(1);
-                l.GetLua(-1, out updateDataAfterCall);
-                l.pop(1);
-
                 l.pushvalue(2); // getter name
                 l.gettable(-2); // getter getterinfo
                 var lt = l.type(-1);
@@ -271,8 +266,12 @@ namespace Capstones.LuaLib
                 }
                 else
                 {
-                    var getterinfo = l.GetLua(-1);
-                    l.pop(2); // X
+                    bool updateDataAfterCall;
+                    l.pushlightuserdata(LuaConst.LRKEY_SETTER); // getter getterinfo #setter
+                    l.rawget(-3); // getter getterinfo updateDataAfterCall
+                    l.GetLua(-1, out updateDataAfterCall);
+                    var getterinfo = l.GetLua(-2);
+                    l.pop(3); // X
                     var fi = getterinfo as FieldInfo;
                     if (fi != null)
                     {
@@ -347,14 +346,6 @@ namespace Capstones.LuaLib
                 l.pushlightuserdata(LuaConst.LRKEY_GETTER); // #getter
                 l.newtable(); // #getter getter
                 l.rawset(1); // X
-                Type tartype = l.GetType(1);
-                if (tartype != null && tartype.IsValueType())
-                {
-                    updateDataAfterCall = true;
-                    l.pushlightuserdata(LuaConst.LRKEY_SETTER); // #setter
-                    l.pushboolean(true); // #setter true
-                    l.rawset(1); // X
-                }
             }
 
             string name;
@@ -394,6 +385,10 @@ namespace Capstones.LuaLib
                             l.pushvalue(2); // getter name
                             l.PushLuaObject(fi); // getter name fi
                             l.settable(-3); // getter
+                            bool updateDataAfterCall = type.IsValueType;
+                            l.pushlightuserdata(LuaConst.LRKEY_SETTER); // getter #setter
+                            l.pushboolean(updateDataAfterCall); // getter #setter updateDataAfterCall
+                            l.rawset(-3); // getter
                             l.pop(1); // X
 
                             try
@@ -420,6 +415,10 @@ namespace Capstones.LuaLib
                             l.pushvalue(2); // getter name
                             l.PushLuaObject(pi); // getter name pi
                             l.settable(-3); // getter
+                            bool updateDataAfterCall = type.IsValueType;
+                            l.pushlightuserdata(LuaConst.LRKEY_SETTER); // getter #setter
+                            l.pushboolean(updateDataAfterCall); // getter #setter updateDataAfterCall
+                            l.rawset(-3); // getter
                             l.pop(1); // X
 
                             try
@@ -829,6 +828,24 @@ namespace Capstones.LuaLib
             l.pushcfunction(LuaFuncInstanceNewIndex); // refl meta newindex
             l.RawSet(-2, LuaConst.LS_META_KEY_NINDEX); // refl meta
             l.setmetatable(-2); // refl
+
+            // cache getter table
+            if (l.getmetatable(1))
+            { // refl objmeta
+                l.GetField(-1, LuaConst.LS_SP_KEY_NONPUBLIC); // refl objmeta npgetter
+                if (!l.istable(-1))
+                {
+                    l.pop(1); // refl objmeta
+                    l.newtable(); // refl objmeta npgetter
+                    l.pushvalue(-1); // refl objmeta npgetter npgetter
+                    l.SetField(-3, LuaConst.LS_SP_KEY_NONPUBLIC); // refl objmeta npgetter
+                }
+                l.pushlightuserdata(LuaConst.LRKEY_GETTER); // refl objmeta npgetter #getter
+                l.insert(-2); // refl objmeta #getter npgetter
+                l.rawset(-4); // refl objmeta
+                l.pop(1); // refl
+            }
+
             // cache it!
             l.PushString(LuaConst.LS_SP_KEY_NONPUBLIC); // refl "@npub"
             l.pushvalue(-2); // refl "@npub" refl
