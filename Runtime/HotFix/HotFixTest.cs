@@ -271,6 +271,9 @@ namespace Capstones.LuaExt.Test
 {
     public class LuaExtTest
     {
+        private static int PrivateStaticField = 6;
+        private int PrivateInstanceField = 7; 
+
         public static void UniqueStaticPublic() { }
         private static void UniqueStaticPrivate() { }
 
