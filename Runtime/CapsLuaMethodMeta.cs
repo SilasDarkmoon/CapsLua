@@ -2033,7 +2033,7 @@ namespace Capstones.LuaLib
                                     {
                                         var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, meta._UpdateDataAfterCall);
                                         l.PushFunction(gmeta); // gcache func
-                                                                // should we cache it back to _GenericMethodsCache? need lock... we can cache it in c# code, instead of in runtime.
+                                                               // should we cache it back to _GenericMethodsCache? need lock... we can cache it in c# code, instead of in runtime.
                                         gmeta.WrapFunctionByTable(l);
                                     }
                                 }
@@ -2141,7 +2141,6 @@ namespace Capstones.LuaLib
                                 if (l.islightuserdata(-1))
                                 {
                                     var trans = l.GetLuaLightObject(-1);
-                                    l.pop(1);
                                     gmeta = trans as BaseMethodMeta;
                                 }
                                 l.pop(2); // gcache
