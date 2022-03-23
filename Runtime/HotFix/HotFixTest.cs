@@ -311,7 +311,7 @@ namespace Capstones.LuaExt.Test
 
         private static void UniqueGeneric<T>()
         {
-            UnityEngine.Debug.LogError("UniqueGeneric<T>");
+            UnityEngine.Debug.LogError(string.Format("UniqueGeneric<{0}>", typeof(T)));
         }
 
         public class GenericClass<T>

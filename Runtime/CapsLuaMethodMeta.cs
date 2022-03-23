@@ -1995,47 +1995,49 @@ namespace Capstones.LuaLib
                             {
                                 l.pop(1); // gcache
 
-                                var methods = meta._GenericMethods[gtypes.Count];
-                                var tarray = ObjectPool.GetParamTypesFromPool(gtypes.Count);
-                                for (int i = 0; i < tarray.Length; ++i)
+                                lua.CFunction precompiled = null;
+                                if (meta._GenericMethodsCache.TryGetValue(gtypes, out precompiled) && precompiled != null)
                                 {
-                                    tarray[i] = gtypes[i];
-                                }
-                                List<MethodBase> gmethods = new List<MethodBase>(methods.Count);
-                                for (int i = 0; i < methods.Count; ++i)
-                                {
-                                    var method = methods[i];
-                                    try
-                                    {
-                                        var gmethod = method.MakeGenericMethod(tarray);
-                                        gmethods.Add(gmethod);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        l.LogError(e);
-                                    }
-                                }
-
-                                if (gmethods.Count <= 0)
-                                {
-                                    l.pushcfunction(LuaHub.LuaFuncOnError); // gcache func
+                                    l.pushcfunction(precompiled); // gcache func
+                                    var lazymeta = new LazyParameterizedMethodMeta(meta, gtypes);
+                                    lazymeta.WrapFunctionByTable(l);
                                 }
                                 else
                                 {
-                                    var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, meta._UpdateDataAfterCall);
-                                    lua.CFunction precompiled = null;
-                                    if (meta._GenericMethodsCache.TryGetValue(gtypes, out precompiled) && precompiled != null)
+                                    var methods = meta._GenericMethods[gtypes.Count];
+                                    var tarray = ObjectPool.GetParamTypesFromPool(gtypes.Count);
+                                    for (int i = 0; i < tarray.Length; ++i)
                                     {
-                                        l.pushcfunction(precompiled); // gcache func
+                                        tarray[i] = gtypes[i];
+                                    }
+                                    List<MethodBase> gmethods = new List<MethodBase>(methods.Count);
+                                    for (int i = 0; i < methods.Count; ++i)
+                                    {
+                                        var method = methods[i];
+                                        try
+                                        {
+                                            var gmethod = method.MakeGenericMethod(tarray);
+                                            gmethods.Add(gmethod);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            l.LogError(e);
+                                        }
+                                    }
+
+                                    if (gmethods.Count <= 0)
+                                    {
+                                        l.pushcfunction(LuaHub.LuaFuncOnError); // gcache func
                                     }
                                     else
                                     {
+                                        var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, meta._UpdateDataAfterCall);
                                         l.PushFunction(gmeta); // gcache func
                                                                 // should we cache it back to _GenericMethodsCache? need lock... we can cache it in c# code, instead of in runtime.
+                                        gmeta.WrapFunctionByTable(l);
                                     }
-                                    gmeta.WrapFunctionByTable(l);
                                 }
-                                l.pushlightuserdata(LuaConst.LRKEY_GENERIC_CACHE); // gcache type #gcache
+                                l.pushlightuserdata(LuaConst.LRKEY_GENERIC_CACHE); // gcache func #gcache
                                 l.pushvalue(-2); // gcache func #gcache func
                                 l.rawset(-4); // gcache func
                                 l.remove(-2); // func
@@ -2129,8 +2131,33 @@ namespace Capstones.LuaLib
                                     l.pop(1); // nxttab
                                 }
                             }
+                            BaseMethodMeta gmeta = null;
                             l.pushlightuserdata(LuaConst.LRKEY_GENERIC_CACHE); // gcache #gcache
-                            l.pushvalue(3); // gcache #gcache type
+                            l.rawget(-2); // gcache oldfunc
+                            if (l.istable(-1))
+                            {
+                                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // gcache oldfunc #trans
+                                l.rawget(-2); // gcache oldfunc trans
+                                if (l.islightuserdata(-1))
+                                {
+                                    var trans = l.GetLuaLightObject(-1);
+                                    l.pop(1);
+                                    gmeta = trans as BaseMethodMeta;
+                                }
+                                l.pop(2); // gcache
+                            }
+                            else
+                            {
+                                l.pop(1); // gcache
+                            }
+                            if (gmeta == null)
+                            {
+                                gmeta = new LazyParameterizedMethodMeta(meta, gtypes);
+                            }
+
+                            l.pushlightuserdata(LuaConst.LRKEY_GENERIC_CACHE); // gcache #gcache
+                            l.pushvalue(3); // gcache #gcache func
+                            gmeta.WrapFunctionByTable(l);
                             l.rawset(-3); // gcache
                             l.pop(1); // X
                             return 0;
@@ -2140,6 +2167,109 @@ namespace Capstones.LuaLib
                 }
             }
             return 0;
+        }
+
+        private class LazyParameterizedMethodMeta : BaseOverloadedMethodMeta
+        {
+            public GenericMethodMeta DefinitionMethodMeta;
+            public Types ParameterizedTypes;
+            private BaseMethodMeta ParameterizedMethodMeta;
+            private bool Parameterized;
+
+            public LazyParameterizedMethodMeta(GenericMethodMeta dmeta, Types types)
+            {
+                DefinitionMethodMeta = dmeta;
+                ParameterizedTypes = types;
+            }
+
+            public void DoParameterize()
+            {
+                if (!Parameterized)
+                {
+                    Parameterized = true;
+
+                    var dmeta = DefinitionMethodMeta;
+                    var gtypes = ParameterizedTypes;
+                    var methods = dmeta._GenericMethods[gtypes.Count];
+                    var tarray = ObjectPool.GetParamTypesFromPool(gtypes.Count);
+                    for (int i = 0; i < tarray.Length; ++i)
+                    {
+                        tarray[i] = gtypes[i];
+                    }
+                    List<MethodBase> gmethods = new List<MethodBase>(methods.Count);
+                    for (int i = 0; i < methods.Count; ++i)
+                    {
+                        var method = methods[i];
+                        try
+                        {
+                            var gmethod = method.MakeGenericMethod(tarray);
+                            gmethods.Add(gmethod);
+                        }
+                        catch (Exception e)
+                        {
+                            PlatDependant.LogError(e);
+                        }
+                    }
+
+                    if (gmethods.Count > 0)
+                    {
+                        var gmeta = PackedMethodMeta.CreateMethodMeta(gmethods, null, dmeta._UpdateDataAfterCall);
+                        ParameterizedMethodMeta = gmeta;
+                    }
+                }
+            }
+
+            public override void call(IntPtr l, object tar)
+            {
+                DoParameterize();
+                if (ParameterizedMethodMeta == null)
+                {
+                    l.LogError("Cannot parameterize generic method.");
+                }
+                else
+                {
+                    ParameterizedMethodMeta.call(l, tar);
+                }
+            }
+
+            public override int CanCallByArgsOfType(Types pt)
+            {
+                DoParameterize();
+                if (ParameterizedMethodMeta == null)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return ParameterizedMethodMeta.CanCallByArgsOfType(pt);
+                }
+            }
+
+            public override BaseUniqueMethodMeta FindAppropriate(Types pt)
+            {
+                DoParameterize();
+                if (ParameterizedMethodMeta == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    BaseUniqueMethodMeta uniquemeta = ParameterizedMethodMeta as BaseUniqueMethodMeta;
+                    if (uniquemeta != null)
+                    {
+                        return uniquemeta;
+                    }
+                    else
+                    {
+                        BaseOverloadedMethodMeta overloaded = ParameterizedMethodMeta as BaseOverloadedMethodMeta;
+                        if (overloaded != null)
+                        {
+                            return overloaded.FindAppropriate(pt);
+                        }
+                    }
+                }
+                return null;
+            }
         }
     }
 
