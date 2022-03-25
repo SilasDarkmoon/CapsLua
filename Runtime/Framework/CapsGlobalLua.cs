@@ -280,6 +280,11 @@ namespace Capstones.UnityEngineEx
                         else if (rvc > 0)
                         {
                             var result = l.GetLua(1);
+                            if (result is Capstones.UnityEngineEx.CoroutineRunner.CoroutineAbortedYieldable)
+                            {
+                                l.LogError("Current lua coroutine aborted!");
+                                yield break;
+                            }
                             if (rvc >= 2 && l.toboolean(2))
                             {
                                 l.settop(0);
