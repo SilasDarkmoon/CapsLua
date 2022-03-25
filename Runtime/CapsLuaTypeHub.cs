@@ -148,6 +148,7 @@ namespace Capstones.LuaLib
             }
 
             protected LuaMetaCallWithPrecompiled _Ctor;
+            internal LuaMetaCallWithPrecompiled Ctor { get { return _Ctor; } }
             protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticMethods = new SafeDict<string, LuaMetaCallWithPrecompiled>();
             protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticFieldsIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
             protected SafeDict<string, LuaMetaCallWithPrecompiled> _StaticFieldsNewIndex = new SafeDict<string, LuaMetaCallWithPrecompiled>();
@@ -658,6 +659,10 @@ namespace Capstones.LuaLib
                 l.PushString(LuaConst.LS_SP_KEY_NONPUBLIC);
                 l.pushvalue(-5);
                 l.pushcclosure(CapsLuaTypeNonPublicReflector.LuaFuncCreateStaticReflector, 1);
+                l.rawset(-3);
+                l.PushString(LuaConst.LS_SP_KEY_REFLECTOR);
+                l.pushvalue(-5);
+                l.pushcclosure(CapsLuaTypeNonPublicReflector.LuaFuncCreateReflector, 1);
                 l.rawset(-3);
                 l.pushlightuserdata(LuaConst.LRKEY_GETTER); // tobj ttab consts @getter getter #getter
                 l.pushvalue(-2); // tobj ttab consts @getter getter #getter getter

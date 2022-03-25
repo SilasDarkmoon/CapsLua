@@ -263,3 +263,73 @@ namespace Capstones.LuaWrap.HotFixTest
 #endregion
 #endif
 #endif
+
+#if UNITY_INCLUDE_TESTS
+#region TESTS
+// Common Tests
+namespace Capstones.LuaExt.Test
+{
+    public class LuaExtTest
+    {
+        private static int PrivateStaticField = 6;
+        private int PrivateInstanceField = 7; 
+
+        public static void UniqueStaticPublic() { }
+        private static void UniqueStaticPrivate() { }
+
+        public static void OverloadedStaticPublic(int n) { }
+        public static void OverloadedStaticPublic(float n) { }
+        private static void OverloadedStaticPrivate(int n) { }
+        private static void OverloadedStaticPrivate(float n) { }
+
+        public void UniqueInstancePublic() { }
+        private void UniqueInstancePrivate() { }
+
+        public void OverloadedInstancePublic(int n) { }
+        public void OverloadedInstancePublic(float n) { }
+        private void OverloadedInstancePrivate(int n) { }
+        private void OverloadedInstancePrivate(float n)
+        {
+            UnityEngine.Debug.LogError(n + PrivateInstanceField);
+        }
+
+        public class UniqueCtorPublic
+        {
+            public UniqueCtorPublic() { }
+        }
+        public class UniqueCtorPrivate
+        {
+            private UniqueCtorPrivate() { }
+        }
+        public class OverloadedCtorPublic
+        {
+            public OverloadedCtorPublic(int n) { }
+            public OverloadedCtorPublic(float n) { }
+        }
+        public class OverloadedCtorPrivate
+        {
+            private OverloadedCtorPrivate(int n) { }
+            private OverloadedCtorPrivate(float n) { }
+        }
+
+        private static void UniqueGeneric<T>()
+        {
+            UnityEngine.Debug.LogError(string.Format("UniqueGeneric<{0}>", typeof(T)));
+        }
+
+        public class GenericClass<T>
+        {
+            public static void UniquePublic()
+            {
+                UnityEngine.Debug.LogError("GenericClass<T>.UniquePublic");
+            }
+
+            public void UniquInstanceePublic()
+            {
+                UnityEngine.Debug.LogError("GenericClass<T>.UniquInstanceePublic");
+            }
+        }
+    }
+}
+#endregion
+#endif

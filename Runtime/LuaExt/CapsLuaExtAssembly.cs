@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using Capstones.UnityEngineEx;
 using Capstones.LuaLib;
 using Capstones.LuaWrap;
 
@@ -102,8 +103,12 @@ namespace Capstones.LuaExt
             L.SetField(-2, "pairs"); // clr
             L.pushcfunction(ClrDelEx); // clr func
             L.SetField(-2, "ex"); // clr
-            L.pushcfunction(ClrDelcDisposeDelegate); // clr func
+            L.pushcfunction(ClrDelDisposeDelegate); // clr func
             L.SetField(-2, "closedel"); // clr
+            L.pushcfunction(ClrDelGetMethodInfo); // clr func
+            L.SetField(-2, "methodinfo"); // clr
+            L.pushcfunction(ClrDelCreateDelForMethodInfo); // clr func
+            L.SetField(-2, "methodfunc"); // clr
             L.PushLuaObject(null);
             L.SetField(-2, "null");
             L.pop(1);
@@ -128,7 +133,9 @@ namespace Capstones.LuaExt
         internal static readonly lua.CFunction ClrDelNext = new lua.CFunction(ClrFuncNext);
         internal static readonly lua.CFunction ClrDelPairs = new lua.CFunction(ClrFuncPairs);
         internal static readonly lua.CFunction ClrDelEx = new lua.CFunction(ClrFuncEx);
-        internal static readonly lua.CFunction ClrDelcDisposeDelegate = new lua.CFunction(ClrFuncDisposeDelegate);
+        internal static readonly lua.CFunction ClrDelDisposeDelegate = new lua.CFunction(ClrFuncDisposeDelegate);
+        internal static readonly lua.CFunction ClrDelGetMethodInfo = new lua.CFunction(ClrFuncGetMethodInfo);
+        internal static readonly lua.CFunction ClrDelCreateDelForMethodInfo = new lua.CFunction(ClrFuncCreateDelForMethodInfo);
 
         public static void PushClrHierarchyMetatable(this IntPtr l)
         {
@@ -812,6 +819,193 @@ namespace Capstones.LuaExt
                 {
                     CapsLuaDelegateGenerator.DisposeDelegate(del);
                 }
+            }
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetMethodInfo(IntPtr l)
+        {
+            if (l.istable(1))
+            {
+                l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // #trans
+                l.rawget(1); // trans
+                if (l.islightuserdata(-1))
+                {
+                    var trans = l.GetLuaLightObject(-1);
+                    l.pop(1);
+                    var methodmeta = trans as BaseMethodMeta;
+                    if (methodmeta != null)
+                    {
+                        return ClrFuncGetMethodInfoOfMethod(l, methodmeta);
+                    }
+
+                    if (l.GetType(1) == typeof(Type))
+                    {
+                        if (trans == LuaExtend.LuaTransExtend.Instance)
+                        {
+                            l.PushString(LuaConst.LS_SP_KEY_NONPUBLIC);
+                            l.gettable(1);
+                            if (l.isboolean(-1))
+                            {
+                                var isnpub = l.toboolean(-1);
+                                l.pop(1);
+                                if (isnpub)
+                                {
+                                    Type type;
+                                    l.GetLua(1, out type);
+                                    return ClrFuncGetMethodInfoOfNonPublicCtor(l, type);
+                                }
+                            }
+                            else
+                            {
+                                l.pop(1);
+                            }
+                        }
+
+                        {
+                            Type type;
+                            l.GetLua(1, out type);
+                            return ClrFuncGetMethodInfoOfPublicCtor(l, type);
+                        }
+                    }
+                }
+                else
+                {
+                    l.pop(1);
+                }
+            }
+            return 0;
+        }
+        internal static int ClrFuncGetMethodInfoOfMethod(IntPtr l, BaseMethodMeta meta)
+        {
+            var uniquemeta = meta as BaseUniqueMethodMeta;
+            if (uniquemeta != null)
+            {
+                var method = uniquemeta.Method;
+                l.PushLuaObject(method);
+                return 1;
+            }
+            var overloadedmeta = meta as BaseOverloadedMethodMeta;
+            if (overloadedmeta != null)
+            {
+                var index = 2;
+                var top = l.gettop();
+                Types types = new Types();
+                for (; index <= top; ++index)
+                {
+                    Type t;
+                    l.GetLua(index, out t);
+                    types.Add(t);
+                }
+
+                uniquemeta = overloadedmeta.FindAppropriate(types);
+                if (uniquemeta != null)
+                {
+                    var method = uniquemeta.Method;
+                    l.PushLuaObject(method);
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        internal static int ClrFuncGetMethodInfoOfNonPublicCtor(IntPtr l, Type t)
+        {
+            if (t == null)
+            {
+                return 0;
+            }
+            var index = 2;
+            var top = l.gettop();
+            Types types = new Types();
+            for (; index <= top; ++index)
+            {
+                Type argt;
+                l.GetLua(index, out argt);
+                types.Add(argt);
+            }
+            var uniquemeta = CapsLuaTypeNonPublicReflector.FindNonPublicCtor(t, types);
+            if (uniquemeta != null)
+            {
+                var method = uniquemeta.Method;
+                l.PushLuaObject(method);
+                return 1;
+            }
+            return 0;
+        }
+        internal static int ClrFuncGetMethodInfoOfPublicCtor(IntPtr l, Type t)
+        {
+            if (t == null)
+            {
+                return 0;
+            }
+            //var index = 2;
+            //var top = l.gettop();
+            //Types types = new Types();
+            //for (; index <= top; ++index)
+            //{
+            //    Type argt;
+            //    l.GetLua(index, out argt);
+            //    types.Add(argt);
+            //}
+            var hub = LuaTypeHub.GetTypeHub(t);
+            if (hub != null)
+            {
+                var ctor = hub.Ctor;
+                var meta = ctor._Method as CtorMethodMeta;
+                if (meta != null)
+                {
+                    //if (types.Count <= 1 && t.IsValueType()) // TODO: the default ctor of value-type can not be gotten
+                    //{
+
+                    //}
+                    var uniquemeta = meta.NormalCtor as BaseUniqueMethodMeta;
+                    if (uniquemeta != null)
+                    {
+                        var method = uniquemeta.Method;
+                        l.PushLuaObject(method);
+                        return 1;
+                    }
+                    var overloadedmeta = meta.NormalCtor as BaseOverloadedMethodMeta;
+                    if (overloadedmeta != null)
+                    {
+                        var index = 2;
+                        var top = l.gettop();
+                        Types types = new Types();
+                        for (; index <= top; ++index)
+                        {
+                            Type argt;
+                            l.GetLua(index, out argt);
+                            types.Add(argt);
+                        }
+
+                        uniquemeta = overloadedmeta.FindAppropriate(types);
+                        if (uniquemeta != null)
+                        {
+                            var method = uniquemeta.Method;
+                            l.PushLuaObject(method);
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncCreateDelForMethodInfo(IntPtr l)
+        {
+            MethodInfo mi;
+            Type deltype;
+            object target;
+            l.GetLua(1, out mi);
+            l.GetLua(2, out deltype);
+            l.GetLua(3, out target);
+            if (mi != null && deltype != null)
+            {
+                var del = mi.CreateDelegate(deltype, target);
+                l.PushLua(del);
+                return 1;
             }
             return 0;
         }
