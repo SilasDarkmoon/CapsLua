@@ -186,22 +186,14 @@ namespace Capstones.UnityEngineEx
         }
         public static Coroutine StartLuaCoroutineForBehav(this MonoBehaviour behav, LuaFunc lfunc)
         {
+            var work = EnumLuaCoroutine(lfunc);
             if (behav != null)
             {
-                var work = EnumLuaCoroutine(lfunc);
-                if (work is IDisposable)
-                {
-                    var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
-                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
-                }
-                else
-                {
-                    return behav.StartCoroutine(EnumLuaCoroutine(lfunc));
-                }
+                return CoroutineRunner.StartSafeCoroutine(behav, work);
             }
             else
             {
-                return CoroutineRunner.StartCoroutine(EnumLuaCoroutine(lfunc));
+                return CoroutineRunner.StartCoroutine(work);
             }
         }
         public static IEnumerator EnumLuaCoroutine(LuaFunc lfunc)
@@ -227,15 +219,7 @@ namespace Capstones.UnityEngineEx
             var work = EnumLuaCoroutine(lfunc);
             if (behav != null)
             {
-                if (work is IDisposable)
-                {
-                    var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
-                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
-                }
-                else
-                {
-                    return behav.StartCoroutine(work);
-                }
+                return CoroutineRunner.StartSafeCoroutine(behav, work);
             }
             else
             {
@@ -251,15 +235,7 @@ namespace Capstones.UnityEngineEx
             var work = EnumLuaCoroutine(lthd);
             if (behav != null)
             {
-                if (work is IDisposable)
-                {
-                    var info = new CoroutineRunner.CoroutineInfo() { behav = behav, work = work };
-                    return info.coroutine = behav.StartCoroutine(CoroutineRunner.SafeEnumerator(work, info));
-                }
-                else
-                {
-                    return behav.StartCoroutine(work);
-                }
+                return CoroutineRunner.StartSafeCoroutine(behav, work);
             }
             else
             {
