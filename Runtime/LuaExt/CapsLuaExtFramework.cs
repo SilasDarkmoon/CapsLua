@@ -296,7 +296,7 @@ namespace Capstones.LuaExt
         {
             if (l.gettop() <= 0)
             {
-                var co = LuaStateHelper.GetUnityCoroutine(l);
+                var co = CoroutineRunner.CurrentCoroutineInfo;
                 l.PushLuaObject(co);
                 return 1;
             }
@@ -314,15 +314,11 @@ namespace Capstones.LuaExt
         {
             if (l.gettop() <= 0)
             {
-                var co = CoroutineRunner.CurrentCoroutineInfo;
-                if (co != null)
+                var lthd = LuaStateHelper.RunningLuaThread;
+                if (lthd != IntPtr.Zero)
                 {
-                    var lthd = LuaStateHelper.GetLuaCoroutine(co);
-                    if (lthd != IntPtr.Zero)
-                    {
-                        lthd.pushthread();
-                        return 1;
-                    }
+                    lthd.pushthread();
+                    return 1;
                 }
             }
             else

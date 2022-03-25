@@ -412,34 +412,38 @@ if clr.UnityEngine.Application.isEditor then
 end
 
 function unity.curcoinfo()
-    return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+    return clr.getucoroutine()
 end
 
 function unity.async(func, ...)
     if clr.runningco() then
         func(...)
-        return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+        return clr.getucoroutine()
     else
         local args = {...}
         local argc = select('#', ...)
+        local coinfo
         local co = clr.coroutine(function()
+            coinfo = clr.getucoroutine()
             func(unpack(args, 1, argc))
         end)
-        return clr.Capstones.UnityEngineEx.CoroutineRunner.GetCoroutineInfo(co)
+        return coinfo
     end
 end
 
 function unity.basync(self, func, ...)
     if clr.runningco() then
         func(...)
-        return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+        return clr.getucoroutine()
     else
         local args = {...}
         local argc = select('#', ...)
+        local coinfo
         local co = clr.bcoroutine(self, function()
+            coinfo = clr.getucoroutine()
             func(unpack(args, 1, argc))
         end)
-        return clr.Capstones.UnityEngineEx.CoroutineRunner.GetCoroutineInfo(co)
+        return coinfo
     end
 end
 
@@ -455,7 +459,7 @@ function unity.abort(co)
         abortCurrentCoroutine()
     else
         if co == clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutine
-            or co == clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+            or co == clr.getucoroutine()
             or co == clr.runningco() then
             abortCurrentCoroutine()
         else
