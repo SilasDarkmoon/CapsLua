@@ -411,33 +411,69 @@ if clr.UnityEngine.Application.isEditor then
     end
 end
 
+function unity.curcoinfo()
+    return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+end
+
 function unity.async(func, ...)
     if clr.runningco() then
         func(...)
+        return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
     else
         local args = {...}
         local argc = select('#', ...)
-        clr.coroutine(function()
+        local co = clr.coroutine(function()
             func(unpack(args, 1, argc))
         end)
+        return clr.Capstones.UnityEngineEx.CoroutineRunner.GetCoroutineInfo(co)
     end
 end
 
 function unity.basync(self, func, ...)
     if clr.runningco() then
         func(...)
+        return clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
     else
         local args = {...}
         local argc = select('#', ...)
-        clr.bcoroutine(self, function()
+        local co = clr.bcoroutine(self, function()
             func(unpack(args, 1, argc))
         end)
+        return clr.Capstones.UnityEngineEx.CoroutineRunner.GetCoroutineInfo(co)
+    end
+end
+
+local abortyieldable
+local function abortCurrentCoroutine()
+    if not abortyieldable then
+        abortyieldable = clr.Capstones.UnityEngineEx.CoroutineRunner.CoroutineAbortedYieldable.Instance
+    end
+    coroutine.yield(abortyieldable)
+end
+function unity.abort(co)
+    if not co then
+        abortCurrentCoroutine()
+    else
+        if co == clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutine
+            or co == clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo
+            or co == clr.runningco() then
+            abortCurrentCoroutine()
+        else
+            if type(co) == "thread" then
+                local info = clr.getucoroutine(co)
+                if info then
+                    clr.Capstones.UnityEngineEx.CoroutineRunner.StopCoroutine(info)
+                end
+            else
+                clr.Capstones.UnityEngineEx.CoroutineRunner.StopCoroutine(co)
+            end
+        end
     end
 end
 
 function unity.asyncf(func)
     return function(...)
-        unity.async(func, ...)
+        return unity.async(func, ...)
     end
 end
 
@@ -460,10 +496,10 @@ asyncmeta.__newindex = function(cls, key, value)
         regtab[key] = value
         if type(value) == "function" then
             local funcasync = function(self, ...)
-                if type(self) == "table" and self.async == unity.basync then
-                    self:async(value, self, ...)
+                if type(self) == "table" and type(self.async) == "function" then
+                    return self:async(value, self, ...)
                 else
-                    unity.async(value, self, ...)
+                    return unity.async(value, self, ...)
                 end
             end
             local keyasync = string.sub(key, 1, -6)

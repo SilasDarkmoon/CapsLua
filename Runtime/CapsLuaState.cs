@@ -305,6 +305,15 @@ namespace Capstones.LuaWrap
                 argc = 0;
             }
             var lrr = new LuaStateHelper.LuaRunningThreadRecorder(l);
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+            var currentcoroutine = Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo;
+            if (currentcoroutine != null)
+            {
+                var map = LuaStateHelper.LuaThreadToCoroutineInfo;
+                map.ForwardMap[l] = currentcoroutine;
+                map.BackwardMap[currentcoroutine] = l;
+            }
+#endif
             int status = l.resume(argc);
             lrr.Dispose();
             if (status == lua.LUA_YIELD || status == 0)
@@ -338,6 +347,19 @@ namespace Capstones.LuaWrap
 
         public override void Dispose()
         {
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+            var map = LuaStateHelper._LuaThreadToCoroutineInfo;
+            if (map != null)
+            {
+                var l = L;
+                var info = LuaStateHelper.GetUnityCoroutine(l);
+                map.ForwardMap.Remove(l);
+                if (info != null)
+                {
+                    map.BackwardMap.Remove(info);
+                }
+            }
+#endif
             if (Ref != null)
             {
                 Ref.Dispose();
@@ -870,6 +892,42 @@ namespace Capstones.LuaWrap
         //        return false;
         //    }
         //}
+
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+        [ThreadStatic] internal static BiDict<IntPtr, Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo> _LuaThreadToCoroutineInfo;
+        internal static BiDict<IntPtr, Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo> LuaThreadToCoroutineInfo
+        {
+            get
+            {
+                var map = _LuaThreadToCoroutineInfo;
+                if (map == null)
+                {
+                    _LuaThreadToCoroutineInfo = map = new BiDict<IntPtr, UnityEngineEx.CoroutineRunner.CoroutineInfo>();
+                }
+                return map;
+            }
+        }
+        public static Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo GetUnityCoroutine(IntPtr l)
+        {
+            Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo info = null;
+            var map = _LuaThreadToCoroutineInfo;
+            if (map != null)
+            {
+                map.ForwardMap.TryGetValue(l, out info);
+            }
+            return info;
+        }
+        public static IntPtr GetLuaCoroutine(Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo info)
+        {
+            IntPtr l = IntPtr.Zero;
+            var map = _LuaThreadToCoroutineInfo;
+            if (map != null)
+            {
+                map.BackwardMap.TryGetValue(info, out l);
+            }
+            return l;
+        }
+#endif
 
         [ThreadStatic] private static IntPtr _RunningLuaThread;
         public static IntPtr RunningLuaThread { get { return _RunningLuaThread; } }

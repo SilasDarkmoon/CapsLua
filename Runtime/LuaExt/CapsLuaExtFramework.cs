@@ -33,7 +33,6 @@ namespace Capstones.LuaExt
 
                 //using (var lr = new LuaStateRecover(L))
                 {
-                    // Capstones.UnityFramework.UnityLua.StartLuaCoroutine
                     L.GetGlobal("clr"); // clr
                     if (L.istable(-1))
                     {
@@ -42,6 +41,10 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "coroutine"); // clr
                         L.pushcfunction(ClrDelBehavCoroutine); // clr func
                         L.SetField(-2, "bcoroutine"); // clr
+                        L.pushcfunction(ClrDelGetUnityCoroutine); // clr func
+                        L.SetField(-2, "getucoroutine"); // clr
+                        L.pushcfunction(ClrDelGetLuaCoroutine); // clr func
+                        L.SetField(-2, "getlcoroutine"); // clr
 #endif
                         L.pushcfunction(ClrDelRunningCoroutine); // clr func
                         L.SetField(-2, "runningco"); // clr
@@ -214,6 +217,8 @@ namespace Capstones.LuaExt
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         public static readonly lua.CFunction ClrDelCoroutine = new lua.CFunction(ClrFuncCoroutine);
         public static readonly lua.CFunction ClrDelBehavCoroutine = new lua.CFunction(ClrFuncBehavCoroutine);
+        public static readonly lua.CFunction ClrDelGetUnityCoroutine = new lua.CFunction(ClrFuncGetUnityCoroutine);
+        public static readonly lua.CFunction ClrDelGetLuaCoroutine = new lua.CFunction(ClrFuncGetLuaCoroutine);
 #endif
         public static readonly lua.CFunction ClrDelRunningCoroutine = new lua.CFunction(ClrFuncRunningCoroutine);
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
@@ -285,6 +290,55 @@ namespace Capstones.LuaExt
             }
 
             return l.gettop() - oldtop;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetUnityCoroutine(IntPtr l)
+        {
+            if (l.gettop() <= 0)
+            {
+                var co = LuaStateHelper.GetUnityCoroutine(l);
+                l.PushLuaObject(co);
+                return 1;
+            }
+            else if (l.isthread(1))
+            {
+                var lthd = l.tothread(1);
+                var co = LuaStateHelper.GetUnityCoroutine(lthd);
+                l.PushLuaObject(co);
+                return 1;
+            }
+            return 0;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetLuaCoroutine(IntPtr l)
+        {
+            if (l.gettop() <= 0)
+            {
+                var co = CoroutineRunner.CurrentCoroutineInfo;
+                if (co != null)
+                {
+                    var lthd = LuaStateHelper.GetLuaCoroutine(co);
+                    if (lthd != IntPtr.Zero)
+                    {
+                        lthd.pushthread();
+                        return 1;
+                    }
+                }
+            }
+            else
+            {
+                CoroutineRunner.CoroutineInfo co = l.GetLua(1) as CoroutineRunner.CoroutineInfo;
+                if (co != null)
+                {
+                    var lthd = LuaStateHelper.GetLuaCoroutine(co);
+                    if (lthd != IntPtr.Zero)
+                    {
+                        lthd.pushthread();
+                        return 1;
+                    }
+                }
+            }
+            return 0;
         }
 #endif
 
