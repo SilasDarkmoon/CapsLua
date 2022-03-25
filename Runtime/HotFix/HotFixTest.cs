@@ -288,7 +288,10 @@ namespace Capstones.LuaExt.Test
         public void OverloadedInstancePublic(int n) { }
         public void OverloadedInstancePublic(float n) { }
         private void OverloadedInstancePrivate(int n) { }
-        private void OverloadedInstancePrivate(float n) { }
+        private void OverloadedInstancePrivate(float n)
+        {
+            UnityEngine.Debug.LogError(n + PrivateInstanceField);
+        }
 
         public class UniqueCtorPublic
         {

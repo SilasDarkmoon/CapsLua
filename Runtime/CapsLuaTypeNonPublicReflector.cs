@@ -44,10 +44,10 @@ namespace Capstones.LuaLib
                 else
                 {
                     var getterinfo = l.GetLua(-1);
-                    l.pop(2); // X
                     var fi = getterinfo as FieldInfo;
                     if (fi != null)
                     {
+                        l.pop(2); // X
                         l.pushlightuserdata(LuaConst.LRKEY_TARGET); // #tar
                         l.rawget(1); // tar
                         var target = l.GetLua(-1);
@@ -77,6 +77,7 @@ namespace Capstones.LuaLib
                     var pi = getterinfo as PropertyInfo;
                     if (pi != null)
                     {
+                        l.pop(2); // X
                         l.pushlightuserdata(LuaConst.LRKEY_TARGET); // #tar
                         l.rawget(1); // tar
                         var target = l.GetLua(-1);
@@ -104,7 +105,12 @@ namespace Capstones.LuaLib
                         }
                     }
 
-                    return 0;
+                    l.remove(-2); // getterinfo(func)
+                    // cache it to npub-table
+                    l.pushvalue(2); // func name
+                    l.pushvalue(-2); // func name func
+                    l.rawset(1); // func
+                    return 1;
                 }
             }
             else
@@ -225,9 +231,16 @@ namespace Capstones.LuaLib
                             meta.WrapFunctionByTable(l);
                         }
                         // cache it
-                        l.pushvalue(2);
-                        l.pushvalue(-2);
-                        l.rawset(1);
+                        l.pushlightuserdata(LuaConst.LRKEY_GETTER); // func #getter
+                        l.rawget(1); // func getter
+                        l.pushvalue(2); // func getter name
+                        l.pushvalue(-3); // func getter name func
+                        l.settable(-3); // func getter
+                        l.pop(1); // func
+                        // cache it to npub-table
+                        l.pushvalue(2); // func name
+                        l.pushvalue(-2); // func name func
+                        l.rawset(1); // func
                         return 1;
                     case MemberTypes.Event: // TODO: events?
                     default:
@@ -337,6 +350,8 @@ namespace Capstones.LuaLib
                         }
                     }
 
+                    // TODO: sync the getterinfo(method) to the npub-table(at index 1).
+                    l.LogError("Cannot overwrite method on non-public reflector.");
                     return 0;
                 }
             }
@@ -436,12 +451,50 @@ namespace Capstones.LuaLib
                             l.pop(1);
                         }
                         return 0;
+                    case MemberTypes.Method:
+                        {
+                            List<MethodBase> fmethods = new List<MethodBase>();
+                            List<MethodBase> gmethods = new List<MethodBase>();
+                            for (int i = 0; i < members.Length; ++i)
+                            {
+                                var method = members[i] as MethodInfo;
+                                if (method.ContainsGenericParameters)
+                                {
+                                    gmethods.Add(method);
+                                }
+                                else
+                                {
+                                    fmethods.Add(method);
+                                }
+                            }
+                            var meta = GenericMethodMeta.CreateMethodMeta(fmethods.ToArray(), gmethods.ToArray(), type.IsValueType);
+                            l.PushFunction(meta);
+                            meta.WrapFunctionByTable(l);
+                        }
+                        // cache it
+                        l.pushlightuserdata(LuaConst.LRKEY_GETTER); // func #getter
+                        l.rawget(1); // func getter
+                        l.pushvalue(2); // func getter name
+                        l.pushvalue(-3); // func getter name func
+                        l.settable(-3); // func getter
+                        l.pop(1); // func
+                        // cache it to npub-table
+                        l.pushvalue(2); // func name
+                        l.pushvalue(-2); // func name func
+                        l.rawset(1); // func
+                        l.pop(1); // X
+                        l.LogError("Cannot overwrite method on non-public reflector: " + name);
+                        return 0;
+                    case MemberTypes.Event: // TODO: events?
+                        l.pop(1);
+                        l.LogError("Cannot overwrite event on non-public reflector: " + name);
+                        break;
                     default:
                         l.pop(1);
+                        l.LogError("Cannot set value on non-public-reflector: not found: " + name);
                         break;
                 }
             }
-            l.LogError("Cannot set value on non-public-reflector: not found: " + name);
             // cache it!
             l.pushlightuserdata(LuaConst.LRKEY_GETTER); // #getter
             l.rawget(1); // getter
@@ -612,6 +665,7 @@ namespace Capstones.LuaLib
                         l.pushvalue(2);
                         l.pushvalue(-2);
                         l.rawset(1);
+                        // TODO: cache to getter table also.
                         return 1;
                     case MemberTypes.NestedType:
                         {
@@ -622,6 +676,7 @@ namespace Capstones.LuaLib
                         l.pushvalue(2);
                         l.pushvalue(-2);
                         l.rawset(1);
+                        // TODO: cache to getter table also.
                         return 1;
                     case MemberTypes.Event: // TODO: events?
                     default:
@@ -691,6 +746,7 @@ namespace Capstones.LuaLib
                         return 0;
                     }
 
+                    l.LogError("Cannot overwrite method on non-public reflector.");
                     return 0;
                 }
             }
@@ -765,11 +821,51 @@ namespace Capstones.LuaLib
                             }
                         }
                         return 0;
+                    case MemberTypes.Method:
+                        l.pushvalue(2); // name
+                        {
+                            List<MethodBase> fmethods = new List<MethodBase>();
+                            List<MethodBase> gmethods = new List<MethodBase>();
+                            for (int i = 0; i < members.Length; ++i)
+                            {
+                                var method = members[i] as MethodInfo;
+                                if (method.ContainsGenericParameters)
+                                {
+                                    gmethods.Add(method);
+                                }
+                                else
+                                {
+                                    fmethods.Add(method);
+                                }
+                            }
+                            var meta = GenericMethodMeta.CreateMethodMeta(fmethods.ToArray(), gmethods.ToArray(), type.IsValueType);
+                            l.PushFunction(meta);
+                            meta.WrapFunctionByTable(l);
+                        } // name func
+                        // cache it
+                        l.rawset(1); // X
+                        // TODO: cache to getter table also.
+                        l.LogError("Cannot overwrite method on non-public reflector: " + name);
+                        return 0;
+                    case MemberTypes.NestedType:
+                        l.pushvalue(2); // name
+                        {
+                            var nt = members[0] as Type;
+                            l.PushLua(nt);
+                        } // name type
+                        // cache it
+                        l.rawset(1); // X
+                        // TODO: cache to getter table also.
+                        l.LogError("Cannot overwrite nested-type on non-public reflector: " + name);
+                        return 0;
+                    case MemberTypes.Event: // TODO: events?
+                        l.LogError("Cannot overwrite event on non-public reflector: " + name);
+                        break;
                     default:
+                        l.LogError("Cannot set value on non-public-reflector: not found: " + name);
                         break;
                 }
             }
-            l.LogError("Cannot set value on non-public-reflector: not found: " + name);
             // cache it!
             l.pushlightuserdata(LuaConst.LRKEY_GETTER); // #getter
             l.rawget(1); // getter
