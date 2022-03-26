@@ -324,9 +324,12 @@ namespace Capstones.LuaExt
                 else
                 {
                     var coinfo = raw as CoroutineRunner.CoroutineInfo;
-                    l.PushLua(coinfo);
-                    l.PushLua(coinfo == null ? null : coinfo.coroutine);
-                    return 2;
+                    if (coinfo != null)
+                    {
+                        l.PushLua(coinfo);
+                        l.PushLua(coinfo.coroutine);
+                        return 2;
+                    }
                 }
             }
             return 0;
