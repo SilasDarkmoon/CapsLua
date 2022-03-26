@@ -304,8 +304,10 @@ namespace Capstones.LuaWrap
                 l.LogWarning("Lua stack is not correct when resume lua coroutine.");
                 argc = 0;
             }
+            int status = 0;
             var lrr = new LuaStateHelper.LuaRunningThreadRecorder(l);
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+            var lar = new LuaStateHelper.LuaCoroutineAborterRecorder(l);
             var currentcoroutine = Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutineInfo;
             if (currentcoroutine != null)
             {
@@ -313,8 +315,21 @@ namespace Capstones.LuaWrap
                 map.ForwardMap[l] = currentcoroutine;
                 map.BackwardMap[currentcoroutine] = l;
             }
+            try
+            {
 #endif
-            int status = l.resume(argc);
+            status = l.resume(argc);
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+            }
+            catch (LuaStateHelper.LuaCoroutineAbortedException ea)
+            {
+                ea.IsHandled = true;
+                l.LogError("Current lua coroutine aborted!");
+                l.settop(0);
+                _IsDone = true;
+            }
+            lar.Dispose();
+#endif
             lrr.Dispose();
             if (status == lua.LUA_YIELD || status == 0)
             {
@@ -926,6 +941,58 @@ namespace Capstones.LuaWrap
                 map.BackwardMap.TryGetValue(info, out l);
             }
             return l;
+        }
+
+        public class LuaCoroutineAbortedException : CoroutineRunner.CoroutineAbortedException
+        {
+            public bool IsHandled = false;
+
+            public override string ToString()
+            {
+                if (IsHandled)
+                {
+                    return base.ToString();
+                }
+                else
+                {
+                    throw this;
+                }
+            }
+            public override string Message
+            {
+                get
+                {
+                    if (IsHandled)
+                    {
+                        return base.Message;
+                    }
+                    else
+                    {
+                        throw this;
+                    }
+                }
+            }
+        }
+        public static void AbortLuaCoroutine()
+        {
+            throw new LuaCoroutineAbortedException();
+        }
+        public static Action DelAbortLuaCoroutine = AbortLuaCoroutine;
+
+        public struct LuaCoroutineAborterRecorder : IDisposable
+        {
+            private Action _Old;
+
+            public LuaCoroutineAborterRecorder(IntPtr l)
+            {
+                _Old = CoroutineRunner.AbortCoroutineDelegate;
+                CoroutineRunner.AbortCoroutineDelegate = DelAbortLuaCoroutine;
+            }
+
+            public void Dispose()
+            {
+                CoroutineRunner.AbortCoroutineDelegate = _Old;
+            }
         }
 #endif
 
