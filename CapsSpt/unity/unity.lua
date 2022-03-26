@@ -482,7 +482,19 @@ function unity.abort(co)
     end
 end
 
+function unity.isrunning(co)
+    local curcoinfo, curco = clr.getucoroutine()
+    return co == curco or co == curcoinfo or co == clr.runningco()
+end
+
+function unity.running()
+    local curcoinfo, curco = clr.getucoroutine()
+    return curcoinfo, curco, clr.runningco()
+end
+
 coroutine.abort = unity.abort
+coroutine.isrunning = unity.isrunning
+coroutine.running = unity.running
 
 function unity.asyncf(func)
     return function(...)
