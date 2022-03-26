@@ -296,16 +296,38 @@ namespace Capstones.LuaExt
         {
             if (l.gettop() <= 0)
             {
-                var co = CoroutineRunner.CurrentCoroutineInfo;
-                l.PushLuaObject(co);
-                return 1;
+                var coinfo = CoroutineRunner.CurrentCoroutineInfo;
+                var co = CoroutineRunner.CurrentCoroutine;
+                l.PushLua(coinfo);
+                l.PushLua(co);
+                return 2;
             }
             else if (l.isthread(1))
             {
                 var lthd = l.tothread(1);
                 var co = LuaStateHelper.GetUnityCoroutine(lthd);
-                l.PushLuaObject(co);
-                return 1;
+                l.PushLua(co);
+                l.PushLua(co == null ? null : co.coroutine);
+                return 2;
+            }
+            else
+            {
+                var raw = l.GetLua(1);
+                Coroutine co = raw as Coroutine;
+                if (co != null)
+                {
+                    var coinfo = CoroutineRunner.GetCoroutineInfo(co);
+                    l.PushLua(coinfo);
+                    l.PushLua(co);
+                    return 2;
+                }
+                else
+                {
+                    var coinfo = raw as CoroutineRunner.CoroutineInfo;
+                    l.PushLua(coinfo);
+                    l.PushLua(coinfo == null ? null : coinfo.coroutine);
+                    return 2;
+                }
             }
             return 0;
         }
@@ -323,10 +345,19 @@ namespace Capstones.LuaExt
             }
             else
             {
-                CoroutineRunner.CoroutineInfo co = l.GetLua(1) as CoroutineRunner.CoroutineInfo;
-                if (co != null)
+                var raw = l.GetLua(1);
+                CoroutineRunner.CoroutineInfo coinfo = raw as CoroutineRunner.CoroutineInfo;
+                if (coinfo == null)
                 {
-                    var lthd = LuaStateHelper.GetLuaCoroutine(co);
+                    Coroutine co = raw as Coroutine;
+                    if (co != null)
+                    {
+                        coinfo = CoroutineRunner.GetCoroutineInfo(co);
+                    }
+                }
+                if (coinfo != null)
+                {
+                    var lthd = LuaStateHelper.GetLuaCoroutine(coinfo);
                     if (lthd != IntPtr.Zero)
                     {
                         lthd.pushthread();

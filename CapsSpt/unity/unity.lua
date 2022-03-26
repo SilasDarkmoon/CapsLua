@@ -427,7 +427,11 @@ function unity.async(func, ...)
             coinfo = clr.getucoroutine()
             func(unpack(args, 1, argc))
         end)
-        return coinfo
+        if co then
+            return coinfo
+        else
+            return nil
+        end
     end
 end
 
@@ -443,7 +447,11 @@ function unity.basync(self, func, ...)
             coinfo = clr.getucoroutine()
             func(unpack(args, 1, argc))
         end)
-        return coinfo
+        if co then
+            return coinfo
+        else
+            return nil
+        end
     end
 end
 
@@ -458,9 +466,8 @@ function unity.abort(co)
     if not co then
         abortCurrentCoroutine()
     else
-        if co == clr.Capstones.UnityEngineEx.CoroutineRunner.CurrentCoroutine
-            or co == clr.getucoroutine()
-            or co == clr.runningco() then
+        local curcoinfo, curco = clr.getucoroutine()
+        if co == curco or co == curcoinfo or co == clr.runningco() then
             abortCurrentCoroutine()
         else
             if type(co) == "thread" then
@@ -474,6 +481,8 @@ function unity.abort(co)
         end
     end
 end
+
+coroutine.abort = unity.abort
 
 function unity.asyncf(func)
     return function(...)
