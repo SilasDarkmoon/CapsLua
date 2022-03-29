@@ -1639,3 +1639,41 @@ function os.pclock()
     pclock_lasttime = curtime
     return curclock + pclock_extra
 end
+
+local function dolazyrequire(t)
+    setmetatable(t, nil)
+    local lib = t.__lib
+    t.__lib = nil
+    t.DoLazyRequire = nil
+    if lib then
+        local raw = require(lib)
+        if type(raw) == "table" then
+            for k, v in pairs(raw) do
+                t[k] = v
+            end
+            setmetatable(t, getmetatable(raw))
+            package.loaded[lib] = t
+        else
+            t.value = raw
+        end
+    end
+end
+local lazyrequiremeta = {
+    __index = function(t, k)
+        dolazyrequire(t)
+        return t[k]
+    end,
+    __newindex = function(t, k, v)
+        dolazyrequire(t)
+        t[k] = v
+    end,
+}
+function lazyrequire(lib)
+    local existing = package.loaded[lib]
+    if existing ~= nil then
+        return existing
+    end
+    local wrapper = { __lib = lib }
+    wrapper.DoLazyRequire = dolazyrequire
+    return setmetatable(wrapper, lazyrequiremeta)
+end
