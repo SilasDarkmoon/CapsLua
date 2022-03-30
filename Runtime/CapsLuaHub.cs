@@ -258,6 +258,10 @@ namespace Capstones.LuaLib
                     if (state.L.Indicator() == l.Indicator())
                     {
                         state.L.pushthread();
+                        if (state.L != l)
+                        {
+                            state.L.xmove(l, 1);
+                        }
                     }
                     else
                     {

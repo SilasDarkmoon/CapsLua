@@ -362,6 +362,31 @@ namespace Capstones.LuaWrap
 
         public override void Dispose()
         {
+            // Try dispose lua-coroutine's "finally"
+            {
+                var l = L;
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // fin
+                if (l.istable(-1))
+                {
+                    l.pushthread(); // fin thd
+                    l.gettable(-2); // fin func
+                    if (l.isfunction(-1))
+                    {
+                        l.PushArgsAndCall(); // fin
+                        l.pop(1);
+                    }
+                    else
+                    {
+                        l.pop(2); // X
+                    }
+                }
+                else
+                {
+                    l.pop(1); // X
+                }
+
+            }
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
             var map = LuaStateHelper._LuaThreadToCoroutineInfo;
             if (map != null)
@@ -1026,15 +1051,48 @@ namespace Capstones.LuaLib
     {
         public static void PushLua(this IntPtr l, LuaWrap.LuaState val)
         {
-            val.L.pushthread();
+            if (l.Indicator() != val.L.Indicator())
+            {
+                l.PushLuaObject(val);
+            }
+            else
+            {
+                val.L.pushthread();
+                if (val.L != l)
+                {
+                    val.L.xmove(l, 1);
+                }
+            }
         }
         public static void PushLua(this IntPtr l, LuaWrap.LuaOnStackThread val)
         {
-            val.L.pushthread();
+            if (l.Indicator() != val.L.Indicator())
+            {
+                l.PushLuaObject(val);
+            }
+            else
+            {
+                val.L.pushthread();
+                if (val.L != l)
+                {
+                    val.L.xmove(l, 1);
+                }
+            }
         }
         public static void PushLua(this IntPtr l, LuaWrap.LuaThread val)
         {
-            val.L.pushthread();
+            if (l.Indicator() != val.L.Indicator())
+            {
+                l.PushLuaObject(val);
+            }
+            else
+            {
+                val.L.pushthread();
+                if (val.L != l)
+                {
+                    val.L.xmove(l, 1);
+                }
+            }
         }
         public static void GetLua(this IntPtr l, int index, out LuaWrap.LuaOnStackThread val)
         {
@@ -1055,7 +1113,18 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, LuaWrap.LuaState val)
             {
-                val.L.pushthread();
+                if (l.Indicator() != val.L.Indicator())
+                {
+                    l.PushLuaObject(val);
+                }
+                else
+                {
+                    val.L.pushthread();
+                    if (val.L != l)
+                    {
+                        val.L.xmove(l, 1);
+                    }
+                }
                 return IntPtr.Zero;
             }
         }
@@ -1071,7 +1140,18 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, LuaWrap.LuaOnStackThread val)
             {
-                val.L.pushthread();
+                if (l.Indicator() != val.L.Indicator())
+                {
+                    l.PushLuaObject(val);
+                }
+                else
+                {
+                    val.L.pushthread();
+                    if (val.L != l)
+                    {
+                        val.L.xmove(l, 1);
+                    }
+                }
                 return IntPtr.Zero;
             }
         }
@@ -1084,7 +1164,18 @@ namespace Capstones.LuaLib
             }
             public override IntPtr PushLua(IntPtr l, LuaWrap.LuaThread val)
             {
-                val.L.pushthread();
+                if (l.Indicator() != val.L.Indicator())
+                {
+                    l.PushLuaObject(val);
+                }
+                else
+                {
+                    val.L.pushthread();
+                    if (val.L != l)
+                    {
+                        val.L.xmove(l, 1);
+                    }
+                }
                 return IntPtr.Zero;
             }
         }

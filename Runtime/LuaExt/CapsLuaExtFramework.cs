@@ -48,6 +48,8 @@ namespace Capstones.LuaExt
 #endif
                         L.pushcfunction(ClrDelRunningCoroutine); // clr func
                         L.SetField(-2, "runningco"); // clr
+                        L.pushcfunction(ClrDelCoroutineFinally); // clr func
+                        L.SetField(-2, "cofinally"); // clr
                         L.pushcfunction(ClrDelReset); // clr func
                         L.SetField(-2, "reset"); // clr
                         L.PushString(ThreadSafeValues.AppPlatform); // clr plat
@@ -221,6 +223,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelGetLuaCoroutine = new lua.CFunction(ClrFuncGetLuaCoroutine);
 #endif
         public static readonly lua.CFunction ClrDelRunningCoroutine = new lua.CFunction(ClrFuncRunningCoroutine);
+        public static readonly lua.CFunction ClrDelCoroutineFinally = new lua.CFunction(ClrFuncCoroutineFinally);
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
         public static readonly lua.CFunction ClrDelReset = new lua.CFunction(ClrFuncReset);
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
@@ -348,29 +351,64 @@ namespace Capstones.LuaExt
                 var lthd = LuaStateHelper.RunningLuaThread;
                 if (lthd != IntPtr.Zero)
                 {
-                    lthd.pushthread();
+                    if (lthd.Indicator() == l.Indicator())
+                    {
+                        lthd.pushthread();
+                        if (lthd != l)
+                        {
+                            lthd.xmove(l, 1);
+                        }
+                    }
+                    else
+                    {
+                        l.PushLuaObject(new LuaOnStackThread(lthd));
+                    }
                     return 1;
                 }
             }
             else
             {
-                var raw = l.GetLua(1);
-                CoroutineRunner.CoroutineInfo coinfo = raw as CoroutineRunner.CoroutineInfo;
-                if (coinfo == null)
+                if (l.isthread(1))
                 {
-                    Coroutine co = raw as Coroutine;
+                    var lthd = l.tothread(1);
+                    var co = LuaStateHelper.GetUnityCoroutine(lthd);
                     if (co != null)
                     {
-                        coinfo = CoroutineRunner.GetCoroutineInfo(co);
+                        l.pushvalue(1);
+                        return 1;
                     }
                 }
-                if (coinfo != null)
+                else
                 {
-                    var lthd = LuaStateHelper.GetLuaCoroutine(coinfo);
-                    if (lthd != IntPtr.Zero)
+                    var raw = l.GetLua(1);
+                    CoroutineRunner.CoroutineInfo coinfo = raw as CoroutineRunner.CoroutineInfo;
+                    if (coinfo == null)
                     {
-                        lthd.pushthread();
-                        return 1;
+                        Coroutine co = raw as Coroutine;
+                        if (co != null)
+                        {
+                            coinfo = CoroutineRunner.GetCoroutineInfo(co);
+                        }
+                    }
+                    if (coinfo != null)
+                    {
+                        var lthd = LuaStateHelper.GetLuaCoroutine(coinfo);
+                        if (lthd != IntPtr.Zero)
+                        {
+                            if (lthd.Indicator() == l.Indicator())
+                            {
+                                lthd.pushthread();
+                                if (lthd != l)
+                                {
+                                    lthd.xmove(l, 1);
+                                }
+                            }
+                            else
+                            {
+                                l.PushLuaObject(new LuaOnStackThread(lthd));
+                            }
+                            return 1;
+                        }
                     }
                 }
             }
@@ -390,6 +428,140 @@ namespace Capstones.LuaExt
             {
                 return 0;
             }
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncCoroutineFinally(IntPtr l)
+        {
+            var argcnt = l.gettop();
+            if (argcnt <= 0)
+            { // return clr.cofinally() -- get current co's finally
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // fin
+                if (l.istable(-1))
+                {
+                    l.pushthread(); // fin thd
+                    l.gettable(-2); // fin func
+                    l.remove(-2); // func
+                    return 1;
+                }
+                l.pop(1); // X
+            }
+            else if (argcnt == 1 && l.isnil(1) || argcnt >= 2 && l.isnil(1) && l.isnil(2))
+            { // clr.cofinally(nil) -- clear current co's finally
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // fin
+                if (l.istable(-1))
+                {
+                    l.pushthread(); // fin thd
+                    l.pushnil(); // fin thd nil
+                    l.settable(-3); // fin
+                }
+                l.pop(1); // X
+            }
+            else if (argcnt == 1 && l.isfunction(1))
+            { // clr.cofinally(function()end) -- set current co's finally
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // fin
+                if (!l.istable(-1))
+                {
+                    l.pop(1); // X
+                    l.newtable(); // fin
+                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // fin #fin
+                    l.pushvalue(-2); // fin #fin fin
+                    l.settable(lua.LUA_REGISTRYINDEX); // fin
+                }
+                l.pushthread(); // fin thd
+                l.pushvalue(1); // fin thd func
+                l.settable(-3); // fin
+                l.pop(1); // X
+            }
+            else if (argcnt == 1)
+            { // return clr.cofinally(co) -- get target co's finally
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                var irv = ClrFuncGetLuaCoroutine(l);
+                if (irv > 0)
+#else
+                l.pushvalue(1);
+#endif
+                {
+                    l.settop(2); // lco
+                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                    l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
+                    if (l.istable(-1))
+                    {
+                        l.pushvalue(-2); // lco fin lco
+                        l.gettable(-2); // lco fin func
+                        l.insert(-3); // func lco fin
+                        l.pop(2); // func
+                        return 1;
+                    }
+                    l.pop(2); // X
+                }
+            }
+            else if (l.isnil(2))
+            { // clr.cofinally(co, nil) -- clear target co's finally
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                var irv = ClrFuncGetLuaCoroutine(l);
+                if (irv <= 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    l.settop(argcnt + 1); // lco
+                }
+#else
+                l.pushvalue(1); // lco
+#endif
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
+                if (l.istable(-1))
+                {
+                    l.pushvalue(-2); // lco fin lco
+                    l.pushnil(); // lco fin lco nil
+                    l.settable(-3); // lco fin
+                }
+                l.pop(2); // X
+            }
+            else if (l.isfunction(2))
+            { // clr.cofinally(co, function()end) -- set target co's finally
+                if (l.isnil(1))
+                {
+                    l.pushthread(); // current thread
+                }
+                else
+                {
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                    var irv = ClrFuncGetLuaCoroutine(l);
+                    if (irv <= 0)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        l.settop(argcnt + 1); // lco
+                    }
+#else
+                    l.pushvalue(1); // lco
+#endif
+                }
+                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
+                if (!l.istable(-1))
+                {
+                    l.pop(1); // lco
+                    l.newtable(); // lco fin
+                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco fin #fin
+                    l.pushvalue(-2); // lco fin #fin fin
+                    l.settable(lua.LUA_REGISTRYINDEX); // lco fin
+                }
+                l.pushvalue(-2); // lco fin lco
+                l.pushvalue(2); // lco fin lco func
+                l.settable(-3); // lco fin
+                l.pop(2); // X
+            }
+            return 0;
         }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]

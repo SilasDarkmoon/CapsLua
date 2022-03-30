@@ -40,11 +40,17 @@ if clr then
 end
 
 function combinefunc(...)
-    local funcs = table.pack(...)
+    local funcs = {}
+    local cnt = select('#', ...)
+    for i = 1, cnt do
+        local func = select(i, ...)
+        funcs[#funcs + 1] = func
+    end
+
     return function(...)
-        for i = 1, funcs.n do
+        for i = 1, #funcs do
             local func = funcs[i]
-            if 1 == funcs.n then
+            if 1 == #funcs then
                 return func(...)
             else
                 func(...) -- TODO: combine each result.
