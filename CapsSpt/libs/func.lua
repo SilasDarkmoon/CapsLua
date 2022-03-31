@@ -50,7 +50,7 @@ function combinefunc(...)
     return function(...)
         for i = 1, #funcs do
             local func = funcs[i]
-            if 1 == #funcs then
+            if i == #funcs then
                 return func(...)
             else
                 func(...) -- TODO: combine each result.
@@ -1682,4 +1682,37 @@ function lazyrequire(lib)
     local wrapper = { __lib = lib }
     wrapper.DoLazyRequire = dolazyrequire
     return setmetatable(wrapper, lazyrequiremeta)
+end
+
+local appendableFuncs = {}
+setmetatable(appendableFuncs, { __mode = "k" })
+function appendable(func)
+    local funcs = { func }
+    local function wrapper(...)
+        local results
+        local cur = 0
+        while true do
+            cur = cur + 1
+            local curfunc = funcs[cur]
+            if not curfunc then
+                if not results then
+                    return
+                else
+                    return table.unpack(results)
+                end
+            end
+            results = table.pack(curfunc(...))
+        end
+    end
+    appendableFuncs[wrapper] = funcs
+    return wrapper
+end
+
+function appendfunc(main, func)
+    local funcs = appendableFuncs[main]
+    if not funcs then
+        return false
+    end
+    funcs[#funcs + 1] = func
+    return true
 end
