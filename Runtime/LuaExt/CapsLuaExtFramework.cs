@@ -50,6 +50,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "runningco"); // clr
                         L.pushcfunction(ClrDelCoroutineFinally); // clr func
                         L.SetField(-2, "cofinally"); // clr
+                        L.pushcfunction(ClrDelCoroutineContinue); // clr func
+                        L.SetField(-2, "cocontinue"); // clr
                         L.pushcfunction(ClrDelReset); // clr func
                         L.SetField(-2, "reset"); // clr
                         L.PushString(ThreadSafeValues.AppPlatform); // clr plat
@@ -224,6 +226,7 @@ namespace Capstones.LuaExt
 #endif
         public static readonly lua.CFunction ClrDelRunningCoroutine = new lua.CFunction(ClrFuncRunningCoroutine);
         public static readonly lua.CFunction ClrDelCoroutineFinally = new lua.CFunction(ClrFuncCoroutineFinally);
+        public static readonly lua.CFunction ClrDelCoroutineContinue = new lua.CFunction(ClrFuncCoroutineContinue);
         public static readonly lua.CFunction ClrDelPanic = new lua.CFunction(ClrFuncPanic);
         public static readonly lua.CFunction ClrDelReset = new lua.CFunction(ClrFuncReset);
         public static readonly lua.CFunction ClrDelApkLoader = new lua.CFunction(ClrFuncApkLoader);
@@ -436,7 +439,7 @@ namespace Capstones.LuaExt
             var argcnt = l.gettop();
             if (argcnt <= 0)
             { // return clr.cofinally() -- get current co's finally
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // fin
                 if (l.istable(-1))
                 {
@@ -449,7 +452,7 @@ namespace Capstones.LuaExt
             }
             else if (argcnt == 1 && l.isnil(1) || argcnt >= 2 && l.isnil(1) && l.isnil(2))
             { // clr.cofinally(nil) -- clear current co's finally
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // fin
                 if (l.istable(-1))
                 {
@@ -461,15 +464,19 @@ namespace Capstones.LuaExt
             }
             else if (argcnt == 1 && l.isfunction(1))
             { // clr.cofinally(function()end) -- set current co's finally
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // fin
                 if (!l.istable(-1))
                 {
                     l.pop(1); // X
                     l.newtable(); // fin
-                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // fin #fin
+                    l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // fin #fin
                     l.pushvalue(-2); // fin #fin fin
                     l.settable(lua.LUA_REGISTRYINDEX); // fin
+                    l.newtable(); // fin meta
+                    l.PushString(LuaConst.LS_COMMON_K); // fin meta "k"
+                    l.SetField(-2, LuaConst.LS_META_KEY_MODE); // fin meta
+                    l.setmetatable(-2); // fin
                 }
                 l.pushthread(); // fin thd
                 l.pushvalue(1); // fin thd func
@@ -486,7 +493,7 @@ namespace Capstones.LuaExt
 #endif
                 {
                     l.settop(2); // lco
-                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                    l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // lco #fin
                     l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
                     if (l.istable(-1))
                     {
@@ -514,7 +521,7 @@ namespace Capstones.LuaExt
 #else
                 l.pushvalue(1); // lco
 #endif
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // lco #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
                 if (l.istable(-1))
                 {
@@ -546,20 +553,117 @@ namespace Capstones.LuaExt
                     l.pushvalue(1); // lco
 #endif
                 }
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // lco #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // lco fin
                 if (!l.istable(-1))
                 {
                     l.pop(1); // lco
                     l.newtable(); // lco fin
-                    l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // lco fin #fin
+                    l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // lco fin #fin
                     l.pushvalue(-2); // lco fin #fin fin
                     l.settable(lua.LUA_REGISTRYINDEX); // lco fin
+                    l.newtable(); // lco fin meta
+                    l.PushString(LuaConst.LS_COMMON_K); // lco fin meta "k"
+                    l.SetField(-2, LuaConst.LS_META_KEY_MODE); // lco fin meta
+                    l.setmetatable(-2); // lco fin
                 }
                 l.pushvalue(-2); // lco fin lco
                 l.pushvalue(2); // lco fin lco func
                 l.settable(-3); // lco fin
                 l.pop(2); // X
+            }
+            return 0;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncCoroutineContinue(IntPtr l)
+        {
+            var argcnt = l.gettop();
+            if (argcnt <= 0)
+            { // return clr.cocontinue() -- get current co's continue
+                return l.GetContinuationFunc();
+            }
+            else if (argcnt == 1 && l.isnil(1) || argcnt >= 2 && l.isnil(1) && l.isnil(2))
+            { // clr.cocontinue(nil) -- clear current co's continue
+                l.pushnil();
+                l.SetContinuationFunc(-1);
+                l.pop(1);
+                return 0;
+            }
+            else if (argcnt == 1 && l.isfunction(1))
+            { // clr.cocontinue(function()end) -- set current co's continue
+                l.SetContinuationFunc(1);
+                return 0;
+            }
+            else if (argcnt == 1)
+            { // return clr.cocontinue(co) -- get target co's continue
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                var irv = ClrFuncGetLuaCoroutine(l);
+                if (irv > 0)
+#endif
+                {
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                    var lthd = l.tothread(2);
+                    l.settop(1); // X
+#else
+                    var lthd = l;
+#endif
+                    var rv = lthd.GetContinuationFunc();
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                    if (rv > 0)
+                    {
+                        if (lthd != l)
+                        {
+                            lthd.xmove(l, rv);
+                        }
+                    }
+#endif
+                    return rv;
+                }
+            }
+            else if (l.isnil(2))
+            { // clr.cocontinue(co, nil) -- clear target co's continue
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                var irv = ClrFuncGetLuaCoroutine(l);
+                if (irv <= 0)
+                {
+                    return 0;
+                }
+                var lthd = l.tothread(argcnt + 1);
+                l.settop(argcnt); // X
+#else
+                var lthd = l;
+#endif
+                lthd.pushnil();
+                lthd.SetContinuationFunc(-1);
+                lthd.pop(1);
+            }
+            else if (l.isfunction(2))
+            { // clr.cocontinue(co, function()end) -- set target co's continue
+                if (l.isnil(1))
+                {
+                    // current thread
+                }
+                else
+                {
+#if UNITY_ENGINE || UNITY_5_3_OR_NEWER
+                    var irv = ClrFuncGetLuaCoroutine(l);
+                    if (irv <= 0)
+                    {
+                        return 0;
+                    }
+                    var lthd = l.tothread(argcnt + 1);
+                    l.settop(argcnt); // X
+                    if (lthd != l)
+                    {
+                        l.pushvalue(2);
+                        l.xmove(lthd, 1);
+                        lthd.SetContinuationFunc(-1);
+                        lthd.pop(1);
+                        return 0;
+                    }
+#endif
+                }
+                l.SetContinuationFunc(2);
             }
             return 0;
         }

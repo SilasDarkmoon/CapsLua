@@ -483,8 +483,12 @@ function unity.abort(co)
 end
 
 function unity.isrunning(co)
-    local curcoinfo, curco = clr.getucoroutine()
-    return co == curco or co == curcoinfo or co == clr.runningco()
+    if co then
+        local curcoinfo, curco = clr.getucoroutine()
+        return co == curco or co == curcoinfo or co == clr.runningco()
+    else
+        return not not clr.runningco()
+    end
 end
 
 function unity.running()
@@ -514,10 +518,33 @@ function unity.cofinally(co, func)
     end
 end
 
+function unity.cocontinue(co, func)
+    if type(co) == "function" and not func then
+        func = co
+        co = nil
+        if not clr.runningco() then
+            func()
+        else
+            clr.cocontinue(combinefunc(clr.cocontinue(), func))
+        end
+    else
+        if not co then
+            func()
+        else
+            if not clr.getucoroutine(co) then
+                func()
+            else
+                clr.cocontinue(co, combinefunc(clr.cocontinue(co), func))
+            end
+        end
+    end
+end
+
 coroutine.abort = unity.abort
 coroutine.isrunning = unity.isrunning
 coroutine.running = unity.running
 coroutine.finally = unity.cofinally
+coroutine.continue = unity.cocontinue
 
 function unity.asyncf(func)
     return function(...)

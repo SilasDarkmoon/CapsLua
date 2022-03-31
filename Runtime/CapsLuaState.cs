@@ -319,6 +319,18 @@ namespace Capstones.LuaWrap
             {
 #endif
             status = l.resume(argc);
+            while (status == 0)
+            {
+                int confuncresult = l.GetContinuationFunc();
+                if (confuncresult <= 0)
+                {
+                    break;
+                }
+                l.pushnil();
+                l.SetContinuationFunc(-1);
+                l.pop(1);
+                status = l.resume(confuncresult - 1);
+            }
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
             }
             catch (LuaStateHelper.LuaCoroutineAbortedException ea)
@@ -331,20 +343,23 @@ namespace Capstones.LuaWrap
             lar.Dispose();
 #endif
             lrr.Dispose();
-            if (status == lua.LUA_YIELD || status == 0)
+            if (!_IsDone)
             {
-                if (status == 0)
+                if (status == lua.LUA_YIELD || status == 0)
                 {
+                    if (status == 0)
+                    {
+                        _IsDone = true;
+                    }
+                }
+                else
+                {
+                    l.pushcfunction(LuaHub.LuaFuncOnError);
+                    l.insert(-2);
+                    l.pcall(1, 0, 0);
+                    l.settop(0);
                     _IsDone = true;
                 }
-            }
-            else
-            {
-                l.pushcfunction(LuaHub.LuaFuncOnError);
-                l.insert(-2);
-                l.pcall(1, 0, 0);
-                l.settop(0);
-                _IsDone = true;
             }
         }
 
@@ -365,7 +380,7 @@ namespace Capstones.LuaWrap
             // Try dispose lua-coroutine's "finally"
             {
                 var l = L;
-                l.pushlightuserdata(LuaConst.LRKEY_COROUTINE_FINALLY); // #fin
+                l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // #fin
                 l.gettable(lua.LUA_REGISTRYINDEX); // fin
                 if (l.istable(-1))
                 {
@@ -932,6 +947,50 @@ namespace Capstones.LuaWrap
         //        return false;
         //    }
         //}
+
+        internal static int GetContinuationFunc(this IntPtr l)
+        {
+            l.pushlightuserdata(LuaConst.LRKEY_CO_CONTINUE); // #con
+            l.gettable(lua.LUA_REGISTRYINDEX); // con
+            if (l.istable(-1))
+            {
+                l.pushthread(); // con thd
+                l.gettable(-2); // con func
+                l.remove(-2); // func
+                if (l.isfunction(-1))
+                {
+                    return 1;
+                }
+            }
+            l.pop(1); // X
+            return 0;
+        }
+        internal static void SetContinuationFunc(this IntPtr l, int index)
+        {
+            index = l.NormalizeIndex(index);
+            l.pushlightuserdata(LuaConst.LRKEY_CO_CONTINUE); // #con
+            l.gettable(lua.LUA_REGISTRYINDEX); // con
+            if (!l.istable(-1))
+            {
+                l.pop(1); // X
+                if (l.isnoneornil(index))
+                {
+                    return;
+                }
+                l.newtable(); // con
+                l.pushlightuserdata(LuaConst.LRKEY_CO_CONTINUE); // con #con
+                l.pushvalue(-2); // con #con con
+                l.settable(lua.LUA_REGISTRYINDEX); // con
+                l.newtable(); // con meta
+                l.PushString(LuaConst.LS_COMMON_K); // con meta "k"
+                l.SetField(-2, LuaConst.LS_META_KEY_MODE); // con meta
+                l.setmetatable(-2); // con
+            }
+            l.pushthread(); // con thd
+            l.pushvalue(index); // con thd func
+            l.settable(-3); // con
+            l.pop(1); // X
+        }
 
 #if UNITY_ENGINE || UNITY_5_3_OR_NEWER
         [ThreadStatic] internal static BiDict<IntPtr, Capstones.UnityEngineEx.CoroutineRunner.CoroutineInfo> _LuaThreadToCoroutineInfo;
