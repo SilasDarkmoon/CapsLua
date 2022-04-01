@@ -378,6 +378,7 @@ namespace Capstones.LuaWrap
         public override void Dispose()
         {
             // Try dispose lua-coroutine's "finally"
+            if (!Ref.IsClosed)
             {
                 var l = L;
                 l.pushlightuserdata(LuaConst.LRKEY_CO_FINALLY); // #fin
