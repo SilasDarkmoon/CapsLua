@@ -280,14 +280,14 @@ namespace Capstones.LuaWrap
         }
         protected internal virtual void DoResume(int oldtop)
         {
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
-            string simpleStack = L.GetSimpleStackInfo(8);
-            using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaCoroutine: " + simpleStack))
-#endif
             if (oldtop < 0)
             {
                 oldtop = L.gettop();
             }
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
+            string simpleStack = L.GetSimpleStackInfo(8);
+            using (var pcon = ProfilerContext.Create("LuaCoroutine: {0}", simpleStack))
+#endif
             ResumeRaw(oldtop);
         }
         protected internal void ResumeRaw(int oldtop)
@@ -474,7 +474,7 @@ namespace Capstones.LuaWrap
             }
         }
 
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
         protected string _ProfilerShownName;
 #endif
         protected internal override void DoResume(int oldtop)
@@ -503,7 +503,7 @@ namespace Capstones.LuaWrap
                         L.xmove(l, newtop - oldtop);
                     }
                     _L = l;
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     if (_ProfilerShownName == null)
                     {
                         System.Text.StringBuilder sbName = new System.Text.StringBuilder();
@@ -516,17 +516,17 @@ namespace Capstones.LuaWrap
                         sbName.Append(lineStart);
                         _ProfilerShownName = sbName.ToString();
                     }
-                    using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
-                    using (var pconi = new Capstones.UnityFramework.ProfilerContext("at start"))
+                    using (var pcon = ProfilerContext.Create(_ProfilerShownName))
+                    using (var pconi = ProfilerContext.Create("at start"))
 #endif
                     ResumeRaw(1);
                 }
                 else if (IsRunning)
                 {
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     string simpleStack = L.GetSimpleStackInfo(8);
-                    using (var pcon = new Capstones.UnityFramework.ProfilerContext(_ProfilerShownName))
-                    using (var pconi = new Capstones.UnityFramework.ProfilerContext(simpleStack))
+                    using (var pcon = ProfilerContext.Create(_ProfilerShownName))
+                    using (var pconi = ProfilerContext.Create(simpleStack))
 #endif
                     ResumeRaw(oldtop);
                 }

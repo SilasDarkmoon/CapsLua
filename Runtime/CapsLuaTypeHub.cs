@@ -692,7 +692,7 @@ namespace Capstones.LuaLib
                 {
                     l.PushString(LuaConst.LS_META_KEY_CALL); // tobj getter setter ttab consts tmeta __call
                     PushCallableRaw(l, _Ctor); // tobj getter setter ttab consts tmeta __call ctor
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
                     if (!t.IsValueType)
                     {
                         l.PushString("ctor of " + t.ToString());

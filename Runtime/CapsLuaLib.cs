@@ -182,7 +182,7 @@ namespace Capstones.LuaLib
         public static extern bool next(this IntPtr luaState, int index);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_objlen")]
         public static extern IntPtr objlen(this IntPtr luaState, int stackPos);
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_pcall")]
         public static extern int lua_pcall(IntPtr luaState, int nArgs, int nResults, int errfunc);
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
@@ -194,8 +194,8 @@ namespace Capstones.LuaLib
             sbName.Append(fileName);
             sbName.Append(" at ");
             sbName.Append(lineStart);
-            using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaFunc pcall"))
-            using (var pconi = new Capstones.UnityFramework.ProfilerContext(sbName.ToString()))
+            using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
+            using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
         }
 #else
@@ -431,7 +431,7 @@ namespace Capstones.LuaLib
 
         public delegate int del_lua_pcall(IntPtr luaState, int nArgs, int nResults, int errfunc);
         public static del_lua_pcall lua_pcall;
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
@@ -441,8 +441,8 @@ namespace Capstones.LuaLib
             sbName.Append(fileName);
             sbName.Append(" at ");
             sbName.Append(lineStart);
-            using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaFunc pcall"))
-            using (var pconi = new Capstones.UnityFramework.ProfilerContext(sbName.ToString()))
+            using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
+            using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
         }
 #else
@@ -758,7 +758,7 @@ namespace Capstones.LuaLib
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lua_pcall(IntPtr luaState, int nArgs, int nResults, int errfunc);
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
@@ -768,8 +768,8 @@ namespace Capstones.LuaLib
             sbName.Append(fileName);
             sbName.Append(" at ");
             sbName.Append(lineStart);
-            using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaFunc pcall"))
-            using (var pconi = new Capstones.UnityFramework.ProfilerContext(sbName.ToString()))
+            using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
+            using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
         }
 #else
@@ -1019,7 +1019,7 @@ namespace Capstones.LuaLib
         public static extern bool next(this IntPtr luaState, int index);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_objlen")]
         public static extern IntPtr objlen(this IntPtr luaState, int stackPos);
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_PCALL
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_pcall")]
         public static extern int lua_pcall(IntPtr luaState, int nArgs, int nResults, int errfunc);
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
@@ -1031,8 +1031,8 @@ namespace Capstones.LuaLib
             sbName.Append(fileName);
             sbName.Append(" at ");
             sbName.Append(lineStart);
-            using (var pcon = new Capstones.UnityFramework.ProfilerContext("LuaFunc pcall"))
-            using (var pconi = new Capstones.UnityFramework.ProfilerContext(sbName.ToString()))
+            using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
+            using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
         }
 #else

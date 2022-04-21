@@ -433,8 +433,8 @@ namespace Capstones.LuaLib
                 }
                 else
                 {
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
-                    using (var pcon = new Capstones.UnityFramework.ProfilerContext("box val of " + typeof(T).ToString()))
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
+                    using (var pcon = ProfilerContext.Create("box val of {0}", typeof(T)))
 #endif
                     h = sub.PushLua(l, val);
                 }
@@ -498,8 +498,8 @@ namespace Capstones.LuaLib
                         }
                         else
                         {
-#if ENABLE_PROFILER && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
-                            using (var pcon = new Capstones.UnityFramework.ProfilerContext("box val of " + typeof(T).ToString()))
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_GC_ALLOC
+                            using (var pcon = ProfilerContext.Create("box val of {0}", typeof(T)))
 #endif
                             sub.PushLua(l, val);
                         }

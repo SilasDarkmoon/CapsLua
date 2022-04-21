@@ -515,6 +515,13 @@ namespace Capstones.LuaLib
             return same;
         }
 
+        public static string GetLuaStackTrace(this IntPtr l)
+        {
+            l.PushLuaStackTrace();
+            var st = l.tostring(-1);
+            l.pop(1);
+            return st;
+        }
         internal static void PushLuaStackTrace(this IntPtr l)
         {
             l.checkstack(4);
