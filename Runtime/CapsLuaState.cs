@@ -512,8 +512,10 @@ namespace Capstones.LuaWrap
                         int lineStart, lineCur;
                         L.GetFuncInfo(1, out funcName, out fileName, out lineStart, out lineCur);
                         sbName.Append(fileName);
-                        sbName.Append(" at ");
+                        sbName.Append(":");
                         sbName.Append(lineStart);
+                        //sbName.Append(" ");
+                        //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
                         _ProfilerShownName = sbName.ToString();
                     }
                     using (var pcon = ProfilerContext.Create(_ProfilerShownName))
