@@ -167,6 +167,10 @@ Outputs or returns a parsable string representation of a variable.
 
 ]]
 function vardump(object, label, israw)
+    if ENABLE_PROFILER_LUA then
+        clr.beginsample("vardump")
+    end
+
     local lookupTable = {}
     local indexed = {}
     local result = {}
@@ -313,6 +317,9 @@ function vardump(object, label, israw)
     end
     _vardump(object, label, "", 1)
 
+    if ENABLE_PROFILER_LUA then
+        clr.endsample()
+    end
     return result
 end
 
@@ -322,5 +329,11 @@ function ppcall(f, ...)
         return unpack(rvs, 2, rvs.n)
     else
         return nil
+    end
+end
+
+function ccall(condition, f, ...)
+    if condition then
+        return f(...)
     end
 end

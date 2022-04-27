@@ -80,6 +80,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "updatepath");
                         L.PushString(ThreadSafeValues.LogPath);
                         L.SetField(-2, "logpath");
+                        L.pushcfunction(ClrDelFormat);
+                        L.SetField(-2, "format");
                         L.pushcfunction(ClrDelGetLangValueOfUserDataType);
                         L.SetField(-2, "trans");
                         L.pushcfunction(ClrDelGetLangValueOfStringType);
@@ -94,6 +96,12 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "lastulong");
                         L.pushcfunction(ClrDelGetLastInt64);
                         L.SetField(-2, "lastlong");
+
+                        // profiler
+                        L.pushcfunction(LuaProfileHelper.Del_ProfilerBeginSample);
+                        L.SetField(-2, "beginsample");
+                        L.pushcfunction(LuaProfileHelper.Del_ProfilerEndSample);
+                        L.SetField(-2, "endsample");
                     }
                     L.pop(1); // (empty)
 
@@ -240,6 +248,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelNewUserdata = new lua.CFunction(ClrFuncNewUserdata);
         public static readonly lua.CFunction ClrDelUserdataInfo = new lua.CFunction(ClrFuncUserdataInfo);
         public static readonly lua.CFunction ClrDelRandomState = new lua.CFunction(ClrFuncRandomState);
+        public static readonly lua.CFunction ClrDelFormat = new lua.CFunction(ClrFuncFormat);
         public static readonly lua.CFunction ClrDelGetLangValueOfUserDataType = new lua.CFunction(ClrFuncGetLangValueOfUserDataType);
         public static readonly lua.CFunction ClrDelGetLangValueOfStringType = new lua.CFunction(ClrFuncGetLangValueOfStringType);
         public static readonly lua.CFunction ClrDelUpdateLanguageConverter = new lua.CFunction(UpdateLanguageConverter);
@@ -1357,6 +1366,43 @@ namespace Capstones.LuaExt
                         Marshal.WriteInt32(ps, 24, (int)state.Caps.c);
                     }
                 }
+            }
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncFormat(IntPtr l)
+        {
+            var top = l.gettop();
+            if (top <= 0)
+            {
+                return 0;
+            }
+            if (top == 1)
+            {
+                l.pushvalue(1);
+                return 1;
+            }
+            else
+            {
+                var args = new object[top - 1];
+                for (int i = 0; i < args.Length; ++i)
+                {
+                    args[i] = l.GetLua(2 + i);
+                }
+                var format = l.GetString(1);
+                string result = null;
+                try
+                {
+                    result = string.Format(format, args);
+                }
+                catch (Exception e)
+                {
+                    l.LogError(e);
+                    l.pushvalue(1);
+                    return 1;
+                }
+                l.PushString(result);
+                return 1;
             }
         }
 

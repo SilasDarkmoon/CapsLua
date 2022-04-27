@@ -123,5 +123,54 @@ namespace Capstones.LuaLib
             }
             return l.gettop() - argc;
         }
+
+        public static readonly lua.CFunction Del_ProfilerBeginSample = new lua.CFunction(ProfilerBeginSample);
+        public static readonly lua.CFunction Del_ProfilerEndSample = new lua.CFunction(ProfilerEndSample);
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ProfilerBeginSample(IntPtr l)
+        {
+#if ENABLE_PROFILER
+            var argc = l.gettop();
+            if (argc <= 0)
+            {
+                var simplestack = l.GetSimpleStackInfo(8);
+                UnityEngine.Profiling.Profiler.BeginSample(simplestack);
+            }
+            else
+            {
+                var name = l.GetString(1);
+                if (argc == 1)
+                {
+                    UnityEngine.Profiling.Profiler.BeginSample(name);
+                }
+                else
+                {
+                    var args = new object[argc - 1];
+                    for (int i = 0; i < args.Length; ++i)
+                    {
+                        args[i] = l.GetLua(2 + i);
+                    }
+                    try
+                    {
+                        name = string.Format(name, args);
+                    }
+                    catch (Exception e)
+                    {
+                        l.LogError(e);
+                    }
+                    UnityEngine.Profiling.Profiler.BeginSample(name);
+                }
+            }
+#endif
+            return 0;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ProfilerEndSample(IntPtr l)
+        {
+#if ENABLE_PROFILER
+            UnityEngine.Profiling.Profiler.EndSample();
+#endif
+            return 0;
+        }
     }
 }

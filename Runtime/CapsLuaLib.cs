@@ -188,14 +188,22 @@ namespace Capstones.LuaLib
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
-            string funcName, fileName;
-            int lineStart, lineCur;
-            luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
-            sbName.Append(fileName);
-            sbName.Append(":");
-            sbName.Append(lineStart);
-            //sbName.Append(" ");
-            //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            if (luaState.iscfunction(-nArgs - 1))
+            {
+                sbName.Append(luaState.GetSimpleStackInfo(8));
+                sbName.Append(">[C]");
+            }
+            else
+            {
+                string funcName, fileName;
+                int lineStart, lineCur;
+                luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
+                sbName.Append(fileName);
+                sbName.Append(":");
+                sbName.Append(lineStart);
+                //sbName.Append(" ");
+                //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            }
             using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
             using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
@@ -437,14 +445,22 @@ namespace Capstones.LuaLib
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
-            string funcName, fileName;
-            int lineStart, lineCur;
-            luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
-            sbName.Append(fileName);
-            sbName.Append(":");
-            sbName.Append(lineStart);
-            //sbName.Append(" ");
-            //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            if (luaState.iscfunction(-nArgs - 1))
+            {
+                sbName.Append(luaState.GetSimpleStackInfo(8));
+                sbName.Append(">[C]");
+            }
+            else
+            {
+                string funcName, fileName;
+                int lineStart, lineCur;
+                luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
+                sbName.Append(fileName);
+                sbName.Append(":");
+                sbName.Append(lineStart);
+                //sbName.Append(" ");
+                //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            }
             using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
             using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
@@ -766,14 +782,22 @@ namespace Capstones.LuaLib
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
-            string funcName, fileName;
-            int lineStart, lineCur;
-            luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
-            sbName.Append(fileName);
-            sbName.Append(":");
-            sbName.Append(lineStart);
-            //sbName.Append(" ");
-            //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            if (luaState.iscfunction(-nArgs - 1))
+            {
+                sbName.Append(luaState.GetSimpleStackInfo(8));
+                sbName.Append(">[C]");
+            }
+            else
+            {
+                string funcName, fileName;
+                int lineStart, lineCur;
+                luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
+                sbName.Append(fileName);
+                sbName.Append(":");
+                sbName.Append(lineStart);
+                //sbName.Append(" ");
+                //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            }
             using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
             using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);
@@ -1031,14 +1055,22 @@ namespace Capstones.LuaLib
         public static int pcall(this IntPtr luaState, int nArgs, int nResults, int errfunc)
         {
             System.Text.StringBuilder sbName = new System.Text.StringBuilder();
-            string funcName, fileName;
-            int lineStart, lineCur;
-            luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
-            sbName.Append(fileName);
-            sbName.Append(":");
-            sbName.Append(lineStart);
-            //sbName.Append(" ");
-            //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            if (luaState.iscfunction(-nArgs - 1))
+            {
+                sbName.Append(luaState.GetSimpleStackInfo(8));
+                sbName.Append(">[C]");
+            }
+            else
+            {
+                string funcName, fileName;
+                int lineStart, lineCur;
+                luaState.GetFuncInfo(-nArgs - 1, out funcName, out fileName, out lineStart, out lineCur);
+                sbName.Append(fileName);
+                sbName.Append(":");
+                sbName.Append(lineStart);
+                //sbName.Append(" ");
+                //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+            }
             using (var pcon = Capstones.UnityEngineEx.ProfilerContext.Create("LuaFunc pcall"))
             using (var pconi = Capstones.UnityEngineEx.ProfilerContext.Create(sbName))
                 return lua_pcall(luaState, nArgs, nResults, errfunc);

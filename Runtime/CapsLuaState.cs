@@ -508,14 +508,16 @@ namespace Capstones.LuaWrap
                     {
                         System.Text.StringBuilder sbName = new System.Text.StringBuilder();
                         sbName.Append("LuaCoroutine in ");
-                        string funcName, fileName;
-                        int lineStart, lineCur;
-                        L.GetFuncInfo(1, out funcName, out fileName, out lineStart, out lineCur);
-                        sbName.Append(fileName);
-                        sbName.Append(":");
-                        sbName.Append(lineStart);
-                        //sbName.Append(" ");
-                        //sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+                        //string funcName, fileName;
+                        //int lineStart, lineCur;
+                        //L.GetFuncInfo(1, out funcName, out fileName, out lineStart, out lineCur);
+                        //sbName.Append(fileName);
+                        //sbName.Append(":");
+                        //sbName.Append(lineStart);
+                        ////sbName.Append(" ");
+                        ////sbName.Append(funcName); // NOTICE: we cannot get the name directly from the func.
+                        string simpleStack = L.GetSimpleStackInfo(8);
+                        sbName.Append(simpleStack);
                         _ProfilerShownName = sbName.ToString();
                     }
                     using (var pcon = ProfilerContext.Create(_ProfilerShownName))

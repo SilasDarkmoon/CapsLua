@@ -284,33 +284,38 @@ public class CapsUnityLuaBehav : MonoBehaviour
 
     private int CallLuaFuncInternal(IntPtr l, int refid, string funcname, int oldtop)
     {
-#if UNITY_EDITOR
-        if (!UnityEngine.Application.isPlaying)
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA
+        using (var pcon = ProfilerContext.Create("{0}:{1}", InitLuaPath, funcname))
+#endif
         {
+#if UNITY_EDITOR
+            if (!UnityEngine.Application.isPlaying)
+            {
+                return lua.LUA_ERRERR;
+            }
+#endif
+            l.checkstack(2);
+            var pcnt = l.gettop() - oldtop;
+            l.getref(refid); // args(*pcnt), this
+            l.GetField(-1, funcname); // args(*pcnt), this, func
+            if (l.isfunction(-1) || l.istable(-1) || l.IsUserData(-1))
+            {
+                l.insert(oldtop + 1); // func, args(*pcnt), this
+                l.insert(oldtop + 2); // func, this, args(*pcnt)
+                l.pushcfunction(LuaHub.LuaFuncOnError); // func, this, args(*pcnt), err
+                l.insert(oldtop + 1); // err, func, this, args(*pcnt)
+                var lrr = new LuaRunningStateRecorder(l);
+                var code = l.pcall(pcnt + 1, lua.LUA_MULTRET, oldtop + 1); // err, rv(*x)
+                lrr.Dispose();
+                l.remove(oldtop + 1); // rv(*x)
+                if (code != 0)
+                {
+                    DynamicHelper.LogError(l.GetLua(-1));
+                }
+                return code;
+            }
             return lua.LUA_ERRERR;
         }
-#endif
-        l.checkstack(2);
-        var pcnt = l.gettop() - oldtop;
-        l.getref(refid); // args(*pcnt), this
-        l.GetField(-1, funcname); // args(*pcnt), this, func
-        if (l.isfunction(-1) || l.istable(-1) || l.IsUserData(-1))
-        {
-            l.insert(oldtop + 1); // func, args(*pcnt), this
-            l.insert(oldtop + 2); // func, this, args(*pcnt)
-            l.pushcfunction(LuaHub.LuaFuncOnError); // func, this, args(*pcnt), err
-            l.insert(oldtop + 1); // err, func, this, args(*pcnt)
-            var lrr = new LuaRunningStateRecorder(l);
-            var code = l.pcall(pcnt + 1, lua.LUA_MULTRET, oldtop + 1); // err, rv(*x)
-            lrr.Dispose();
-            l.remove(oldtop + 1); // rv(*x)
-            if (code != 0)
-            {
-                DynamicHelper.LogError(l.GetLua(-1));
-            }
-            return code;
-        }
-        return lua.LUA_ERRERR;
     }
 
     public void CallLuaFunc(string name)
