@@ -491,18 +491,9 @@ namespace Capstones.LuaWrap
                     _IsDone = false;
                     if (ReferenceEquals(_Func, null))
                     {
+                        _IsDone = true;
                         return;
                     }
-                    L.pushnumber(Refid);
-                    var l = L.newthread();
-                    L.settable(lua.LUA_REGISTRYINDEX);
-                    l.PushLua(_Func);
-                    var newtop = L.gettop();
-                    if (newtop > oldtop)
-                    {
-                        L.xmove(l, newtop - oldtop);
-                    }
-                    _L = l;
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     if (_ProfilerShownName == null)
                     {
@@ -520,6 +511,18 @@ namespace Capstones.LuaWrap
                         sbName.Append(simpleStack);
                         _ProfilerShownName = sbName.ToString();
                     }
+#endif
+                    L.pushnumber(Refid);
+                    var l = L.newthread();
+                    L.settable(lua.LUA_REGISTRYINDEX);
+                    l.PushLua(_Func);
+                    var newtop = L.gettop();
+                    if (newtop > oldtop)
+                    {
+                        L.xmove(l, newtop - oldtop);
+                    }
+                    _L = l;
+#if ENABLE_PROFILER && ENABLE_PROFILER_LUA && ENABLE_PROFILER_LUA_DEEP && !DISABLE_PROFILER_LUA_COROUTINE
                     using (var pcon = ProfilerContext.Create(_ProfilerShownName))
                     using (var pconi = ProfilerContext.Create("at start"))
 #endif
