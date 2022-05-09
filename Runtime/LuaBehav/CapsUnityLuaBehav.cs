@@ -178,7 +178,13 @@ public class CapsUnityLuaBehav : MonoBehaviour
 
     public static BaseLua BindBehav(IntPtr l, CapsUnityLuaBehav behav, int index)
     {
+#if ENABLE_PROFILER_LUA_DEEP
+        using (var pcon = ProfilerContext.Create("LuaBehav - BindLua - ExpandExFields"))
+#endif
         ExpandExFields(l, behav, index);
+#if ENABLE_PROFILER_LUA_DEEP
+        using (var pcon = ProfilerContext.Create("LuaBehav - BindLua - require and ctor"))
+#endif
         using (var lr = new LuaStateRecover(l))
         {
             if (string.IsNullOrEmpty(behav.InitLuaPath))
@@ -745,6 +751,9 @@ public class CapsUnityLuaBehav : MonoBehaviour
         }
 #endif
         _Awaken = true;
+#if ENABLE_PROFILER_LUA_DEEP
+        using (var pcon = ProfilerContext.Create("LuaBehav - Awake - RemoveDestroyRegIndex"))
+#endif
         if (_DestroyRegIndex > 0)
         {
             RemoveDestroyRegIndex(_DestroyRegIndex);

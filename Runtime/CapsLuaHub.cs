@@ -250,6 +250,9 @@ namespace Capstones.LuaLib
 
         public static void PushLua(this IntPtr l, object val)
         {
+#if ENABLE_PROFILER_LUA_DEEP
+            using (var pcon = ProfilerContext.Create("PushLua (typeless)"))
+#endif
             if (l != IntPtr.Zero)
             {
                 if (val is LuaWrap.LuaState)
@@ -846,7 +849,7 @@ namespace Capstones.LuaLib
                 PushLua(l, val.Value);
             }
         }
-        #endregion
+#endregion
 
         public static Type GetLuaRawObjectType(this IntPtr l, int index)
         {
@@ -1952,9 +1955,9 @@ namespace Capstones.LuaLib
             }
             return;
         }
-        #endregion
+#endregion
 
-        #region Nullables
-        #endregion
+#region Nullables
+#endregion
     }
 }
