@@ -1011,7 +1011,7 @@ namespace Capstones.UnityEditorEx
                     sw.WriteLine("return hashmap");
 
                 }
-                PlatDependant.CopyFile(luafile, "Assets/StreamingAssets/CapsSpt/data/hotfixhash.lua");
+                PlatDependant.CopyFile(luafile, "Assets/StreamingAssets/spt/data/hotfixhash.lua");
             }
         }
         #endregion
