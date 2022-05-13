@@ -251,7 +251,7 @@ namespace Capstones.LuaLib
         public static void PushLua(this IntPtr l, object val)
         {
 #if ENABLE_PROFILER_LUA_DEEP
-            using (var pcon = ProfilerContext.Create("PushLua (typeless)"))
+            using (var pcon = ProfilerContext.Create("PushLua (typeless): {0}", (val == null ? "null" : val.GetType().Name)))
 #endif
             if (l != IntPtr.Zero)
             {

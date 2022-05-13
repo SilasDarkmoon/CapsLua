@@ -46,6 +46,9 @@ namespace Capstones.LuaLib
         }
         public static TypeHubBase GetTypeHub(Type type)
         {
+#if ENABLE_PROFILER_LUA_DEEP
+            using (var pcon = ProfilerContext.Create("GetTypeHub: {0}", (type == null ? "null" : type.Name)))
+#endif
             if (type != null)
             {
 #if NETFX_CORE
