@@ -149,7 +149,7 @@ end
 unity.await.when = function(func)
     coroutine.yield(clr.UnityEngine.WaitWhile(func))
 end
-setmetatable(unity.await, { __call = coroutine.yield })
+setmetatable(unity.await, { __call = function(t, ...) coroutine.yield(...) end })
 
 function unity.updateCanvases()
     UnityEngine.Canvas.ForceUpdateCanvases()
