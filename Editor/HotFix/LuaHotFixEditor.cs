@@ -1048,14 +1048,31 @@ namespace Capstones.UnityEditorEx
                     return;
 #endif
                 }
-                IsBuildingPlayer = false;
-                //LuaHotFixCodeInjector.LoadAssemblies();
-                LuaHotFixCodeInjector.LoadInternalAssemblies();
-                LuaHotFixCodeInjector.LoadDesignatedHash(LoadDesignatedHash());
-                LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
-                SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
-                LuaHotFixCodeInjector.UnloadAssemblies();
+                try
+                {
+                    //LuaHotFixCodeInjector.LoadAssemblies();
+                    LuaHotFixCodeInjector.LoadInternalAssemblies();
+                    LuaHotFixCodeInjector.LoadDesignatedHash(LoadDesignatedHash());
+                    LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
+                    if (!IsBuildingPlayer)
+                    {
+                        LuaHotFixCodeInjector.MarkInjected();
+                    }
+                    SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
+                    LuaHotFixCodeInjector.UnloadAssemblies();
+                }
+                finally
+                {
+                    IsBuildingPlayer = false;
+                }
             };
+
+#if UNITY_EDITOR && DEBUG_LUA_HOTFIX_IN_EDITOR
+            if (!LuaHotFixCodeInjector.IsInjectedMarked())
+            {
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation(UnityEditor.Compilation.RequestScriptCompilationOptions.CleanBuildCache);
+            }
+#endif
 #endif
         }
     }
