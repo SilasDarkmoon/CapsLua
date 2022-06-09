@@ -10872,6 +10872,7 @@ namespace Capstones.LuaWrap
                 }
                 else
                 {
+                    bool aotfailed = false;
                     try
                     {
                         var trans = MakeTransForTuple(typeof(TT));
@@ -10887,6 +10888,14 @@ namespace Capstones.LuaWrap
                     }
                     catch (ExecutionEngineException)
                     {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
+                    { 
                         var rv = (TL)TupleTransReflected.CreateLuaPack(t);
                         bool isValueTuple = IsValueTuple(typeof(TT));
                         var trans = new DelegatedTupleTrans();
@@ -10915,6 +10924,7 @@ namespace Capstones.LuaWrap
                 }
                 else
                 {
+                    bool aotfailed = false;
                     try
                     {
                         var trans = MakeTransForTuple(typeof(TT));
@@ -10929,6 +10939,14 @@ namespace Capstones.LuaWrap
                         }
                     }
                     catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         bool isValueTuple = IsValueTuple(typeof(TT));
                         Func<object, object> func = isValueTuple ? new Func<object, object>(TupleTransReflected.CreateValueTuple) : new Func<object, object>(TupleTransReflected.CreateTuple);
@@ -10955,12 +10973,21 @@ namespace Capstones.LuaWrap
                     {
                         return ltype;
                     }
+                    bool aotfailed = false;
                     try
                     {
                         ltype = MakeTransForTuple(t).LuaPackType;
                         return ltype;
                     }
                     catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         ltype = TupleTransReflected.GetLuaPackType(t);
                         ValueTupleTypesMap[ltype] = t;
@@ -10975,12 +11002,21 @@ namespace Capstones.LuaWrap
                     {
                         return ltype;
                     }
+                    bool aotfailed = false;
                     try
                     {
                         ltype = MakeTransForTuple(t).LuaPackType;
                         return ltype;
                     }
                     catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         ltype = TupleTransReflected.GetLuaPackType(t);
                         TupleTypesMap[ltype] = t;
@@ -10997,12 +11033,21 @@ namespace Capstones.LuaWrap
                         {
                             return ttype;
                         }
+                        bool aotfailed = false;
                         try
                         {
                             ttype = MakeTransForLuaPack(t, isValueTuple).TupleType;
                             return ttype;
                         }
                         catch (ExecutionEngineException)
+                        {
+                            aotfailed = true;
+                        }
+                        catch (System.Reflection.TargetInvocationException)
+                        {
+                            aotfailed = true;
+                        }
+                        if (aotfailed)
                         {
                             ttype = TupleTransReflected.GetValueTupleType(t);
                             ValueTupleTypesMap[ttype] = t;
@@ -11017,12 +11062,21 @@ namespace Capstones.LuaWrap
                         {
                             return ttype;
                         }
+                        bool aotfailed = false;
                         try
                         {
                             ttype = MakeTransForLuaPack(t, isValueTuple).TupleType;
                             return ttype;
                         }
                         catch (ExecutionEngineException)
+                        {
+                            aotfailed = true;
+                        }
+                        catch (System.Reflection.TargetInvocationException)
+                        {
+                            aotfailed = true;
+                        }
+                        if (aotfailed)
                         {
                             ttype = TupleTransReflected.GetTupleType(t);
                             TupleTypesMap[ttype] = t;
@@ -11035,6 +11089,7 @@ namespace Capstones.LuaWrap
                 {
                     return null;
                 }
+                return null;
             }
             public static ILuaPack ConvertToLuaPack(object t)
             {
@@ -11059,6 +11114,8 @@ namespace Capstones.LuaWrap
                             rv = trans.ConvertToLuaPack(t);
                         }
                         catch (ExecutionEngineException)
+                        { }
+                        catch (System.Reflection.TargetInvocationException)
                         { }
                     }
                     if (rv == null)
@@ -11095,6 +11152,8 @@ namespace Capstones.LuaWrap
                             rv = trans.ConvertFromLuaPack(p);
                         }
                         catch (ExecutionEngineException)
+                        { }
+                        catch (System.Reflection.TargetInvocationException)
                         { }
                     }
                     if (rv == null)
@@ -11171,13 +11230,22 @@ namespace Capstones.LuaWrap
                     else
                     {
                         var ttype = TupleTransReflected.GetTupleType(new ArraySegment<Type>(gargs), isValueTuple);
-                        DelegatedTupleTrans trans;
+                        DelegatedTupleTrans trans = null;
+                        bool aotfailed = false;
                         try
                         {
                             var gtranstype = typeof(DelegatedTupleTrans<,>).MakeGenericType(ttype, ptype);
                             trans = (DelegatedTupleTrans)Activator.CreateInstance(gtranstype);
                         }
-                        catch (System.ExecutionEngineException)
+                        catch (ExecutionEngineException)
+                        {
+                            aotfailed = true;
+                        }
+                        catch (System.Reflection.TargetInvocationException)
+                        {
+                            aotfailed = true;
+                        }
+                        if (aotfailed)
                         {
                             trans = new DelegatedTupleTrans();
                             TupleTransCache[(ttype, ptype)] = trans;
@@ -11278,6 +11346,7 @@ namespace Capstones.LuaWrap
                         , types.Array[types.Offset + 6]
                         , vrest.GetType()
                         );
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype,
@@ -11291,7 +11360,15 @@ namespace Capstones.LuaWrap
                             , vrest
                             );
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var tuple = Activator.CreateInstance(rtype);
                         for (int i = 0; i < 7; ++i)
@@ -11324,11 +11401,20 @@ namespace Capstones.LuaWrap
                         rvalues[i] = values.Array[values.Offset + i];
                     }
                     var rtype = gtype.MakeGenericType(rtypes);
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype, rvalues);
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var tuple = Activator.CreateInstance(rtype);
                         for (int i = 0; i < rvalues.Length; ++i)
@@ -11339,6 +11425,7 @@ namespace Capstones.LuaWrap
                         return tuple;
                     }
                 }
+                return null;
             }
             public static object CreateTuple(object p, bool isValueTuple)
             {
@@ -11391,6 +11478,7 @@ namespace Capstones.LuaWrap
                         , types.Array[types.Offset + 6]
                         , vrest.GetType()
                         );
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype,
@@ -11404,7 +11492,15 @@ namespace Capstones.LuaWrap
                             , vrest
                             );
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var pack = Activator.CreateInstance(rtype) as ILuaPack;
                         if (pack != null)
@@ -11436,11 +11532,20 @@ namespace Capstones.LuaWrap
                         rvalues[i] = values.Array[values.Offset + i];
                     }
                     var rtype = gtype.MakeGenericType(rtypes);
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype, rvalues);
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var pack = Activator.CreateInstance(rtype) as ILuaPack;
                         if (pack != null)
@@ -11453,6 +11558,7 @@ namespace Capstones.LuaWrap
                         return pack;
                     }
                 }
+                return null;
             }
             public static object CreateLuaPack(object t)
             {
@@ -11485,6 +11591,7 @@ namespace Capstones.LuaWrap
                         , gargs[6]
                         , vrest.GetType()
                         );
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype,
@@ -11498,7 +11605,15 @@ namespace Capstones.LuaWrap
                             , vrest
                             );
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var pack = Activator.CreateInstance(rtype) as ILuaPack;
                         if (pack != null)
@@ -11523,11 +11638,20 @@ namespace Capstones.LuaWrap
                         rvalues[i] = ttype.GetField("Item" + (i + 1)).GetValue(t);
                     }
                     var rtype = gtype.MakeGenericType(rtypes);
+                    bool aotfailed = false;
                     try
                     {
                         return Activator.CreateInstance(rtype, rvalues);
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var pack = Activator.CreateInstance(rtype) as ILuaPack;
                         if (pack != null)
@@ -11540,6 +11664,7 @@ namespace Capstones.LuaWrap
                         return pack;
                     }
                 }
+                return null;
             }
             public static Type GetTupleType(ArraySegment<Type> types, bool isValueTuple)
             {
@@ -11687,6 +11812,7 @@ namespace Capstones.LuaWrap
                 var otype = o.GetType();
                 if (IsValueTuple(otype) || IsTuple(otype))
                 {
+                    bool aotfailed = false;
                     try
                     {
                         ILuaPack lpack = TupleTrans.ConvertToLuaPack(o);
@@ -11701,7 +11827,15 @@ namespace Capstones.LuaWrap
                             return 1;
                         }
                     }
-                    catch (System.ExecutionEngineException)
+                    catch (ExecutionEngineException)
+                    {
+                        aotfailed = true;
+                    }
+                    catch (System.Reflection.TargetInvocationException)
+                    {
+                        aotfailed = true;
+                    }
+                    if (aotfailed)
                     {
                         var gargs = otype.GetGenericArguments();
                         int parcnt = 0;
@@ -11732,6 +11866,7 @@ namespace Capstones.LuaWrap
                     return 1;
                 }
             }
+            return 0;
         }
     }
 #endif
