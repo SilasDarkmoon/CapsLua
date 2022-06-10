@@ -11106,8 +11106,8 @@ namespace Capstones.LuaWrap
                 else
                 {
                     object rv = null;
-                    var trans = _TupleTransCache[(ttype, ltype)];
-                    if (trans != null)
+                    ITupleTrans trans = null;
+                    if (_TupleTransCache != null && _TupleTransCache.TryGetValue((ttype, ltype), out trans) && trans != null)
                     {
                         try
                         {
@@ -11144,8 +11144,8 @@ namespace Capstones.LuaWrap
                 else
                 {
                     object rv = null;
-                    var trans = _TupleTransCache[(ttype, ltype)];
-                    if (trans != null)
+                    ITupleTrans trans = null;
+                    if (_TupleTransCache != null && _TupleTransCache.TryGetValue((ttype, ltype), out trans) && trans != null)
                     {
                         try
                         {
