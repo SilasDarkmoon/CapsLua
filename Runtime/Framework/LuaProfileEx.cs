@@ -172,5 +172,43 @@ namespace Capstones.LuaLib
 #endif
             return 0;
         }
+
+        public static readonly lua.CFunction Del_AppendProfilerMessage = new lua.CFunction(AppendProfilerMessage);
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int AppendProfilerMessage(IntPtr l)
+        {
+#if PROFILER_EX_FRAME_TIMER
+            var argc = l.gettop();
+            if (argc <= 0)
+            {
+            }
+            else
+            {
+                var message = l.GetLua(1);
+                if (argc == 1 || !(message is string))
+                {
+                    ProfilerEx.AppendFrameTimerMessage(message);
+                }
+                else
+                {
+                    var args = new object[argc - 1];
+                    for (int i = 0; i < args.Length; ++i)
+                    {
+                        args[i] = l.GetLua(2 + i);
+                    }
+                    try
+                    {
+                        var strmess = string.Format((string)message, args);
+                        ProfilerEx.AppendFrameTimerMessage(strmess);
+                    }
+                    catch (Exception e)
+                    {
+                        l.LogError(e);
+                    }
+                }
+            }
+#endif
+            return 0;
+        }
     }
 }

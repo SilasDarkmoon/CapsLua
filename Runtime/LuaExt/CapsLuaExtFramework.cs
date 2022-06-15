@@ -102,6 +102,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "beginsample");
                         L.pushcfunction(LuaProfileHelper.Del_ProfilerEndSample);
                         L.SetField(-2, "endsample");
+                        L.pushcfunction(LuaProfileHelper.Del_AppendProfilerMessage);
+                        L.SetField(-2, "profilermess");
                     }
                     L.pop(1); // (empty)
 
