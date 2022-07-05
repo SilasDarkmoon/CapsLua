@@ -1420,17 +1420,22 @@ function import(lib)
     return require(lib)
 end
 
+function isolatedenv()
+    local env = {
+        exports = _G,
+    }
+    env["_G"] = env
+    local envmeta = {
+        __index = _G,
+        __master = clr.thislua(),
+    }
+    setmetatable(env, envmeta)
+    return env, envmeta
+end
+
 function isolate(tab, env)
     if not env then
-        env = {
-            exports = _G,
-        }
-        env["_G"] = env
-        local envmeta = {
-            __index = _G,
-            __master = clr.thislua(),
-        }
-        setmetatable(env, envmeta)
+        env = isolatedenv()
     end
     local emuthd = coroutine.create(function()
         setfenv(0, env)
