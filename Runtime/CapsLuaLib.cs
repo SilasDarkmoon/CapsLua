@@ -110,7 +110,8 @@ namespace Capstones.LuaLib
         public static extern bool checkstack(this IntPtr luaState, int extra);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_close")]
         public static extern void close(this IntPtr luaState);
-        // lua_concat
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_concat")]
+        public static extern void concat(this IntPtr luaState, int n);
         // lua_cpcall
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_createtable")]
         public static extern void createtable(this IntPtr luaState, int narr, int nrec);
@@ -327,7 +328,10 @@ namespace Capstones.LuaLib
         public static del_lua_close lua_close;
         public static void close(this IntPtr luaState) { lua_close(luaState); }
 
-        // lua_concat
+        public delegate void del_lua_concat(IntPtr luaState, int n);
+        public static del_lua_concat lua_concat;
+        public static void concat(this IntPtr luaState, int n) { lua_concat(luaState, n); }
+
         // lua_cpcall
 
         public delegate void del_lua_createtable(IntPtr luaState, int narr, int nrec);
@@ -664,7 +668,10 @@ namespace Capstones.LuaLib
         public static extern void lua_close(IntPtr luaState);
         public static void close(this IntPtr luaState) { lua_close(luaState); }
 
-        // lua_concat
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void lua_concat(IntPtr luaState, int n);
+        public static void concat(this IntPtr luaState, int n) { lua_concat(luaState, n); }
+
         // lua_cpcall
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
@@ -987,7 +994,8 @@ namespace Capstones.LuaLib
         public static extern bool checkstack(this IntPtr luaState, int extra);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_close")]
         public static extern void close(this IntPtr luaState);
-        // lua_concat
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_concat")]
+        public static extern void concat(this IntPtr luaState, int n);
         // lua_cpcall
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "lua_createtable")]
         public static extern void createtable(this IntPtr luaState, int narr, int nrec);

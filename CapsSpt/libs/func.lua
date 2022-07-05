@@ -1428,6 +1428,7 @@ function isolate(tab, env)
         env["_G"] = env
         local envmeta = {
             __index = _G,
+            __master = clr.thislua(),
         }
         setmetatable(env, envmeta)
     end

@@ -531,6 +531,32 @@ namespace Capstones.LuaLib
             l.pushnumber(2); // debug tb "" 2
             l.pcall(2, 1, 0); // debug "stack"
             l.remove(-2); // "stack"
+            if (l.pushthread())
+            {
+                l.pop(1);
+                return;
+            }
+            l.pop(1); // "stack"
+            if (!l.getmetatable(lua.LUA_GLOBALSINDEX))
+            {
+                return;
+            }
+            // "stack" envmeta
+            l.GetField(-1, "__master"); // "stack" envmeta thd
+            if (!l.isthread(-1))
+            {
+                l.pop(2);
+                return;
+            }
+            l.remove(-2); // "stack" thd
+            l.GetGlobal(LuaConst.LS_LIB_DEBUG); // "stack" thd debug
+            l.GetField(-1, LuaConst.LS_LIB_TRACEBACK); // "stack" thd debug traceback
+            l.remove(-2); // "stack" thd traceback
+            l.insert(-2); // "stack" tb thd
+            l.PushString("\nmain thread:"); // "stack" tb thd "main"
+            l.pushnumber(2); // "stack" tb thd "main" 2
+            l.pcall(3, 1, 0); // "stack" "stack2"
+            l.concat(2); // "stackfull"
         }
         public static void LogInfo(this IntPtr l, object message)
         {

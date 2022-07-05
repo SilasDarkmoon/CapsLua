@@ -945,7 +945,7 @@ namespace Capstones.LuaExt
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncCurrentLua(IntPtr l)
         {
-            l.pushlightuserdata(l);
+            l.pushthread();
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
