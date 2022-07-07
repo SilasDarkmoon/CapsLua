@@ -1181,6 +1181,10 @@ namespace Capstones.UnityEditorEx
                     {
                         if (winprog != null && AsyncWorkTimer.Check()) yield return null;
                         var srcfile = allbuildfiles[i];
+                        if (srcfile.EndsWith(".DS_Store"))
+                        {
+                            continue;
+                        }
                         if (srcfile.EndsWith(".srcinfo"))
                         {
                             continue;
@@ -1504,6 +1508,10 @@ namespace Capstones.UnityEditorEx
                 for (int i = 0; i < allbuildfiles.Length; ++i)
                 {
                     var srcfile = allbuildfiles[i];
+                    if (srcfile.EndsWith(".DS_Store"))
+                    {
+                        continue;
+                    }
                     if (srcfile.EndsWith(".srcinfo"))
                     {
                         continue;
