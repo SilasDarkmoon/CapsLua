@@ -303,100 +303,108 @@ namespace Capstones.LuaExt
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
         public static int ClrFuncConvert(IntPtr l)
         {
-            bool srcIsObj;
-            var stype = l.GetType(1, out srcIsObj);
-            Type dtype;
-            l.GetLua(2, out dtype);
-            if (dtype == null)
+            try
             {
-                return ClrFuncWrap(l);
-            }
-            else
-            {
-                if (stype == dtype)
+                bool srcIsObj;
+                var stype = l.GetType(1, out srcIsObj);
+                Type dtype;
+                l.GetLua(2, out dtype);
+                if (dtype == null)
                 {
-                    if (srcIsObj)
+                    return ClrFuncWrap(l);
+                }
+                else
+                {
+                    if (stype == dtype)
                     {
-                        l.pushvalue(1);
+                        if (srcIsObj)
+                        {
+                            l.pushvalue(1);
+                            return 1;
+                        }
+                        else
+                        {
+                            return ClrFuncWrap(l);
+                        }
+                    }
+                    else if (stype == null)
+                    {
+                        var nndtype = Nullable.GetUnderlyingType(dtype);
+                        if (nndtype != null)
+                        {
+                            l.pushnil();
+                        }
+                        else
+                        {
+                            l.PushLuaObject(null, dtype);
+                        }
                         return 1;
                     }
                     else
                     {
-                        return ClrFuncWrap(l);
-                    }
-                }
-                else if (stype == null)
-                {
-                    var nndtype = Nullable.GetUnderlyingType(dtype);
-                    if (nndtype != null)
-                    {
-                        l.pushnil();
-                    }
-                    else
-                    {
-                        l.PushLuaObject(null, dtype);
-                    }
-                    return 1;
-                }
-                else
-                {
-                    var nnstype = Nullable.GetUnderlyingType(stype);
-                    var nndtype = Nullable.GetUnderlyingType(dtype);
-                    stype = nnstype ?? stype;
-                    dtype = nndtype ?? dtype;
+                        var nnstype = Nullable.GetUnderlyingType(stype);
+                        var nndtype = Nullable.GetUnderlyingType(dtype);
+                        stype = nnstype ?? stype;
+                        dtype = nndtype ?? dtype;
 
-                    ILuaTypeHub sub = LuaTypeHub.GetTypeHub(stype);
-                    ILuaConvert nsub = sub as ILuaConvert;
-                    if (nsub != null)
-                    {
-                        var meta = nsub.GetConverter(dtype);
-                        if (meta != null)
+                        ILuaTypeHub sub = LuaTypeHub.GetTypeHub(stype);
+                        ILuaConvert nsub = sub as ILuaConvert;
+                        if (nsub != null)
                         {
-                            return meta(l, 1);
-                        }
-                    }
-                    ILuaTypeHub dsub = LuaTypeHub.GetTypeHub(dtype);
-                    nsub = dsub as ILuaConvert;
-                    if (nsub != null)
-                    {
-                        var meta = nsub.GetConverterFrom(stype);
-                        if (meta != null)
-                        {
-                            return meta(l, 1);
-                        }
-                    }
-
-                    { // NOTICE: if beblow makes bugs, restrict below to enum <-> number
-                        ILuaNative snative = sub as ILuaNative;
-                        if (snative != null)
-                        {
-                            ILuaNative dnative = dsub as ILuaNative;
-                            if (dnative != null)
+                            var meta = nsub.GetConverter(dtype);
+                            if (meta != null)
                             {
-                                if (snative.LuaType == dnative.LuaType)
+                                return meta(l, 1);
+                            }
+                        }
+                        ILuaTypeHub dsub = LuaTypeHub.GetTypeHub(dtype);
+                        nsub = dsub as ILuaConvert;
+                        if (nsub != null)
+                        {
+                            var meta = nsub.GetConverterFrom(stype);
+                            if (meta != null)
+                            {
+                                return meta(l, 1);
+                            }
+                        }
+
+                        { // NOTICE: if beblow makes bugs, restrict below to enum <-> number
+                            ILuaNative snative = sub as ILuaNative;
+                            if (snative != null)
+                            {
+                                ILuaNative dnative = dsub as ILuaNative;
+                                if (dnative != null)
                                 {
-                                    if (l.IsObject(1))
+                                    if (snative.LuaType == dnative.LuaType)
                                     {
-                                        snative.Unwrap(l, 1);
-                                        dnative.Wrap(l, -1);
-                                        l.remove(-2);
-                                        return 1;
-                                    }
-                                    else
-                                    {
-                                        dnative.Wrap(l, 1);
-                                        return 1;
+                                        if (l.IsObject(1))
+                                        {
+                                            snative.Unwrap(l, 1);
+                                            dnative.Wrap(l, -1);
+                                            l.remove(-2);
+                                            return 1;
+                                        }
+                                        else
+                                        {
+                                            dnative.Wrap(l, 1);
+                                            return 1;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            var val = l.GetLua(1);
-            l.PushLuaObject(val.ConvertTypeEx(dtype), dtype);
-            return 1;
+                var val = l.GetLua(1);
+                l.PushLuaObject(val.ConvertTypeEx(dtype), dtype);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                l.LogError(e);
+                return 0;
+            }
         }
 
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
