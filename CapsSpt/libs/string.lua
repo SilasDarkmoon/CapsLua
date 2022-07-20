@@ -473,7 +473,7 @@ function string.formatTimestampBetweenYearAndDay(timestamp)
     local year = os.date("%Y", timestamp)
     local month = os.date("%m", timestamp)
     local day = os.date("%d", timestamp)
-    return year .. lang.transstr("year") .. month .. lang.transstr("month") .. day .. lang.transstr("day")
+    return year .. clr.transstr("year") .. month .. clr.transstr("month") .. day .. clr.transstr("day")
 end
 
 --- 格式化时间戳为2018年8月21日 12:00:00
@@ -483,7 +483,7 @@ function string.formatFullDateTime(timestamp)
     local day = os.date("%d", timestamp)
     local time = os.date("%X", timestamp)
 
-    return lang.trans("full_datetime_format", year, month, day, time)
+    return clr.trans("full_datetime_format", year, month, day, time)
 end
 
 --- 转换时间为秒数
@@ -522,8 +522,8 @@ end
 --- 例：3月3日4:00
 function string.convertSecondToMonth(num)
     local timeTable = os.date("*t", num)
-    local month = timeTable.month .. lang.transstr("month")
-    local day = timeTable.day .. lang.transstr("day_1")
+    local month = timeTable.month .. clr.transstr("month")
+    local day = timeTable.day .. clr.transstr("day_1")
     local hour = timeTable.hour
     local minute = timeTable.min
     if minute == 0 then minute = minute .. "0" end
@@ -578,7 +578,7 @@ function string.convertSecondToTime(secondNum)
     local timeStr = nil
 
     if timeTable.day > 0 then
-        timeStr = timeTable.day .. lang.transstr('day') .. ' ' .. formateNum(timeTable.hour) .. ':' .. formateNum(timeTable.minute) .. ':' .. formateNum(timeTable.second)
+        timeStr = timeTable.day .. clr.transstr('day') .. ' ' .. formateNum(timeTable.hour) .. ':' .. formateNum(timeTable.minute) .. ':' .. formateNum(timeTable.second)
     else
 
         if timeTable.hour > 0 then
@@ -595,16 +595,16 @@ function string.convertSecondToTimeTrans(secondNum)
     local timeTable = string.convertSecondToTimeTable(secondNum)
     local trans = ""
     if timeTable.day > 0 then
-        trans = trans .. timeTable.day .. lang.transstr("day")
+        trans = trans .. timeTable.day .. clr.transstr("day")
     end
     if timeTable.hour > 0 then
-        trans = trans .. timeTable.hour .. lang.transstr("hour")
+        trans = trans .. timeTable.hour .. clr.transstr("hour")
     end
     if timeTable.minute > 0 then
-        trans = trans .. timeTable.minute .. lang.transstr("minute")
+        trans = trans .. timeTable.minute .. clr.transstr("minute")
     end
     if timeTable.second > 0 then
-        trans = trans .. timeTable.second .. lang.transstr("second")
+        trans = trans .. timeTable.second .. clr.transstr("second")
     end
 
     return trans
