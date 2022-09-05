@@ -6,6 +6,7 @@ local CapsUnityLuaBehav = clr.CapsUnityLuaBehav
 local EventSystem = UnityEngine.EventSystems.EventSystem
 local Mask = UnityEngine.UI.Mask
 local Canvas = UnityEngine.Canvas
+local WaitForEndOfFrame = UnityEngine.WaitForEndOfFrame
 
 res = {}
 
@@ -34,6 +35,40 @@ end
 function res.Instantiate(name)
     if type(name) == "string" then
         local prefab = ResManager.LoadRes(name)
+        if prefab then
+            local obj = Object.Instantiate(prefab)
+            if obj then
+                return obj, res.GetLuaScript(obj)
+            end
+        end
+    else
+        local tempobj = name
+        if tempobj and tempobj ~= clr.null and clr.is(tempobj, Object) then
+            local obj = Object.Instantiate(tempobj)
+            if obj then
+                if obj.GetComponent then
+                    return obj, res.GetLuaScript(obj)
+                else
+                    return obj
+                end
+            end
+        end
+    end
+end
+
+-- 异步加载
+function res.InstantiateAsync(name)
+    if type(name) == "string" then
+        local loadinfo = ResManager.LoadResAsync(name)
+        if loadinfo then
+            while not loadinfo.Done do
+                coroutine.yield(WaitForEndOfFrame())
+                if not loadinfo or loadinfo == clr.null then
+                    break
+                end
+            end
+        end
+        local prefab = loadinfo and loadinfo.Result
         if prefab then
             local obj = Object.Instantiate(prefab)
             if obj then
