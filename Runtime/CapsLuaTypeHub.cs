@@ -846,6 +846,12 @@ namespace Capstones.LuaLib
                     PushCallableRaw(l, _Ops["__le"]);
                     l.rawset(-3);
                 }
+                // TODO: == and !=
+                {
+                    l.PushString(LuaConst.LS_SP_KEY_EQ);
+                    l.pushvalue(-1);
+                    l.rawset(-3);
+                }
                 // #trans
                 l.pushlightuserdata(LuaConst.LRKEY_TYPE_TRANS); // ttab consts ometa omethods #trans
                 l.pushlightuserdata(r); // ttab consts ometa omethods #trans trans
