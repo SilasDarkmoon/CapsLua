@@ -7,6 +7,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using Capstones.UnityEngineEx;
 using Capstones.LuaLib;
 using Capstones.LuaExt;
@@ -1016,15 +1018,25 @@ namespace Capstones.UnityEditorEx
         }
         #endregion
 
-        private class LuaHotFixBuildProcessor : UnityEditor.Build.IPreprocessBuildWithReport
+        private class LuaHotFixBuildProcessor : UnityEditor.Build.IPreprocessBuildWithReport, IPostBuildPlayerScriptDLLs
         {
-            public int callbackOrder { get { return 0; } }
+            public int callbackOrder { get { return 100; } }
+
             public void OnPreprocessBuild(UnityEditor.Build.Reporting.BuildReport report)
             {
                 IsBuildingPlayer = true;
             }
+
+            public void OnPostBuildPlayerScriptDLLs(BuildReport report)
+            {
+                if (IsBuildingPlayer)
+                {
+                    FireInjectWork();
+                }
+            }
         }
         private static bool IsBuildingPlayer = false;
+        private static List<string> CompiledDlls = new List<string>();
         static LuaHotFixWriter()
         {
 #if !DISABLE_LUA_HOTFIX
@@ -1037,7 +1049,7 @@ namespace Capstones.UnityEditorEx
 #endif
                 }
                 LuaHotFixCodeInjector.AssembliesDirectory = System.IO.Path.GetDirectoryName(file);
-                LuaHotFixCodeInjector.TryLoadAssembly(file);
+                CompiledDlls.Add(file);
             };
 
             UnityEditor.Compilation.CompilationPipeline.compilationFinished += state =>
@@ -1046,24 +1058,9 @@ namespace Capstones.UnityEditorEx
                 {
 #if UNITY_EDITOR && !DEBUG_LUA_HOTFIX_IN_EDITOR
                     return;
+#else
+                    FireInjectWork();
 #endif
-                }
-                try
-                {
-                    //LuaHotFixCodeInjector.LoadAssemblies();
-                    LuaHotFixCodeInjector.LoadInternalAssemblies();
-                    LuaHotFixCodeInjector.LoadDesignatedHash(LoadDesignatedHash());
-                    LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
-                    if (!IsBuildingPlayer)
-                    {
-                        LuaHotFixCodeInjector.MarkInjected();
-                    }
-                    SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
-                    LuaHotFixCodeInjector.UnloadAssemblies();
-                }
-                finally
-                {
-                    IsBuildingPlayer = false;
                 }
             };
 
@@ -1074,6 +1071,32 @@ namespace Capstones.UnityEditorEx
             }
 #endif
 #endif
+        }
+
+        private static void FireInjectWork()
+        {
+            try
+            {
+                foreach (var file in CompiledDlls)
+                {
+                    LuaHotFixCodeInjector.TryLoadAssembly(file);
+                }
+                //LuaHotFixCodeInjector.LoadAssemblies();
+                LuaHotFixCodeInjector.LoadInternalAssemblies();
+                LuaHotFixCodeInjector.LoadDesignatedHash(LoadDesignatedHash());
+                LuaHotFixCodeInjector.Inject(ParseHotFixList(), true);
+                if (!IsBuildingPlayer)
+                {
+                    LuaHotFixCodeInjector.MarkInjected();
+                }
+                SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
+                LuaHotFixCodeInjector.UnloadAssemblies();
+            }
+            finally
+            {
+                IsBuildingPlayer = false;
+                CompiledDlls.Clear();
+            }
         }
     }
 
