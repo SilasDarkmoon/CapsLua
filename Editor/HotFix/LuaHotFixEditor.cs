@@ -1077,6 +1077,7 @@ namespace Capstones.UnityEditorEx
         {
             try
             {
+                LuaHotFixCodeInjector.CopyToDestFolder = null;
                 foreach (var file in CompiledDlls)
                 {
                     LuaHotFixCodeInjector.TryLoadAssembly(file);
@@ -1089,6 +1090,10 @@ namespace Capstones.UnityEditorEx
                 {
                     LuaHotFixCodeInjector.MarkInjected();
                 }
+                else
+                {
+                    LuaHotFixCodeInjector.CopyToDestFolder = "Temp/StagingArea/Data/Managed";
+                }
                 SaveDesignatedHash(LuaHotFixCodeInjector.DesignatedHash);
                 LuaHotFixCodeInjector.UnloadAssemblies();
             }
@@ -1096,6 +1101,7 @@ namespace Capstones.UnityEditorEx
             {
                 IsBuildingPlayer = false;
                 CompiledDlls.Clear();
+                LuaHotFixCodeInjector.CopyToDestFolder = null;
             }
         }
     }
