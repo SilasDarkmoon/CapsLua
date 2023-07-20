@@ -13,22 +13,59 @@ namespace Capstones.LuaWrap
 {
     public static class HotFixCaller
     {
-        [ThreadStatic] private static HashSet<IntPtr> _ReadyStates;
-        [ThreadStatic] private static LuaState _ThreadedLuaState;
-        [ThreadStatic] private static IntPtr _CallerLuaState;
+        public class HotFixCallerContext
+        {
+            public HashSet<IntPtr> ReadyStates;
+            public LuaState ThreadedLuaState;
+            public IntPtr CallerLuaState;
+            public HashSet<long> NonExistTokens;
+        }
+        [ThreadStatic] private static HotFixCallerContext _Context;
+#if !NET_4_6 && !NET_STANDARD_2_0
+        private static Unity.Collections.Concurrent.ConcurrentQueue<HotFixCallerContext> _CallerContexts = new Unity.Collections.Concurrent.ConcurrentQueue<HotFixCallerContext>();
+#else
+        private static System.Collections.Concurrent.ConcurrentQueue<HotFixCallerContext> _CallerContexts = new System.Collections.Concurrent.ConcurrentQueue<HotFixCallerContext>();
+#endif
+        private static HotFixCallerContext GetOrCreateContext()
+        {
+            HotFixCallerContext context;
+            if ((context = _Context) != null)
+            {
+                return context;
+            }
+            context = new HotFixCallerContext();
+            _CallerContexts.Enqueue(context);
+            _Context = context;
+            return context;
+        }
+
+        public static void ResetAllCallerContexts()
+        {
+            var contexts = _CallerContexts.ToArray();
+            for (int i = 0; i < contexts.Length; ++i)
+            {
+                var context = contexts[i];
+                System.Threading.Volatile.Write(ref context.ReadyStates, null);
+                System.Threading.Volatile.Write(ref context.ThreadedLuaState, null);
+                System.Threading.Volatile.Write(ref context.CallerLuaState, IntPtr.Zero);
+                System.Threading.Volatile.Write(ref context.NonExistTokens, null);
+            }
+        }
+
         private static volatile int _PackageVer = -1;
 
         public static IntPtr GetLuaStateForHotFix()
         {
 #if UNITY_EDITOR
-            if (_ReadyStates == null && SafeInitializerUtils.IsInitializingInUnityCtor)
+            if ((_Context == null || _Context.ReadyStates == null) && SafeInitializerUtils.IsInitializingInUnityCtor)
             {
                 return IntPtr.Zero;
             }
 #endif
-            if (_ReadyStates == null)
+            var context = GetOrCreateContext();
+            if (context.ReadyStates == null)
             {
-                _ReadyStates = new HashSet<IntPtr>();
+                context.ReadyStates = new HashSet<IntPtr>();
                 if (ThreadSafeValues.IsMainThread)
                 {
 #if UNITY_EDITOR
@@ -46,15 +83,15 @@ namespace Capstones.LuaWrap
             var running = LuaHub.RunningLuaState;
             if (running == IntPtr.Zero)
             {
-                if (ReferenceEquals(_ThreadedLuaState, null))
+                if (ReferenceEquals(context.ThreadedLuaState, null))
                 {
                     if (ThreadSafeValues.IsMainThread)
                     {
-                        running = _ThreadedLuaState = GlobalLua.L;
+                        running = context.ThreadedLuaState = GlobalLua.L;
                     }
                     else
                     {
-                        running = _ThreadedLuaState = new LuaState();
+                        running = context.ThreadedLuaState = new LuaState();
                         IntPtr l = running;
                         Assembly2Lua.Init(l);
                         Json2Lua.Init(l);
@@ -68,15 +105,15 @@ namespace Capstones.LuaWrap
                 }
                 else
                 {
-                    running = _ThreadedLuaState;
+                    running = context.ThreadedLuaState;
                 }
             }
             else
             {
-                if (_CallerLuaState != running)
+                if (context.CallerLuaState != running)
                 {
-                    _CallerLuaState = running;
-                    if (_ReadyStates.Add(running.Indicator()))
+                    context.CallerLuaState = running;
+                    if (context.ReadyStates.Add(running.Indicator()))
                     {
                         running.SetGlobal("hotfixver", _PackageVer);
                         InitHotFixRoot(running);
@@ -149,7 +186,6 @@ namespace Capstones.LuaWrap
 #endif
         }
 
-        [ThreadStatic] private static HashSet<long> _NonExistTokens;
         public static bool CallHotFixN<TIn, TOut>(long token, TIn args, out TOut result)
             where TIn : struct, ILuaPack
             where TOut : struct, ILuaPack
@@ -159,7 +195,7 @@ namespace Capstones.LuaWrap
             return false;
 #else
             result = default(TOut);
-            if (_NonExistTokens != null && _NonExistTokens.Contains(token))
+            if (_Context != null && _Context.NonExistTokens != null && _Context.NonExistTokens.Contains(token))
             {
                 return false;
             }
@@ -199,13 +235,14 @@ namespace Capstones.LuaWrap
                         }
                         else
                         {
-                            if (_NonExistTokens == null)
+                            var context = GetOrCreateContext();
+                            if (context.NonExistTokens == null)
                             {
-                                _NonExistTokens = new HashSet<long> { token };
+                                context.NonExistTokens = new HashSet<long> { token };
                             }
                             else
                             {
-                                _NonExistTokens.Add(token);
+                                context.NonExistTokens.Add(token);
                             }
                         }
                     }
