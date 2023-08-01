@@ -39,23 +39,73 @@ if clr then
     end
 end
 
+local combinedFuncReg = {}
+setmetatable(combinedFuncReg, {__mode = "k"})
+
+function getInvocationList(func)
+    return combinedFuncReg[func]
+end
+
+local function funcWithList(funcs)
+    local combined = function(...)
+        local args = table.pack(...)
+        for i = 1, #funcs do
+            local func = funcs[i]
+            if i == #funcs then
+                local results
+                xpcall(function()
+                    results = table.pack(func(table.unpack(args)))
+                end, printe)
+                if results then
+                    return table.unpack(results)
+                else
+                    return nil
+                end
+            else
+                -- TODO: combine each result.
+                xpcall(function()
+                    func(table.unpack(args))
+                end, printe)
+            end
+        end
+    end
+    combinedFuncReg[combined] = funcs
+    return combined
+end
+
 function combinefunc(...)
     local funcs = {}
     local cnt = select('#', ...)
     for i = 1, cnt do
         local func = select(i, ...)
-        funcs[#funcs + 1] = func
+        local list = getInvocationList(func)
+        if list and #list > 0 then
+            for _, item in ipairs(list) do
+                funcs[#funcs + 1] = item
+            end
+        else
+            funcs[#funcs + 1] = func
+        end
     end
 
-    return function(...)
-        for i = 1, #funcs do
-            local func = funcs[i]
-            if i == #funcs then
-                return func(...)
-            else
-                func(...) -- TODO: combine each result.
-            end
+    return funcWithList(funcs)
+end
+
+function uncombinefunc(mainfunc, subfunc)
+    local list = getInvocationList(mainfunc)
+    if not list then
+        return mainfunc
+    end
+    local funcs = {}
+    for _, item in ipairs(list) do
+        if item ~= subfunc then
+            funcs[#funcs + 1] = item
         end
+    end
+    if #funcs <= 0 then
+        return nil
+    else
+        return funcWithList(funcs)
     end
 end
 
