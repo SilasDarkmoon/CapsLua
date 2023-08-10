@@ -5245,7 +5245,17 @@ namespace Capstones.UnityEditorEx
                 if (method.Name.StartsWith("get_") || method.Name.StartsWith("set_"))
                 {
                     var pName = method.Name.Substring(4);
-                    if (method.ReflectedType.GetProperty(pName) != null)
+                    PropertyInfo pi = null;
+                    bool isIndex = false;
+                    try
+                    {
+                        pi = method.ReflectedType.GetProperty(pName);
+                    }
+                    catch (System.Reflection.AmbiguousMatchException)
+                    {
+                        isIndex = true;
+                    }
+                    if (pi != null || isIndex)
                     {
                         var attrs = method.ReflectedType.GetCustomAttributes(typeof(DefaultMemberAttribute), false);
                         if (attrs != null && attrs.Length > 0)
