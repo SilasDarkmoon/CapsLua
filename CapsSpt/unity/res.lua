@@ -172,6 +172,28 @@ function res.DestroyAllHard()
     ResManager.DestroyAllHard()
 end
 
+function res.DestroyAllHardSafe()
+    _ = nil
+    clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = res.defaultRenderPipelineAsset
+    local ddobjsraw = clr.Capstones.UnityEngineEx.DontDestroyOnLoadManager.GetAllDontDestroyOnLoadObjs()
+    local ddobjs = clr.table(ddobjsraw)
+    local destroyHandlers = clr.table(clr.Capstones.UnityEngineEx.ResManager.DestroyHandlers)
+    for i, v in ipairs(destroyHandlers) do
+        v:PreDestroy(ddobjsraw)
+    end
+    for i, v in ipairs(ddobjs) do
+        Object.Destroy(v)
+    end
+    res.DestroyAll()
+end
+
+function res.RestoreAfterDestroyAllHardSafe()
+    local _ = clr.StackingMainCamera.Instance
+    clr.Capstones.UnityEngineEx.UIResManager.FindUICamera()
+    require("ui.debug.DebugEntry").Init()
+    luaevt.trig("___EVENT__SHOW_CHANGE_SERVER_BUTTON")
+end
+
 function res.Cleanup()
     ResManager.Cleanup()
 end
