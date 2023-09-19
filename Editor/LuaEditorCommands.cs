@@ -24,6 +24,11 @@ namespace Capstones.UnityEditorEx
             if (go != null && string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
             {
                 GlobalLua.L.L.SetGlobal("___EDITOR_TEMP_PUSHED", go);
+                Debug.Log("Pushed to Lua. Use ___EDITOR_TEMP_PUSHED to access this GameObject.");
+            }
+            else
+            {
+                Debug.Log("Nothing is pushed. Check your selection.");
             }
         }
 
@@ -34,6 +39,11 @@ namespace Capstones.UnityEditorEx
             if (comp != null && string.IsNullOrEmpty(AssetDatabase.GetAssetPath(comp)))
             {
                 GlobalLua.L.L.SetGlobal("___EDITOR_TEMP_PUSHED", comp);
+                Debug.Log("Pushed to Lua. Use ___EDITOR_TEMP_PUSHED to access this Component.");
+            }
+            else
+            {
+                Debug.Log("Nothing is pushed. Check your selection.");
             }
         }
 
@@ -44,6 +54,11 @@ namespace Capstones.UnityEditorEx
             if (selection != null && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(selection)))
             {
                 GlobalLua.L.L.SetGlobal("___EDITOR_TEMP_PUSHED", selection);
+                Debug.Log("Pushed to Lua. Use ___EDITOR_TEMP_PUSHED to access this Asset.");
+            }
+            else
+            {
+                Debug.Log("Nothing is pushed. Check your selection.");
             }
         }
     }
