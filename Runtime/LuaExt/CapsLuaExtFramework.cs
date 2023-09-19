@@ -68,6 +68,8 @@ namespace Capstones.LuaExt
                         L.SetField(-2, "luastr");
                         L.pushcfunction(ClrDelCurrentLua);
                         L.SetField(-2, "thislua");
+                        L.pushcfunction(ClrDelGetLuaRegistry);
+                        L.SetField(-2, "luareg");
                         L.pushcfunction(ClrDelToPointer);
                         L.SetField(-2, "topointer");
                         L.pushcfunction(ClrDelNewUserdata);
@@ -246,6 +248,7 @@ namespace Capstones.LuaExt
         public static readonly lua.CFunction ClrDelFormatLuaString = new lua.CFunction(ClrFuncFormatLuaString);
         public static readonly lua.CFunction ClrDelFormatJsonString = new lua.CFunction(ClrFuncFormatJsonString);
         public static readonly lua.CFunction ClrDelCurrentLua = new lua.CFunction(ClrFuncCurrentLua);
+        public static readonly lua.CFunction ClrDelGetLuaRegistry = new lua.CFunction(ClrFuncGetLuaRegistry);
         public static readonly lua.CFunction ClrDelToPointer = new lua.CFunction(ClrFuncToPointer);
         public static readonly lua.CFunction ClrDelNewUserdata = new lua.CFunction(ClrFuncNewUserdata);
         public static readonly lua.CFunction ClrDelUserdataInfo = new lua.CFunction(ClrFuncUserdataInfo);
@@ -946,6 +949,12 @@ namespace Capstones.LuaExt
         public static int ClrFuncCurrentLua(IntPtr l)
         {
             l.pushthread();
+            return 1;
+        }
+        [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
+        public static int ClrFuncGetLuaRegistry(IntPtr l)
+        {
+            l.pushvalue(lua.LUA_REGISTRYINDEX);
             return 1;
         }
         [AOT.MonoPInvokeCallback(typeof(lua.CFunction))]
