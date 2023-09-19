@@ -481,6 +481,28 @@ local function class_isTypeOf(inst, parent)
     return class_isSubClassOf(cls, parent)
 end
 
+function regcinst(instance)
+    local reg = _G["@cinstreg"]
+    if not reg then
+        reg = {}
+        setmetatable(reg, { __mode = "k" })
+        _G["@cinstreg"] = reg
+    else
+        for k, v in pairs(reg) do
+            if k == clr.null then
+                --local kc = k.class
+                for ki, vi in pairs(k) do
+                    if type(ki) ~= "userdata" then
+                        k[ki] = nil
+                    end
+                end
+                reg[k] = nil
+            end
+        end
+    end
+    reg[instance] = true
+end
+
 --[[--
 
 Create an class.
@@ -616,6 +638,7 @@ function class(super, classname)
     cls.isTypeOf = class_isTypeOf
 
     function cls.attach(instance, ...)
+        regcinst(instance)
         for k,v in pairs(cls) do instance[k] = v end
         instance.class = cls
         instance:ctor(...)

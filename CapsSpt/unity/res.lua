@@ -172,6 +172,32 @@ function res.DestroyAllHard()
     ResManager.DestroyAllHard()
 end
 
+function res.WaitForCodeGC()
+    local isGCPaused = clr.UnityEngine.Scripting.GarbageCollector.GCMode == clr.UnityEngine.Scripting.GarbageCollector.Mode.Disabled
+    if isGCPaused then
+        clr.UnityEngine.Scripting.GarbageCollector.GCMode = clr.UnityEngine.Scripting.GarbageCollector.Mode.Enabled
+    end
+    collectgarbage("restart")
+
+    local man = clr.Capstones.LuaWrap.LuaThreadRefHelper.GetOrCreateRefMan(clr.topointer(clr.thislua()))
+
+    for i = 1, 3 do
+        clr.System.GC.Collect()
+        collectgarbage()
+        if not clr.UnityEngine.Application.isEditor then
+            if clr.UnityEngine.Scripting.GarbageCollector.isIncremental then
+                while clr.UnityEngine.Scripting.GarbageCollector.CollectIncremental(10000000) do
+                end
+            end
+        end
+        man["@npub"]:DoPendingRecycle()
+    end
+
+    if isGCPaused then
+        clr.UnityEngine.Scripting.GarbageCollector.GCMode = clr.UnityEngine.Scripting.GarbageCollector.Mode.Disabled
+    end
+end
+
 function res.DestroyAllHardSafe()
     _ = nil
     clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = res.defaultRenderPipelineAsset
@@ -185,6 +211,47 @@ function res.DestroyAllHardSafe()
         Object.Destroy(v)
     end
     res.DestroyAll()
+
+    local reg = _G["@cinstreg"]
+    if reg then
+        for k, v in pairs(reg) do
+            if k == clr.null then
+                --local kc = k.class
+                for ki, vi in pairs(k) do
+                    if type(ki) ~= "userdata" then
+                        k[ki] = nil
+                    end
+                end
+                reg[k] = nil
+            end
+        end
+    end
+
+    res.WaitForCodeGC()
+
+    -- local list = clr.table(clr.Capstones.LuaWrap.LuaRef.AliveRefids)
+    -- local map = {}
+    -- for i, v in ipairs(list) do
+    --     map[v] = true
+    -- end
+    -- if not ___TEMP__DEBUG_LIST_REFIDS then
+    --     ___TEMP__DEBUG_LIST_REFIDS = map
+    -- else
+    --     local old = ___TEMP__DEBUG_LIST_REFIDS
+    --     ___TEMP__DEBUG_LIST_REFIDS = map
+    --     local delta = {}
+    --     for k, v in pairs(map) do
+    --         if not old[k] then
+    --             delta[#delta + 1] = k
+    --         end
+    --     end
+    --     for i, v in ipairs(delta) do
+    --         clr.Capstones.LuaWrap.LuaRef.TrackRefid(v)
+    --     end
+    --     if next(delta) then
+    --         dumpe(delta, "DeltaRefids")
+    --     end
+    -- end
 end
 
 function res.RestoreAfterDestroyAllHardSafe()
