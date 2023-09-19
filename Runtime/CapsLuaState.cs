@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define DEBUG_LOG_REFIDS
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -663,6 +664,42 @@ namespace Capstones.LuaWrap
 
     public class LuaRef : IDisposable
     {
+#if DEBUG_LOG_REFIDS
+        [ThreadStatic] public static HashSet<int> AliveRefids;
+        [ThreadStatic] public static HashSet<int> TrackingRefids;
+        [ThreadStatic] public static Dictionary<int, string> PersistentRefidReason;
+#endif
+        public static void TrackRefid(int r)
+        {
+#if DEBUG_LOG_REFIDS
+            var set = TrackingRefids = TrackingRefids ?? new HashSet<int>();
+            set.Add(r);
+#endif
+        }
+        public static HashSet<int> GetTrackingRefids()
+        {
+#if DEBUG_LOG_REFIDS
+            return TrackingRefids;
+#else
+            return null;
+#endif
+        }
+        public static void RegPersistentRefid(int r, string reason)
+        {
+#if DEBUG_LOG_REFIDS
+            var dict = PersistentRefidReason = PersistentRefidReason ?? new Dictionary<int, string>();
+            dict[r] = reason;
+#endif
+        }
+        public static Dictionary<int, string> GetPersistentRefids()
+        {
+#if DEBUG_LOG_REFIDS
+            return PersistentRefidReason;
+#else
+            return null;
+#endif
+        }
+
         internal IntPtr l;
         internal int r;
         internal int lr;
@@ -676,6 +713,17 @@ namespace Capstones.LuaWrap
                 if (r != 0)
                 {
                     l.unref(r);
+#if DEBUG_LOG_REFIDS
+                    if (AliveRefids != null)
+                    {
+                        AliveRefids.Remove(r);
+                    }
+                    if (TrackingRefids != null)
+                    {
+                        TrackingRefids.Remove(r);
+                    }
+                    LuaHub.LogError(l, "Releasing Refid: " + r + "!. ");
+#endif
                 }
             }
         }
@@ -714,7 +762,25 @@ namespace Capstones.LuaWrap
         public int Refid
         {
             get { return r; }
-            set { r = value; }
+            set
+            {
+                r = value;
+#if DEBUG_LOG_REFIDS
+                if (value != 0)
+                {
+                    AliveRefids = AliveRefids ?? new HashSet<int>();
+                    AliveRefids.Add(value);
+                    if (L == IntPtr.Zero)
+                    {
+                        UnityEngine.Debug.LogErrorFormat("Setting Refid: {0}!.. ", value);
+                    }
+                    else
+                    {
+                        LuaHub.LogError(L, "Setting Refid: " + value + "!. ");
+                    }
+                }
+#endif
+            }
         }
 
         internal LuaRef()
@@ -774,10 +840,48 @@ namespace Capstones.LuaWrap
                 return man;
             }
         }
+        public static void DisposeRefMan(this IntPtr l)
+        {
+            l.checkstack(1);
+            l.pushlightuserdata(LuaConst.LRKEY_REF_MAN); // #man
+            l.gettable(lua.LUA_REGISTRYINDEX); // man
+            if (l.isuserdata(-1))
+            {
+                LuaThreadRefMan man = null;
+                try
+                {
+                    IntPtr pud = l.touserdata(-1);
+                    if (pud != IntPtr.Zero)
+                    {
+                        IntPtr hval = Marshal.ReadIntPtr(pud);
+                        GCHandle handle = (GCHandle)hval;
+                        man = handle.Target as LuaThreadRefMan;
+                    }
+                }
+                catch { }
+                if (man != null)
+                {
+                    man.Close();
+                }
+                l.pop(1); // X
+                l.pushlightuserdata(LuaConst.LRKEY_REF_MAN); // #man
+                l.pushnil(); // #man nil
+                l.settable(lua.LUA_REGISTRYINDEX); // X
+            }
+            else
+            {
+                l.pop(1); // X
+            }
+        }
     }
 
     public static class LuaStateHelper
     {
+        public static void DisposeRefMan(this IntPtr l)
+        {
+            LuaThreadRefHelper.DisposeRefMan(l);
+        }
+
         public static bool GetHierarchicalRaw(this IntPtr l, int index, string key)
         {
             if (string.IsNullOrEmpty(key))
