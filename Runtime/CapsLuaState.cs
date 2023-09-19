@@ -691,6 +691,24 @@ namespace Capstones.LuaWrap
             dict[r] = reason;
 #endif
         }
+        public static void RegPersistentRefid<T>(int r, string reasonformat, T t)
+        {
+#if DEBUG_LOG_REFIDS
+            RegPersistentRefid(r, string.Format(reasonformat, t));
+#endif
+        }
+        public static void RegPersistentRefid<T0, T1>(int r, string reasonformat, T0 t0, T1 t1)
+        {
+#if DEBUG_LOG_REFIDS
+            RegPersistentRefid(r, string.Format(reasonformat, t0, t1));
+#endif
+        }
+        public static void RegPersistentRefid<T0, T1, T2>(int r, string reasonformat, T0 t0, T1 t1, T2 t2)
+        {
+#if DEBUG_LOG_REFIDS
+            RegPersistentRefid(r, string.Format(reasonformat, t0, t1, t2));
+#endif
+        }
         public static Dictionary<int, string> GetPersistentRefids()
         {
 #if DEBUG_LOG_REFIDS
