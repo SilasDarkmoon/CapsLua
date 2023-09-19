@@ -682,6 +682,19 @@ namespace Capstones.LuaExt
                     }
                     return 1;
                 }
+                var eobj = obj.ConvertType<IEnumerable>();
+                if (eobj != null)
+                {
+                    l.newtable();
+                    int cnt = 0;
+                    foreach (var item in eobj)
+                    {
+                        l.pushnumber(++cnt);
+                        l.PushLua(item);
+                        l.settable(-3);
+                    }
+                    return 1;
+                }
                 //if (l.isuserdata(1))
                 //{
                 //    l.getfenv(1); // ud, ex
