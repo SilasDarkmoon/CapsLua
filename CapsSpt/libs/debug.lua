@@ -337,3 +337,20 @@ function ccall(condition, f, ...)
         return f(...)
     end
 end
+
+function debug.mem()
+    return collectgarbage("count")
+end
+
+function debug.regcnt()
+    local reg = clr.luareg()
+    local cnt = 0
+    for k, v in pairs(reg) do
+        if type(k) == "number" then
+            if type(v) ~= "number" then
+                cnt = cnt + 1
+            end
+        end
+    end
+    return cnt
+end
