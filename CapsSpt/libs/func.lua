@@ -488,17 +488,17 @@ function regcinst(instance)
         setmetatable(reg, { __mode = "k" })
         _G["@cinstreg"] = reg
     else
-        for k, v in pairs(reg) do
-            if k == clr.null then
-                --local kc = k.class
-                for ki, vi in pairs(k) do
-                    if type(ki) ~= "userdata" then
-                        k[ki] = nil
-                    end
-                end
-                reg[k] = nil
-            end
-        end
+        -- for k, v in pairs(reg) do
+        --     if k == clr.null then
+        --         --local kc = k.class
+        --         for ki, vi in pairs(k) do
+        --             if type(ki) ~= "userdata" then
+        --                 k[ki] = nil
+        --             end
+        --         end
+        --         reg[k] = nil
+        --     end
+        -- end
     end
     reg[instance] = true
 end
