@@ -482,6 +482,9 @@ local function class_isTypeOf(inst, parent)
 end
 
 function regcinst(instance)
+    if clr.CapsUnityLuaBehav.WillAutoDisposeLuaBinding then
+        return
+    end
     local reg = _G["@cinstreg"]
     if not reg then
         reg = {}

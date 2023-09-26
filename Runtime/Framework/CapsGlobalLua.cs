@@ -368,6 +368,7 @@ namespace Capstones.UnityEngineEx
             if (!object.ReferenceEquals(L, null))
             {
                 L.L.gc(2, 0);
+                L.L.GetOrCreateRefMan().DoPendingRecycle();
             }
         }
 

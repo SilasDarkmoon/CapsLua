@@ -288,6 +288,27 @@ public class CapsUnityLuaBehav : MonoBehaviour
         }
     }
 
+    public static void DisposeLuaBinding(BaseLua binding)
+    {
+        IntPtr l;
+        int refid;
+        if (!binding.IsClosed && (l = binding.L) != IntPtr.Zero && (refid = binding.Refid) != 0)
+        {
+            l.getref(refid);
+            l.ForEach(-1, lstack =>
+            {
+                lstack.pushvalue(-2);
+                lstack.pushnil();
+                lstack.rawset(-5);
+            });
+            l.pushnil();
+            l.setmetatable(-2);
+            l.pop(1);
+        }
+    }
+
+    public static bool WillAutoDisposeLuaBinding = true;
+
     private int CallLuaFuncInternal(IntPtr l, int refid, string funcname, int oldtop)
     {
 #if ENABLE_PROFILER && ENABLE_PROFILER_LUA
@@ -782,6 +803,7 @@ public class CapsUnityLuaBehav : MonoBehaviour
             CallLuaFunc("onDestroy");
             if (!object.ReferenceEquals(_Self, null))
             {
+                DisposeLuaBinding(_Self);
                 _Self.Dispose();
                 _Self = null;
             }

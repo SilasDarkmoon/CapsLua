@@ -2645,7 +2645,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2671,7 +2671,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2697,7 +2697,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     l.pushnil();
                     while (l.next(-2))
@@ -2727,7 +2727,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2756,7 +2756,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2784,7 +2784,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)
@@ -2812,7 +2812,7 @@ namespace Capstones.LuaWrap
                 {
                     l.pushvalue(index);
                 }
-                if (l.istable(index))
+                if (l.istable(-1))
                 {
                     var cnt = l.getn(-1);
                     for (int i = 1; i <= cnt; ++i)

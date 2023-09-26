@@ -173,11 +173,17 @@ function res.DestroyAllHard()
 end
 
 function res.WaitForCodeGC()
+    collectgarbage("restart")
+    
+    if clr.Capstones.UnityEngineEx.ResManager.GarbageCollector.FireAndWaitCodeGC then
+        clr.Capstones.UnityEngineEx.ResManager.GarbageCollector.FireAndWaitCodeGC()
+        return
+    end
+
     local isGCPaused = clr.UnityEngine.Scripting.GarbageCollector.GCMode == clr.UnityEngine.Scripting.GarbageCollector.Mode.Disabled
     if isGCPaused then
         clr.UnityEngine.Scripting.GarbageCollector.GCMode = clr.UnityEngine.Scripting.GarbageCollector.Mode.Enabled
     end
-    collectgarbage("restart")
 
     local man = clr.Capstones.LuaWrap.LuaThreadRefHelper.GetOrCreateRefMan(clr.topointer(clr.thislua()))
 
@@ -201,28 +207,35 @@ end
 function res.DestroyAllHardSafe()
     _ = nil
     clr.UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = res.defaultRenderPipelineAsset
-    local ddobjsraw = clr.Capstones.UnityEngineEx.DontDestroyOnLoadManager.GetAllDontDestroyOnLoadObjs()
-    local ddobjs = clr.table(ddobjsraw)
-    local destroyHandlers = clr.table(clr.Capstones.UnityEngineEx.ResManager.DestroyHandlers)
-    for i, v in ipairs(destroyHandlers) do
-        v:PreDestroy(ddobjsraw)
-    end
-    for i, v in ipairs(ddobjs) do
-        Object.Destroy(v)
-    end
-    res.DestroyAll()
 
-    local reg = _G["@cinstreg"]
-    if reg then
-        for k, v in pairs(reg) do
-            if k == clr.null then
-                --local kc = k.class
-                for ki, vi in pairs(k) do
-                    if type(ki) ~= "userdata" then
-                        k[ki] = nil
+    if clr.Capstones.UnityEngineEx.ResManager.DestroyAllHardSafe then
+        clr.Capstones.UnityEngineEx.ResManager.DestroyAllHardSafe()
+    else
+        local ddobjsraw = clr.Capstones.UnityEngineEx.DontDestroyOnLoadManager.GetAllDontDestroyOnLoadObjs()
+        local ddobjs = clr.table(ddobjsraw)
+        local destroyHandlers = clr.table(clr.Capstones.UnityEngineEx.ResManager.DestroyHandlers)
+        for i, v in ipairs(destroyHandlers) do
+            v:PreDestroy(ddobjsraw)
+        end
+        for i, v in ipairs(ddobjs) do
+            Object.Destroy(v)
+        end
+        res.DestroyAll()
+    end
+
+    if not clr.CapsUnityLuaBehav.WillAutoDisposeLuaBinding then
+        local reg = _G["@cinstreg"]
+        if reg then
+            for k, v in pairs(reg) do
+                if k == clr.null then
+                    --local kc = k.class
+                    for ki, vi in pairs(k) do
+                        if type(ki) ~= "userdata" then
+                            k[ki] = nil
+                        end
                     end
+                    reg[k] = nil
                 end
-                reg[k] = nil
             end
         end
     end
