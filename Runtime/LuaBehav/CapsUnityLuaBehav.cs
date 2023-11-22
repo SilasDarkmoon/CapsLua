@@ -301,7 +301,9 @@ public class CapsUnityLuaBehav : MonoBehaviour
                 lstack.pushnil();
                 lstack.rawset(-5);
             });
-            l.pushnil();
+            l.newtable();
+            l.PushCommonEqFunc();
+            l.RawSet(-2, LuaConst.LS_META_KEY_EQ);
             l.setmetatable(-2);
             l.pop(1);
         }
