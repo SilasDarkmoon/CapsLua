@@ -1,12 +1,15 @@
 {
     "name": "CapsLuaEditor",
+    "rootNamespace": "",
     "references": [
         "CapsLua",
         "ResManagerEditor",
         "ResManagerEditorEntry",
         "ResManager",
         "ResManagerEntry",
-        "ResManagerEditor.ResBuilder"
+        "ResManagerEditor.ResBuilder",
+        "CapsMods",
+        "CapsModsEditor"
     ],
     "includePlatforms": [
         "Editor"

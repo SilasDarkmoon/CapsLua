@@ -1,17 +1,20 @@
 {
     "name": "CapsLua",
+    "rootNamespace": "",
     "references": [
         "Unity.IO.Compression",
         "ResManager",
         "JsonObject",
-        "ResManagerEntry"
+        "ResManagerEntry",
+        "CapsMods"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
